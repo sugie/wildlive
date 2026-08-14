@@ -40,11 +40,12 @@ Exact formulas, tables, and content lists are still open — see
 
 ## Phase 3 — Domain / DB design
 
-- [ ] minimal ER model
+- [x] minimal ER model ([`docs/ER_MODEL.md`](ER_MODEL.md))
 - [ ] migrations
 - [ ] integrity constraints
 - [ ] concurrency rules
-- [ ] World First transaction design
+- [ ] World First transaction design (scope of the mechanic itself is
+  still open — see [`DECISIONS_PENDING.md`](DECISIONS_PENDING.md))
 
 ## Phase 4 — REST API design
 

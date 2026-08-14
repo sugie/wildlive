@@ -54,6 +54,34 @@ old list is traceable:
 - Seasonal Event content, cadence, and formulas.
 - Historical / event provenance schema on `Animal`.
 
+## ER-model open questions (from [`ER_MODEL.md`](ER_MODEL.md))
+
+Design questions raised while translating ADR-0002 into a minimal
+entity model. Must be answered before a migration is written:
+
+- `HunterContract → Expedition` cardinality: 1:1 (one expedition per
+  contract) or 1:N (a contract can host several expeditions during
+  its window)? Depends on the still-open contract-duration decision.
+- `Expedition.outcome` — coarse enum only, or a richer JSON payload
+  that captures resolution reasoning?
+- `Animal.status` — is `released` reversible back to `in_zoo`, or a
+  terminal state? Current ER-model default assumes one-way.
+- Released `Animal` — row retained with `zoo_id = NULL`, or row
+  deleted? Default assumption is *retained* (for provenance and Zoo
+  Value history).
+- `HunterContract` — do we carry a denormalised `is_active` column,
+  or is `ended_at IS NULL` the sole source of truth?
+- `SeasonalEvent` — numeric `code`, stable `slug`, both, or neither?
+- Whether `Expedition` carries a `hunter_contract_id` FK, or the
+  link is inferred at query time from `(player_id, hunter_id,
+  timestamp window)`.
+- Whether a `Guild` table is introduced (currently the pool is the
+  set of `Hunter` rows; a `guild_id` FK would be added additively
+  if needed).
+- When the `G` currency subsystem is designed, whether it lives as a
+  per-`Player` `Wallet` balance plus an append-only `GLedger`, or
+  as some other shape.
+
 ## Multiplayer — still open
 
 - World First eligibility (whether the mechanic is kept at all).

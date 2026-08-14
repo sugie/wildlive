@@ -4,10 +4,23 @@
 > database specification. Where anything here conflicts with
 > [`docs/adr/0002-game-system-foundation.md`](adr/0002-game-system-foundation.md),
 > ADR-0002 wins.
+>
+> **See also** [`docs/ER_MODEL.md`](ER_MODEL.md) — the minimal ER
+> model. That document fixes the entity set, relationships,
+> cardinality, and PostgreSQL-level concurrency invariants. This file
+> remains the *conceptual* workspace; `ER_MODEL.md` is the *structural*
+> contract that a future migration task must respect. Where the two
+> disagree, `ER_MODEL.md` wins (and the discrepancy should be fixed
+> here).
 
 The concrete database schema, columns, and constraints are still to be
 designed in a later task. Do **not** treat this file as authorisation
 to create migrations.
+
+**Note on naming.** Earlier notes used `User` for the account entity.
+`docs/ER_MODEL.md` renames it to `Player`, matching the game
+vocabulary. Both refer to the same aggregate; treat any remaining
+`User` mention here as `Player`.
 
 ## Likely aggregates / entities
 

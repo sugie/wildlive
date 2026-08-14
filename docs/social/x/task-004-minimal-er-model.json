@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "task": "Task 004",
+  "slug": "minimal-er-model",
+  "post_on_merge": true,
+  "ja": "WildLive、ゲーム設計から DB 設計へ。最小 ER モデル (9 entity) を定義しました。",
+  "en": "WildLive moved from game design into DB design. The minimal ER model (9 entities) is now defined."
+}
