@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 004 — the minimal ER model that translates the ADR-0002 game system into a PostgreSQL-shaped entity design, without deciding open game-design questions.">
+<title>Task 004 — Minimal ER Model · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-004-minimal-er-model.html">日本語版</a>
+</nav>
+
+<h1>Task 004 — Minimal ER Model</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) defined the WildLive game
+  mechanics in ADR-0002.</strong> In this task the AI translated only
+  those confirmed mechanics into a minimal database/domain model, and
+  explicitly refused to decide any of the game-design questions still
+  listed as open in
+  <code>docs/DECISIONS_PENDING.md</code>. Where a shape was ambiguous
+  (for example, whether one Hunter contract may host many
+  expeditions), the AI recorded the ambiguity as a new open question
+  rather than picking a side.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Complete the first item of Phase 3 in
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/ROADMAP.md"><code>docs/ROADMAP.md</code></a>
+  — a <em>minimal ER model</em> — while implementing no migration,
+  no Eloquent model, no controller, no endpoint, and no game rule.
+  The output is a design contract that a later migration task must
+  respect.
+</p>
+
+<h2>What the AI did</h2>
+<ol>
+  <li>Read the authoritative documents (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/adr/0002-game-system-foundation.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>).</li>
+  <li>Created branch <code>ai/006-minimal-er-model</code> from clean <code>main</code>.</li>
+  <li>Wrote <a href="https://github.com/sugie/wildlive/blob/main/docs/ER_MODEL.md"><code>docs/ER_MODEL.md</code></a>: purpose, scope, nine entities, Mermaid diagram, relationships/cardinality table, concurrency and transaction-boundary rules, lifecycle table, immutable/mutable field split, server-authoritative data, fields required by ADR-0002, fields deliberately TBD, open questions surfaced by the design, and explicit non-goals.</li>
+  <li>Renamed the account entity from <code>User</code> (old working-notes name) to <strong><code>Player</code></strong>, aligned with the game vocabulary. Documented the rename in <code>docs/DOMAIN_MODEL.md</code> so no duplicate concept exists.</li>
+  <li>Marked "minimal ER model" as done in <code>docs/ROADMAP.md</code> Phase 3, with a link to <code>ER_MODEL.md</code>.</li>
+  <li>Appended new ER-model-specific open questions to <code>docs/DECISIONS_PENDING.md</code> (contract↔expedition cardinality, outcome payload shape, released-Animal handling, denormalised active flags, etc.).</li>
+  <li>Wrote this bilingual pair of reports, updated <code>docs/reports/index.html</code>, and added the X Development Live manifest at <code>docs/social/x/task-004-minimal-er-model.json</code>. Manifest dry-run confirmed <strong>244 weighted characters</strong> (cap 280) before commit.</li>
+</ol>
+
+<h2>Entities defined</h2>
+<ol>
+  <li><code>Player</code> — the account. Owns exactly one <code>Zoo</code>.</li>
+  <li><code>Zoo</code> — the player's persistent collection surface.</li>
+  <li><code>Species</code> — global master data for a real-world animal species.</li>
+  <li><code>Animal</code> — a single captured individual, distinct from <code>Species</code>.</li>
+  <li><code>Hunter</code> — an NPC that can be contracted from the shared Guild pool.</li>
+  <li><code>HunterContract</code> — represents a <code>Player</code> currently holding a <code>Hunter</code>; enforces shared-scarce exclusivity.</li>
+  <li><code>Region</code> — a place a <code>Hunter</code> can be dispatched to.</li>
+  <li><code>Expedition</code> — a time-bounded assignment of a <code>Hunter</code> to a <code>Region</code> for a <code>Player</code>.</li>
+  <li><code>SeasonalEvent</code> — a bounded-time modifier of appearance rates, rare-trait rates, or Region state.</li>
+</ol>
+<p>
+  <em>Guild is not modelled as its own entity yet</em> — the "Guild pool" is the implicit set of <code>Hunter</code> rows and the shared-scarce rule is expressed through <code>HunterContract</code>. A <code>Guild</code> table can be added additively later if multiple guilds are ever needed.
+</p>
+<p>
+  <em>Currency <code>G</code> is not modelled here yet</em> — no <code>G</code>-affecting formula has been decided, so no <code>Wallet</code> or ledger is introduced. Recording that gap is deliberate; a future migration task must not assume <code>G</code> is already tracked.
+</p>
+
+<h2>Relationship highlights</h2>
+<ul>
+  <li><code>Player</code> 1 : 1 <code>Zoo</code> — enforced by a unique NOT NULL FK, created in the same transaction.</li>
+  <li><code>Species</code> 1 : N <code>Animal</code> — every Animal references a Species.</li>
+  <li><code>Zoo</code> 1 : N <code>Animal</code> with <code>zoo_id</code> nullable — a released Animal has <code>zoo_id = NULL</code> and <code>status = 'released'</code>.</li>
+  <li><code>Hunter</code> 1 : N <code>HunterContract</code> historically, but <strong>at most one active</strong> (<code>ended_at IS NULL</code>). This is the shared-scarce-Hunter invariant from ADR-0002 §7.</li>
+  <li><code>Player</code> + <code>Hunter</code> + <code>Region</code> → <code>Expedition</code>. An Expedition can only be created when the Player currently holds an active <code>HunterContract</code> for the Hunter.</li>
+  <li><code>Expedition</code> 1 : N <code>Animal</code> — zero when <code>outcome = 'no_capture'</code>, one or more when <code>outcome = 'capture_success'</code>.</li>
+  <li><code>SeasonalEvent</code> → <code>Expedition</code> and <code>SeasonalEvent</code> → <code>Animal</code>: relationships are reserved, but the concrete provenance schema on <code>Animal</code> is left <strong>TBD</strong> per ADR-0002 §18.</li>
+</ul>
+
+<h2>Concurrency boundaries the schema must protect</h2>
+<ol>
+  <li><strong>Player → Zoo is 1:1</strong> — unique constraint on <code>Zoo.player_id</code>; Player and Zoo are created in one transaction.</li>
+  <li><strong>Hunter has at most one active HunterContract</strong> — at most one row per <code>hunter_id</code> where <code>ended_at IS NULL</code>. Enforcement candidates: partial unique index, advisory lock, or <code>SELECT … FOR UPDATE</code> on the <code>Hunter</code> row. Choice deferred to the migration task; the invariant is fixed.</li>
+  <li><strong>Expedition.resolved_at is set exactly once</strong> — resolution is idempotent (ADR-0002 §10). Resolver locks the Expedition row, checks <code>resolved_at IS NULL</code>, computes the outcome server-side, inserts any <code>Animal</code> rows in the same transaction, then commits.</li>
+  <li><strong>Animal insertion is bound to the resolving transaction</strong> — every Animal has a provenance chain: <code>Animal → Expedition → Hunter</code> and <code>Animal → Species</code>.</li>
+  <li><strong>Expedition may only be created against an active contract</strong> — the creation transaction takes the same lock as (2) and verifies <code>HunterContract</code> for <code>(player_id, hunter_id)</code> with <code>ended_at IS NULL</code>.</li>
+</ol>
+
+<h2>Fields deliberately left TBD</h2>
+<p>Every item in <code>docs/DECISIONS_PENDING.md</code> remains TBD. The ER model calls each one out inline so no follow-up task accidentally treats a placeholder as ratified. Categories:</p>
+<ul>
+  <li>Full 120-species list; <code>Species</code> code/slug/scientific name; rarity taxonomy.</li>
+  <li>Concrete Region names, count, difficulty scale, unlock model.</li>
+  <li>Full <code>Hunter</code> attribute schema; contract price/duration/cooldown; Guild availability algorithm.</li>
+  <li>Per-individual <code>Animal</code> attribute schema (sex, weight, body size, trait catalog, rarity scoring).</li>
+  <li>Finer <code>Expedition.outcome</code> (partial success, injury); cancellation support.</li>
+  <li><code>SeasonalEvent</code> content, cadence, formulas; the <code>Animal</code> event-provenance schema.</li>
+  <li>The entire <code>G</code> currency subsystem (<code>Wallet</code>, <code>GLedger</code>, earn/spend rules).</li>
+  <li>Authentication method; public player identity.</li>
+  <li>World First mechanic scope; trading policy; anti-abuse policy.</li>
+</ul>
+
+<h2>New open questions this ER model surfaced</h2>
+<p>Appended to <code>docs/DECISIONS_PENDING.md</code>:</p>
+<ul>
+  <li><code>HunterContract → Expedition</code> cardinality (1:1 or 1:N).</li>
+  <li><code>Expedition.outcome</code> — coarse enum only, or richer JSON payload.</li>
+  <li><code>Animal.status</code> — reversible or one-way.</li>
+  <li>Released <code>Animal</code> — row retained with <code>zoo_id = NULL</code>, or deleted.</li>
+  <li><code>HunterContract.is_active</code> denormalised column vs. <code>ended_at IS NULL</code> as sole truth.</li>
+  <li><code>SeasonalEvent</code> identity — numeric code, stable slug, both, or neither.</li>
+  <li>Whether <code>Expedition</code> carries a direct <code>hunter_contract_id</code> FK.</li>
+  <li>Whether a <code>Guild</code> table is ever introduced.</li>
+  <li>Currency (<code>G</code>) subsystem shape once formulas land.</li>
+</ul>
+
+<h2>Files added</h2>
+<ul>
+  <li><code>docs/ER_MODEL.md</code></li>
+  <li><code>docs/social/x/task-004-minimal-er-model.json</code></li>
+  <li><code>docs/reports/en/task-004-minimal-er-model.html</code></li>
+  <li><code>docs/reports/ja/task-004-minimal-er-model.html</code></li>
+</ul>
+<h2>Files edited</h2>
+<ul>
+  <li><code>docs/DOMAIN_MODEL.md</code> — added a pointer to <code>ER_MODEL.md</code> as the structural contract, and noted the <code>User</code>→<code>Player</code> naming.</li>
+  <li><code>docs/ROADMAP.md</code> — Phase 3 "minimal ER model" checkbox marked done, linking to <code>ER_MODEL.md</code>.</li>
+  <li><code>docs/DECISIONS_PENDING.md</code> — new "ER-model open questions" section appended.</li>
+  <li><code>docs/reports/index.html</code> — Task 004 entry.</li>
+</ul>
+
+<h2>Validation</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Publisher unit tests (<code>python3 -m unittest scripts.social.tests.test_post_x</code>)</td><td><strong>38 tests, all pass</strong> — unchanged from previous merges.</td></tr>
+    <tr><td>Manifest dry-run against the Task 004 manifest (<code>--pr-number 6</code>)</td><td>Rendered <strong>244 weighted characters</strong> (cap 280).</td></tr>
+    <tr><td>Existing PHPUnit suite (<code>docker compose exec app vendor/bin/phpunit</code>)</td><td><strong>5 tests, 9 assertions, all pass</strong> on PHP 8.5.9 + PostgreSQL 16 — unchanged.</td></tr>
+    <tr><td>No code file added or edited</td><td>Confirmed — diff is entirely under <code>docs/</code>.</td></tr>
+    <tr><td>No secret in the diff</td><td>Confirmed.</td></tr>
+    <tr><td>ja/en fact parity for this report</td><td>Cross-checked before commit.</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li>No new automated tests. This task is design-only.</li>
+  <li>Existing suites are unchanged and continue to pass — <strong>5 PHPUnit tests, 9 assertions</strong> (PHPUnit 12.5.33, PHP 8.5.9, PostgreSQL 16), <strong>38 Python publisher unit tests</strong>.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>One commit on <code>ai/006-minimal-er-model</code>, plus the merge commit on <code>main</code>. Exact SHAs are visible in <code>git log</code> on <code>main</code> after merge and on the PR page linked below.</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/6">#6 — docs: define minimal WildLive ER model</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/006-minimal-er-model</code> (deleted after merge).</li>
+  <li>Method: merge commit (not squash), so the individual AI-authored commit remains visible in <code>git log</code>.</li>
+  <li>CI: PHPUnit workflow verified <span class="badge badge-ok">success</span> before merge and again on <code>main</code> after merge.</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-004-minimal-er-model.json</code> — 244 weighted chars, well under the 280-char cap.</li>
+  <li>Workflow behaviour on the post-merge push: the <em>X Development Live</em> workflow ran but exited cleanly because the kill switch (repository variable <code>X_AUTOPOST_ENABLED</code>) is still unset. Zero X API calls were made from this task.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>The ER model deliberately leaves many columns unspecified because the game design has not decided them yet. A migration task cannot begin from this document alone — the open questions in <code>docs/DECISIONS_PENDING.md</code> must be resolved first, or the migration task must scope down to only the fields listed as "clearly required" here.</li>
+  <li>No SQL, no PostgreSQL sanity check, no ERD render tool was used — the Mermaid diagram in <code>ER_MODEL.md</code> is checked-in text, not a validated schema.</li>
+  <li>The <code>Animal</code> seasonal-event provenance schema is reserved as a relationship only. The exact column(s) and multiplicity are open because ADR-0002 §18 leaves them open.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No migration, no Eloquent model, no factory, no seeder, no controller, no route.</li>
+  <li>No REST API contract.</li>
+  <li>No JSON schema for <code>Animal.traits</code> or <code>SeasonalEvent</code> payload.</li>
+  <li>No pricing, rarity table, expedition timing table, Zoo Value formula, Visitor formula, or G formula.</li>
+  <li>No authentication choice.</li>
+  <li>No game-fairness balancing.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Resolve the smallest set of open questions needed to draft the first migrations for MVP-0.</strong> Concretely: pick a small starter Species set, one or two Region names, a minimal <code>Hunter</code> attribute schema (single tier is fine), and confirm the <code>HunterContract</code>-to-<code>Expedition</code> cardinality. Only after the human has ratified those decisions should any migration be written. This report does not authorise that implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

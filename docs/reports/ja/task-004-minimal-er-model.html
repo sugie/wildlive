@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 004 — ADR-0002 で人間が確定したゲーム概念を、未決定事項に踏み込まずに PostgreSQL 前提の最小 ER モデルへ落とし込んだ設計記録。">
+<title>Task 004 — Minimal ER Model · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-004-minimal-er-model.html">English version</a>
+</nav>
+
+<h1>Task 004 — Minimal ER Model</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>WildLive のゲーム機構は、人間 (repository owner) が
+  ADR-0002 で確定した。</strong>
+  今回の task では、AI はその確定済み機構だけを最小 DB / domain
+  モデルに翻訳した。<code>docs/DECISIONS_PENDING.md</code> に
+  残る game-design 未決事項は、AI が勝手に決定しないよう明示的に
+  避けている。設計上どちらとも取れる箇所 (例: 1 つの Hunter contract
+  で複数 Expedition を実行できるか) は、片側に確定させず新しい
+  open question として記録した。
+</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/ROADMAP.md"><code>docs/ROADMAP.md</code></a>
+  Phase 3 の最初の項目、<em>minimal ER model</em> を完了させる。ただし
+  migration、Eloquent model、controller、endpoint、game rule のいずれも
+  実装しない。成果物は、後続の migration task が従う設計 contract である。
+</p>
+
+<h2>AIが実施した内容 (What the AI did)</h2>
+<ol>
+  <li>authoritative なドキュメント (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/adr/0002-game-system-foundation.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>) を読了した。</li>
+  <li>clean な <code>main</code> から branch <code>ai/006-minimal-er-model</code> を作成した。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ER_MODEL.md"><code>docs/ER_MODEL.md</code></a> を執筆: 目的、スコープ、9 entity、Mermaid diagram、関係とカーディナリティの表、並行性 / トランザクション境界の規則、lifecycle 表、immutable / mutable の区分、server-authoritative なデータ、ADR-0002 で明らかに必要なフィールド、意図的に TBD としたフィールド、この設計が新たに surface させた open question、明示的な非目的。</li>
+  <li>account entity の名称を旧 working notes の <code>User</code> から <strong><code>Player</code></strong> に統一 (ゲーム用語と一致)。<code>docs/DOMAIN_MODEL.md</code> にこの改名を明記し、重複概念が残らないようにした。</li>
+  <li><code>docs/ROADMAP.md</code> Phase 3 の "minimal ER model" チェックを ON にし、<code>ER_MODEL.md</code> へのリンクを付けた。</li>
+  <li><code>docs/DECISIONS_PENDING.md</code> に ER model 固有の open question 節を新規追加 (contract↔expedition のカーディナリティ、outcome payload の形状、release 後の Animal 扱い、denormalised active flag の有無、他)。</li>
+  <li>本 bilingual report のペアを作成し、<code>docs/reports/index.html</code> を更新し、X Development Live 用の manifest を <code>docs/social/x/task-004-minimal-er-model.json</code> に追加した。commit 前に publisher の dry-run で <strong>244 weighted chars</strong> (cap 280) を確認済み。</li>
+</ol>
+
+<h2>定義した entity</h2>
+<ol>
+  <li><code>Player</code> — アカウント。<code>Zoo</code> をちょうど 1 つ所有する。</li>
+  <li><code>Zoo</code> — プレイヤーの永続コレクション面。</li>
+  <li><code>Species</code> — 実在の動物種を表す global master data。</li>
+  <li><code>Animal</code> — 捕獲された個体。<code>Species</code> とは別 entity。</li>
+  <li><code>Hunter</code> — Guild プールから契約可能な NPC。</li>
+  <li><code>HunterContract</code> — <code>Player</code> が現在 <code>Hunter</code> を保持していることを表す。shared-scarce 排他を担保する。</li>
+  <li><code>Region</code> — <code>Hunter</code> を派遣可能な場所。</li>
+  <li><code>Expedition</code> — <code>Player</code> の <code>Hunter</code> を <code>Region</code> に派遣する time-bounded な割当て。</li>
+  <li><code>SeasonalEvent</code> — 出現率・rare-trait rate・Region 状態を期間限定で変更する modifier。</li>
+</ol>
+<p>
+  <em>Guild は独立 entity としてまだモデル化しない</em> — 「Guild pool」は <code>Hunter</code> 行の集合として暗黙的に扱い、shared-scarce 制約は <code>HunterContract</code> 側で表現する。将来 multiple guild が必要になれば、<code>Guild</code> テーブルを additively 追加できる。
+</p>
+<p>
+  <em>通貨 <code>G</code> もまだモデル化しない</em> — <code>G</code> に影響する formula が何も決まっていないため、<code>Wallet</code> や ledger は導入しない。これは意図的な欠落であり、後の migration task が「G はもう track されている」と誤解しないよう記録に残す。
+</p>
+
+<h2>関係のハイライト</h2>
+<ul>
+  <li><code>Player</code> 1 : 1 <code>Zoo</code> — unique NOT NULL FK、同一トランザクションで作成される。</li>
+  <li><code>Species</code> 1 : N <code>Animal</code> — 全 Animal は Species を参照する。</li>
+  <li><code>Zoo</code> 1 : N <code>Animal</code> かつ <code>zoo_id</code> は nullable — release された Animal は <code>zoo_id = NULL</code> / <code>status = 'released'</code>。</li>
+  <li><code>Hunter</code> 1 : N <code>HunterContract</code> (履歴上)、ただし <strong>active な行は最大 1 つ</strong> (<code>ended_at IS NULL</code>)。これが ADR-0002 §7 の shared-scarce Hunter 不変条件。</li>
+  <li><code>Player</code> + <code>Hunter</code> + <code>Region</code> → <code>Expedition</code>。Expedition は、その Player がその Hunter に対して active な <code>HunterContract</code> を保持している時だけ作成できる。</li>
+  <li><code>Expedition</code> 1 : N <code>Animal</code> — <code>outcome = 'no_capture'</code> のとき 0 件、<code>outcome = 'capture_success'</code> のとき 1 件以上。</li>
+  <li><code>SeasonalEvent</code> → <code>Expedition</code> および <code>SeasonalEvent</code> → <code>Animal</code>: 関係は予約するが、<code>Animal</code> 側の provenance 具体 schema は ADR-0002 §18 の未決事項に従い <strong>TBD</strong>。</li>
+</ul>
+
+<h2>schema が守るべき並行性境界</h2>
+<ol>
+  <li><strong>Player → Zoo は 1:1</strong> — <code>Zoo.player_id</code> に unique 制約、Player と Zoo は 1 tx で作成する。</li>
+  <li><strong>Hunter は active な HunterContract を最大 1 つしか持てない</strong> — <code>hunter_id</code> あたり <code>ended_at IS NULL</code> の行が最大 1 行。実装候補: partial unique index、advisory lock、または <code>Hunter</code> 行への <code>SELECT … FOR UPDATE</code>。選択は migration task に委ねるが、不変条件は固定。</li>
+  <li><strong>Expedition.resolved_at はちょうど 1 回セットされる</strong> — resolution は idempotent (ADR-0002 §10)。resolver は Expedition 行をロックし、<code>resolved_at IS NULL</code> を確認し、outcome をサーバ側で決定し、同トランザクションで <code>Animal</code> 行を挿入し、<code>resolved_at</code> と <code>outcome</code> を書いて commit する。</li>
+  <li><strong>Animal の挿入は解決トランザクションに縛られる</strong> — 全 Animal は <code>Animal → Expedition → Hunter</code> と <code>Animal → Species</code> の provenance chain を持つ。</li>
+  <li><strong>Expedition は active contract に対してのみ作成可能</strong> — 作成 tx は (2) と同じロックを取り、<code>(player_id, hunter_id)</code> に対して <code>ended_at IS NULL</code> の <code>HunterContract</code> があることを確認する。</li>
+</ol>
+
+<h2>意図的に TBD としたフィールド</h2>
+<p><code>docs/DECISIONS_PENDING.md</code> の全項目はそのまま TBD。ER model 内でも各項目を inline に TBD と明記し、後続の task が placeholder を「確定済み」と誤認しないようにしている。分類:</p>
+<ul>
+  <li>120 species の正式一覧、<code>Species</code> の code/slug/scientific name、rarity 分類。</li>
+  <li>Region 名 / 数 / difficulty scale / unlock model。</li>
+  <li><code>Hunter</code> の完全な属性 schema、contract の price/duration/cooldown、Guild availability algorithm。</li>
+  <li><code>Animal</code> の個体属性 schema (sex, weight, body size, trait catalog, rarity scoring)。</li>
+  <li><code>Expedition.outcome</code> のより細かい種類 (partial success, injury)、cancellation の可否。</li>
+  <li><code>SeasonalEvent</code> の内容 / cadence / formula、<code>Animal</code> の event provenance schema。</li>
+  <li>通貨 <code>G</code> 全体 (<code>Wallet</code>, <code>GLedger</code>, earn/spend rule)。</li>
+  <li>authentication 方式、public player identity。</li>
+  <li>World First の scope、trading policy、anti-abuse policy。</li>
+</ul>
+
+<h2>今回の ER model が新たに surface させた open question</h2>
+<p><code>docs/DECISIONS_PENDING.md</code> に追記した:</p>
+<ul>
+  <li><code>HunterContract → Expedition</code> のカーディナリティ (1:1 か 1:N か)。</li>
+  <li><code>Expedition.outcome</code> — coarse enum のみか、リッチな JSON payload か。</li>
+  <li><code>Animal.status</code> — 可逆か一方通行か。</li>
+  <li>release 後の <code>Animal</code> 行 — <code>zoo_id = NULL</code> で保持か、削除か。</li>
+  <li><code>HunterContract.is_active</code> の denormalise の有無 (<code>ended_at IS NULL</code> を唯一の情報源とするか)。</li>
+  <li><code>SeasonalEvent</code> の識別子 — 数値 code / stable slug / 両方 / 無し。</li>
+  <li><code>Expedition</code> に <code>hunter_contract_id</code> を直接 FK として持たせるか。</li>
+  <li>将来 <code>Guild</code> テーブルを導入するか。</li>
+  <li>formula が確定した後、通貨 <code>G</code> subsystem をどう構造化するか。</li>
+</ul>
+
+<h2>追加したファイル</h2>
+<ul>
+  <li><code>docs/ER_MODEL.md</code></li>
+  <li><code>docs/social/x/task-004-minimal-er-model.json</code></li>
+  <li><code>docs/reports/en/task-004-minimal-er-model.html</code></li>
+  <li><code>docs/reports/ja/task-004-minimal-er-model.html</code></li>
+</ul>
+<h2>更新したファイル</h2>
+<ul>
+  <li><code>docs/DOMAIN_MODEL.md</code> — 構造 contract として <code>ER_MODEL.md</code> への pointer を追加、<code>User</code> → <code>Player</code> の改名を明記。</li>
+  <li><code>docs/ROADMAP.md</code> — Phase 3 の "minimal ER model" を checked に、<code>ER_MODEL.md</code> へのリンク付き。</li>
+  <li><code>docs/DECISIONS_PENDING.md</code> — 「ER-model open questions」節を追記。</li>
+  <li><code>docs/reports/index.html</code> — Task 004 エントリを追加。</li>
+</ul>
+
+<h2>検証 (Validation)</h2>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td>Publisher ユニットテスト (<code>python3 -m unittest scripts.social.tests.test_post_x</code>)</td><td><strong>38 tests, all pass</strong> — 過去 merge から変更なし。</td></tr>
+    <tr><td>Task 004 manifest に対する publisher dry-run (<code>--pr-number 6</code>)</td><td>rendered <strong>244 weighted characters</strong> (cap 280)。</td></tr>
+    <tr><td>既存 PHPUnit スイート (<code>docker compose exec app vendor/bin/phpunit</code>)</td><td><strong>5 tests, 9 assertions, all pass</strong> (PHP 8.5.9 + PostgreSQL 16) — 変更なし。</td></tr>
+    <tr><td>コードファイルの追加 / 編集</td><td>無し — diff は全て <code>docs/</code> 配下。</td></tr>
+    <tr><td>diff 中の secret</td><td>無し。</td></tr>
+    <tr><td>ja/en report の事実整合</td><td>commit 前に相互チェック済。</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規の自動テストは追加していない。今回は design-only。</li>
+  <li>既存スイートは不変で pass 継続 — <strong>PHPUnit 5 tests / 9 assertions</strong> (PHPUnit 12.5.33、PHP 8.5.9、PostgreSQL 16)、<strong>Python publisher unit test 38 件</strong>。</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p><code>ai/006-minimal-er-model</code> 上の commit と、<code>main</code> 側の merge commit で構成される。正確な SHA は merge 後の <code>main</code> の <code>git log</code> と PR ページで確認できる。</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/6">#6 — docs: define minimal WildLive ER model</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/006-minimal-er-model</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash ではない)。AI が書いた commit を <code>git log</code> 上に残すため。</li>
+  <li>CI: PHPUnit workflow を PR 上と merge 後の <code>main</code> で <span class="badge badge-ok">success</span> と確認。</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-004-minimal-er-model.json</code> — 244 weighted chars、cap 280 に対して余裕あり。</li>
+  <li>Merge 後の push で <em>X Development Live</em> workflow は起動するが、kill switch (repository variable <code>X_AUTOPOST_ENABLED</code>) が依然として未設定のため clean skip する。今回の task から X API を呼んだ回数は 0。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li>ER model は、まだ確定していない game-design 事項が多いため、意図的に多くのカラムを未指定のまま残している。migration task はこの文書だけを根拠に開始できず、<code>docs/DECISIONS_PENDING.md</code> の open question を先に解消するか、または「clearly required」に載っているフィールドだけに scope を絞って開始する必要がある。</li>
+  <li>SQL は書いていない、PostgreSQL の sanity check も行っていない、ERD render ツールも使用していない — <code>ER_MODEL.md</code> の Mermaid diagram はコミット済みテキストであり、validated schema ではない。</li>
+  <li><code>Animal</code> の seasonal-event provenance は関係だけを予約している。ADR-0002 §18 が開いているため、具体的なカラムや多重度は開いたまま。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>migration、Eloquent model、factory、seeder、controller、route は一切追加していない。</li>
+  <li>REST API contract は作成していない。</li>
+  <li><code>Animal.traits</code> や <code>SeasonalEvent</code> payload の JSON schema は作成していない。</li>
+  <li>pricing、rarity 表、expedition timing 表、Zoo Value formula、Visitor formula、G formula は決定していない。</li>
+  <li>authentication は選択していない。</li>
+  <li>game-fairness balancing は行っていない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>MVP-0 の最初の migration を書くために必要な最小限の open question を解消する。</strong>
+  具体的には、starter となる少数の Species、1〜2 の Region 名、最小の <code>Hunter</code> 属性 schema (単一 tier で可)、および <code>HunterContract</code>–<code>Expedition</code> のカーディナリティを確定する。人間がこれらを承認して初めて migration に着手する。本レポートは実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
