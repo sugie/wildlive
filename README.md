@@ -4,7 +4,7 @@
 
 WildLive is a text-only asynchronous multiplayer game whose world is continuously built, tested, operated, and evolved by AI agents.
 
-Players contract hunters and explorers, send them into regions around the world, discover animals and unknown species, build their own zoo, join cooperative expeditions, and participate in a persistent shared world.
+Players contract Hunters from the Guild, send them into regions around the world, capture individual real wild animals, build their own Zoo, and participate in a persistent shared world where top Hunters are a scarce resource across all players.
 
 The project is also a public experiment in autonomous software development.
 
@@ -14,10 +14,11 @@ The project is also a public experiment in autonomous software development.
 - Idle / asynchronous gameplay
 - Persistent multiplayer world
 - Server-authoritative game state
-- World-first discoveries
-- Hunter / explorer contracts
-- Cooperative expeditions
-- Shared world events
+- Real-wildlife animal collection
+- Individual Animal identity (not just species counts)
+- Guild-based Hunter contracts with shared scarcity of top Hunters
+- Zoo Value ranking — no attacking, destroying, or stealing between players
+- Seasonal Events
 - AI-generated development reports
 - Minimal human intervention
 

@@ -6,7 +6,7 @@
 
 WildLive is a living, persistent, text-only multiplayer animal world.
 
-The player does not need to remain online. Hunters and explorers continue their assignments over real time, and players return later to discover what happened.
+The player does not need to remain online. Hunters continue their assignments over real time, and players return later to discover what happened.
 
 The shared world also advances independently of any single player.
 

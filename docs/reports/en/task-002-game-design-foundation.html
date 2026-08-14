@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 002 — Core Game System Foundation. Human-designed, AI-documented decisions about what WildLive is.">
+<title>Task 002 — Core Game System Foundation · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-002-game-design-foundation.html">日本語版</a>
+</nav>
+
+<h1>Task 002 — Core Game System Foundation</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The core game mechanics of WildLive were designed by the
+  human (the repository owner) in an interactive design session. The
+  AI's role in this task was to organise those decisions, document
+  them consistently across the repository, and reconcile them with
+  earlier working notes.</strong> The AI did not invent game rules on
+  its own. Where a detail was not decided in the session, this task
+  explicitly records it as still open rather than guessing.
+</p>
+<ul>
+  <li>Human decided: everything captured in the 19 numbered sections of ADR-0002 — core concept, real-wildlife-only stance, Species vs. Animal separation, individual-rarity model based on real biological traits, Hunter terminology and the skill/cost curve, Guild-based Hunter pool with shared scarcity, capture-or-no-capture failure mode, no-management-simulation Zoo, Zoo Value with diminishing returns, Visitors economy, currency name (<code>G</code>), no-theft multiplayer, Seasonal Events using real animals, no power inflation, historical Animal identity, and future-only monetisation direction.</li>
+  <li>AI performed: reading the source-of-truth documents, drafting ADR-0002 from the session decisions, rewriting <code>docs/GAME_DESIGN.md</code> and <code>docs/DOMAIN_MODEL.md</code> to match, moving resolved items out of <code>docs/DECISIONS_PENDING.md</code>, annotating <code>docs/ROADMAP.md</code>, removing "Explorer" and "unknown creatures" phrasing from <code>README.md</code> and <code>docs/VISION.md</code>, and writing this bilingual report.</li>
+  <li>AI did not invent: any species list, region name, formula, price, algorithm, or database schema. Every open question is called out explicitly in <code>docs/DECISIONS_PENDING.md</code>.</li>
+</ul>
+
+<h2>Objective</h2>
+<p>
+  Ratify the answer to "what kind of game is WildLive?" as a formal
+  Architecture Decision Record, and bring every earlier working note
+  into line with that answer, before any migration, Eloquent model,
+  or gameplay endpoint is written.
+</p>
+<p>
+  This task is <strong>documentation only</strong>. No runtime code,
+  database schema, or configuration was changed.
+</p>
+
+<h2>What the AI did</h2>
+<ol>
+  <li>Synced <code>main</code> and audited the current state of the repository (post PR #1 and PR #2).</li>
+  <li>Re-read the governance-critical documents: <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/VISION.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/reports/README.md</code>, and <code>docs/adr/0001-development-workflow.md</code>.</li>
+  <li>Created branch <code>ai/003-game-design-foundation</code> from <code>main</code>.</li>
+  <li>Authored <code>docs/adr/0002-game-system-foundation.md</code>: 19 numbered decision sections plus a Consequences section listing what the ADR closes vs. what it deliberately leaves open, and an explicit Human Intervention note.</li>
+  <li>Rewrote <code>docs/GAME_DESIGN.md</code> to point at ADR-0002 as its source of truth and to remove any contradiction (Explorer terminology, unknown creatures, player-owned Hunter lending, Zoo maintenance costs, animal theft).</li>
+  <li>Rewrote <code>docs/DOMAIN_MODEL.md</code>: split <code>Species</code> from <code>Animal</code>; promoted <code>Guild</code>, <code>Zoo Value</code>, <code>Visitors</code>, and <code>Seasonal Event</code> to first-class concepts; removed the "unknown creatures" open question; marked Hunter-lending as deferred.</li>
+  <li>Rewrote <code>docs/DECISIONS_PENDING.md</code> into three sections: Resolved by ADR-0002, Still open, and Future-only (monetisation).</li>
+  <li>Updated <code>docs/ROADMAP.md</code>: Phase 2 items are now checked with an ADR-0002 reference; Phase 6 items are reframed around Guild scarcity, Zoo visits, ranking, and Seasonal Events (dropping the old "player lends Hunter" phrasing).</li>
+  <li>Updated <code>README.md</code> and <code>docs/VISION.md</code> to drop "Explorer" phrasing.</li>
+  <li>Wrote this bilingual pair of reports and updated <code>docs/reports/index.html</code>.</li>
+</ol>
+
+<h2>Implementation</h2>
+<p>
+  This task did not implement code. What was "implemented" is a
+  consistent documentation surface. The table lists the documents
+  touched and the role each now plays.
+</p>
+<table>
+  <thead><tr><th>Document</th><th>Role after this task</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/adr/0002-game-system-foundation.md</code></td><td>Authoritative record of the human-decided game system. Supersedes contradicting statements in earlier working notes.</td></tr>
+    <tr><td><code>docs/GAME_DESIGN.md</code></td><td>Human-friendly summary that points at ADR-0002; no longer contains contradictory statements.</td></tr>
+    <tr><td><code>docs/DOMAIN_MODEL.md</code></td><td>Design workspace only, aligned with ADR-0002. Not a database spec.</td></tr>
+    <tr><td><code>docs/DECISIONS_PENDING.md</code></td><td>Split into "Resolved (ADR-0002)" and "Still open" (game / multiplayer / product / monetisation / operations).</td></tr>
+    <tr><td><code>docs/ROADMAP.md</code></td><td>Phase 2 items marked done at the design-decision level with ADR-0002 links. Phase 6 reworded.</td></tr>
+    <tr><td><code>README.md</code>, <code>docs/VISION.md</code></td><td>Terminology fix — "Explorer" removed, Guild model reflected.</td></tr>
+  </tbody>
+</table>
+
+<h2>Architecture / Design Decisions</h2>
+<p>
+  The full list — 19 numbered decisions — lives in
+  <code>docs/adr/0002-game-system-foundation.md</code>. Highlights
+  that future AI agents and reviewers must not miss:
+</p>
+<ul>
+  <li><strong>Real wildlife only.</strong> No fictional or fantasy creatures. Mystery is expressed through rare real traits, not invented species.</li>
+  <li><strong>Species ≠ Animal.</strong> <code>Species</code> is global master data; <code>Animal</code> is a captured individual with its own traits, sex, weight, rarity, and history. Two individuals of the same species are two distinct entities.</li>
+  <li><strong>Design target: 120 Species</strong> — a goal, not a hard technical constant.</li>
+  <li><strong>Hunter terminology is settled.</strong> "Explorer" is deprecated across all documents.</li>
+  <li><strong>Guild-based Hunter pool.</strong> Top Hunters are a shared scarce resource across all players; basic-tier Hunters must always remain contractable so newcomers can always play. Player-to-player Hunter lending is not part of MVP.</li>
+  <li><strong>Capture / no-capture outcome model.</strong> Weak-Hunter-in-hard-Region is not forbidden but often returns empty-handed.</li>
+  <li><strong>Zoo is not a management sim.</strong> No food, land, staffing, cleaning, illness, or budget in MVP.</li>
+  <li><strong>Zoo Value ranking</strong>, with diminishing returns baked in: mass-farming the same Animal must not dominate.</li>
+  <li><strong>No stealing.</strong> Multiplayer competition is collection, Zoo Value, ranking, and shared Hunter scarcity — never attack, destruction, or theft.</li>
+  <li><strong>No power inflation.</strong> New content is rarer, not stronger.</li>
+  <li><strong>Historical / event identity is preserved.</strong> Old Animals do not become weaker than newer ones.</li>
+  <li><strong>Monetisation is a future direction only.</strong> No prices, benefits, RevenueCat integration, or payment code in this ADR.</li>
+</ul>
+
+<h2>Files Changed</h2>
+<p>
+  Documentation-only change. New file:
+  <code>docs/adr/0002-game-system-foundation.md</code>. Edited files:
+  <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>,
+  <code>docs/DECISIONS_PENDING.md</code>, <code>docs/ROADMAP.md</code>,
+  <code>docs/VISION.md</code>, <code>README.md</code>,
+  <code>docs/reports/index.html</code>. Bilingual reports added
+  under <code>docs/reports/{ja,en}/</code>. Exact diff stats are
+  visible on the linked PR page.
+</p>
+
+<h2>Validation</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Grep for <code>explorer</code>, <code>unknown creatur</code>, <code>unclassified</code>, <code>fantasy</code> across <code>*.md</code></td><td>Only meta-mentions remain (each hit is inside a "deprecated" / "removed" / "out of scope" statement). No active spec still uses these terms affirmatively.</td></tr>
+    <tr><td>No <code>migration</code>, <code>Eloquent</code>, controller, or route file added</td><td>Confirmed — this task's diff is documentation-only.</td></tr>
+    <tr><td>ja / en report parity</td><td>Cross-checked before commit.</td></tr>
+    <tr><td>Existing PHPUnit suite</td><td>Re-run to confirm the doc-only change did not affect runtime — see the Tests section.</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li>No new automated tests. The change is documentation only.</li>
+  <li>The existing PHPUnit suite (<strong>5 tests, 9 assertions</strong>, PHPUnit 12.5.33 on PHP 8.5.9 + PostgreSQL 16) continues to pass — verified locally before commit and again on CI after the PR was opened.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>
+  Task commit(s) on branch <code>ai/003-game-design-foundation</code>,
+  plus the merge commit on <code>main</code>. Exact SHAs are visible
+  in <code>git log</code> on <code>main</code> after the PR is merged
+  and are embedded in the PR page linked below.
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/3">#3 — docs: define WildLive core game system</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/003-game-design-foundation</code> (deleted after merge).</li>
+  <li>Method: merge commit (not squash), so individual AI-authored commits remain visible in <code>git log</code>.</li>
+  <li>CI: verified <span class="badge badge-ok">success</span> on the PR before merge and again on <code>main</code> after merge. Because the change is documentation only, CI runs the same test suite that PR #1 and PR #2 already exercised.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>ADR-0002 fixes game-<em>design</em> decisions, not schemas, formulas, or content. Anything needed to actually implement gameplay — species names, region names, timers, prices, rarity tables, formulas — is still explicitly open in <code>docs/DECISIONS_PENDING.md</code>.</li>
+  <li>Some earlier multiplayer ideas (World First, Cooperative Expedition) are neither confirmed nor removed by this ADR; they are marked as scope-open.</li>
+  <li>No verification against a running game — WildLive has no game code yet.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No migration, no Eloquent model, no controller, no REST endpoint, no seed data.</li>
+  <li>No frontend, no client, no RevenueCat integration, no X integration, no cloud deployment.</li>
+  <li>No dependency, container, CI, or environment change.</li>
+  <li>No authoritative Species list, Region list, price table, or rarity table.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Draft the MVP-0 vertical-slice implementation plan</strong>
+  — a short design task that picks a minimum set of open items from
+  <code>docs/DECISIONS_PENDING.md</code> (a handful of Species, one
+  or two Regions, one Hunter tier, expedition duration numbers,
+  capture-outcome resolution) that together are sufficient for the
+  MVP-0 loop described in <code>docs/GAME_DESIGN.md</code>. Only
+  after the plan is agreed with the human should any migration or
+  code land. This report does not authorise that implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
