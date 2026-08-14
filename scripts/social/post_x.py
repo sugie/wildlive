@@ -48,17 +48,45 @@ POST_HEADER_PREFIX = "WildLive Dev · "
 MAX_RETRIES = 3
 BACKOFF_BASE_SECONDS = 2
 
+# Manifest schema versions.
+#   v1 — legacy bilingual (Japanese + English body). Retained for
+#        historical compatibility with manifests already merged to main
+#        (docs/social/x/task-003-*, docs/social/x/task-004-*). Rendering
+#        for v1 is identical to before this change was introduced.
+#   v2 — English-only. Preferred format for all new manifests. `ja` is
+#        forbidden in v2 so a stale bilingual manifest cannot silently
+#        be treated as v2.
+SCHEMA_VERSION_BILINGUAL = 1
+SCHEMA_VERSION_ENGLISH_ONLY = 2
+SUPPORTED_SCHEMA_VERSIONS: Tuple[int, ...] = (
+    SCHEMA_VERSION_BILINGUAL,
+    SCHEMA_VERSION_ENGLISH_ONLY,
+)
+
 _URL_RE = re.compile(r"https?://\S+")
 _SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
-_REQUIRED_MANIFEST_KEYS: Tuple[str, ...] = (
+# Shared across every schema version.
+_COMMON_REQUIRED_KEYS: Tuple[str, ...] = (
     "schema_version",
     "task",
     "slug",
     "post_on_merge",
-    "ja",
     "en",
 )
+
+# Additional keys required per schema_version.
+_REQUIRED_EXTRA_KEYS: Dict[int, Tuple[str, ...]] = {
+    SCHEMA_VERSION_BILINGUAL: ("ja",),
+    SCHEMA_VERSION_ENGLISH_ONLY: (),
+}
+
+# Keys that are forbidden per schema_version (so a stale bilingual
+# manifest cannot silently render under a newer version).
+_FORBIDDEN_KEYS: Dict[int, Tuple[str, ...]] = {
+    SCHEMA_VERSION_BILINGUAL: (),
+    SCHEMA_VERSION_ENGLISH_ONLY: ("ja",),
+}
 
 _REQUIRED_CREDENTIAL_ENV: Tuple[str, ...] = (
     "X_API_KEY",
@@ -139,15 +167,34 @@ def load_manifest(path: str) -> Dict[str, Any]:
 def validate_manifest(data: Any, path: str = "<manifest>") -> Dict[str, Any]:
     if not isinstance(data, dict):
         raise ManifestError(f"{path}: root must be an object")
-    missing = [k for k in _REQUIRED_MANIFEST_KEYS if k not in data]
-    if missing:
-        raise ManifestError(f"{path}: missing keys: {', '.join(missing)}")
-    extra = [k for k in data if k not in _REQUIRED_MANIFEST_KEYS]
-    if extra:
-        raise ManifestError(f"{path}: unknown keys: {', '.join(extra)}")
-    if data["schema_version"] != 1:
+
+    # schema_version comes first — every later check is dispatched on it.
+    version = data.get("schema_version")
+    if version not in SUPPORTED_SCHEMA_VERSIONS:
         raise ManifestError(
-            f"{path}: schema_version must be 1, got {data['schema_version']!r}"
+            f"{path}: schema_version must be one of "
+            f"{list(SUPPORTED_SCHEMA_VERSIONS)}, got {version!r}"
+        )
+
+    required = _COMMON_REQUIRED_KEYS + _REQUIRED_EXTRA_KEYS[version]
+    allowed = set(required)  # forbidden keys are explicitly excluded from `allowed`
+    missing = [k for k in required if k not in data]
+    if missing:
+        raise ManifestError(
+            f"{path}: schema_version={version} manifest missing keys: "
+            f"{', '.join(missing)}"
+        )
+    forbidden_present = [k for k in _FORBIDDEN_KEYS[version] if k in data]
+    if forbidden_present:
+        raise ManifestError(
+            f"{path}: schema_version={version} manifest must not contain: "
+            f"{', '.join(forbidden_present)}"
+        )
+    unknown = [k for k in data if k not in allowed]
+    if unknown:
+        raise ManifestError(
+            f"{path}: schema_version={version} manifest has unknown keys: "
+            f"{', '.join(unknown)}"
         )
     if not isinstance(data["task"], str) or not data["task"].strip():
         raise ManifestError(f"{path}: task must be a non-empty string")
@@ -157,7 +204,9 @@ def validate_manifest(data: Any, path: str = "<manifest>") -> Dict[str, Any]:
         )
     if not isinstance(data["post_on_merge"], bool):
         raise ManifestError(f"{path}: post_on_merge must be a boolean")
-    for lang in ("ja", "en"):
+
+    body_langs = ("en",) + (("ja",) if version == SCHEMA_VERSION_BILINGUAL else ())
+    for lang in body_langs:
         value = data[lang]
         if not isinstance(value, str) or not value.strip():
             raise ManifestError(f"{path}: {lang} must be a non-empty string")
@@ -181,17 +230,35 @@ def render_post(manifest: Dict[str, Any], pr_number: int, pr_url: str) -> str:
     if not (isinstance(pr_url, str) and pr_url.startswith("https://github.com/")):
         raise RenderError(f"pr_url must start with https://github.com/, got {pr_url!r}")
 
-    return (
-        f"{POST_HEADER_PREFIX}{manifest['task']}\n"
-        f"\n"
-        f"{manifest['ja'].strip()}\n"
-        f"\n"
-        f"{manifest['en'].strip()}\n"
-        f"\n"
-        f"PR #{pr_number}\n"
-        f"{pr_url}\n"
-        f"\n"
-        f"{HASHTAG}"
+    version = manifest.get("schema_version")
+    header = f"{POST_HEADER_PREFIX}{manifest['task']}"
+    trailer = f"PR #{pr_number}\n{pr_url}\n\n{HASHTAG}"
+
+    if version == SCHEMA_VERSION_BILINGUAL:
+        # v1 render is intentionally byte-identical to the pre-v2 output so
+        # historical manifests (task-003, task-004, …) reproduce exactly.
+        return (
+            f"{header}\n"
+            f"\n"
+            f"{manifest['ja'].strip()}\n"
+            f"\n"
+            f"{manifest['en'].strip()}\n"
+            f"\n"
+            f"{trailer}"
+        )
+    if version == SCHEMA_VERSION_ENGLISH_ONLY:
+        return (
+            f"{header}\n"
+            f"\n"
+            f"{manifest['en'].strip()}\n"
+            f"\n"
+            f"{trailer}"
+        )
+    # validate_manifest rejects unsupported versions before render_post is
+    # called, so this branch is a defence-in-depth guard.
+    raise RenderError(
+        f"unsupported schema_version {version!r}; expected one of "
+        f"{list(SUPPORTED_SCHEMA_VERSIONS)}"
     )
 
 

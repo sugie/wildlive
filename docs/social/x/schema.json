@@ -2,41 +2,73 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/sugie/wildlive/blob/main/docs/social/x/schema.json",
   "title": "WildLive X Development Live manifest",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schema_version", "task", "slug", "post_on_merge", "ja", "en"],
-  "properties": {
-    "schema_version": {
-      "type": "integer",
-      "const": 1,
-      "description": "Manifest schema version. Only 1 is currently accepted."
+  "description": "Two schema versions are supported. v1 is legacy bilingual (Japanese + English) and is retained for historical compatibility with manifests already merged to main. v2 is English-only and is the preferred format for all new manifests. The publisher (scripts/social/post_x.py) is authoritative — this schema mirrors its validation rules but is not what the workflow reads.",
+  "oneOf": [
+    { "$ref": "#/$defs/v1_bilingual" },
+    { "$ref": "#/$defs/v2_english_only" }
+  ],
+  "$defs": {
+    "common": {
+      "type": "object",
+      "properties": {
+        "task": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Human-readable label for the post header, e.g. 'Task 003'."
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Kebab-case ASCII slug matching the filename and the bilingual report slug."
+        },
+        "post_on_merge": {
+          "type": "boolean",
+          "description": "When false, the manifest is reviewed but not posted (documented no-op)."
+        },
+        "en": {
+          "type": "string",
+          "minLength": 1,
+          "description": "English post body. Must NOT include the PR URL or the #shipaton hashtag — the publisher appends both."
+        }
+      }
     },
-    "task": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 40,
-      "description": "Human-readable label for the post header, e.g. 'Task 003'."
+    "v1_bilingual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "task", "slug", "post_on_merge", "ja", "en"],
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "description": "Legacy bilingual manifest. Retained for compatibility with historically-merged manifests."
+        },
+        "task":         { "$ref": "#/$defs/common/properties/task" },
+        "slug":         { "$ref": "#/$defs/common/properties/slug" },
+        "post_on_merge":{ "$ref": "#/$defs/common/properties/post_on_merge" },
+        "ja": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Japanese post body. Must NOT include the PR URL or the #shipaton hashtag — the publisher appends both."
+        },
+        "en":           { "$ref": "#/$defs/common/properties/en" }
+      }
     },
-    "slug": {
-      "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "minLength": 1,
-      "maxLength": 60,
-      "description": "Kebab-case ASCII slug matching the filename and the bilingual report slug."
-    },
-    "post_on_merge": {
-      "type": "boolean",
-      "description": "When false, the manifest is reviewed but not posted (documented no-op)."
-    },
-    "ja": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Japanese post body. Must NOT include the PR URL or the #shipaton hashtag — the publisher appends both."
-    },
-    "en": {
-      "type": "string",
-      "minLength": 1,
-      "description": "English post body. Same rules as ja."
+    "v2_english_only": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "task", "slug", "post_on_merge", "en"],
+      "properties": {
+        "schema_version": {
+          "const": 2,
+          "description": "English-only manifest — the preferred format for new posts. Rendering skips the JP body entirely."
+        },
+        "task":         { "$ref": "#/$defs/common/properties/task" },
+        "slug":         { "$ref": "#/$defs/common/properties/slug" },
+        "post_on_merge":{ "$ref": "#/$defs/common/properties/post_on_merge" },
+        "en":           { "$ref": "#/$defs/common/properties/en" }
+      }
     }
   }
 }
