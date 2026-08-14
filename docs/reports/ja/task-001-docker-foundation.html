@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 001 — Docker Foundation。AIによる実装レポート。">
+<title>Task 001 — Docker Foundation · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-001-docker-foundation.html">English version</a>
+</nav>
+
+<h1>Task 001 — Docker Foundation</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<ul>
+  <li>AIのセッション開始前に、starter pack (<code>README.md</code>, <code>AGENTS.md</code>, <code>SECURITY.md</code>, <code>docs/</code>, <code>.github/</code>, <code>.ai/tasks/001-docker-foundation.md</code>, <code>.editorconfig</code>, <code>.gitignore</code>) を人間がrepositoryに配置した。</li>
+  <li>Task 001の仕様書と governance ドキュメント (<code>AGENTS.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/AUTONOMY.md</code>) は人間が執筆した。</li>
+  <li>PR #1のmergeは人間の指示 (別セッションでの明示的な指示) によりAIが実行した。PR内のコード自体には人間による手編集は入っていない。</li>
+</ul>
+
+<h2>目的 (Objective)</h2>
+<p>
+  WildLive の最小・再現可能なローカル開発環境を確立する。
+  具体的には Laravel 13 (PHP 8.5) + PostgreSQL を Docker Compose で構成し、
+  health endpoint、実 PostgreSQL に対する自動 PHPUnit スイート、
+  対応する GitHub Actions CI までを含める。
+</p>
+<p>
+  ゲーム機能 (hunter, zoo, expedition, discovery, multiplayer,
+  authentication, deployment) は今回のスコープから明示的に除外されている。
+  今回の目的は純粋に土台の整備である。
+</p>
+
+<h2>AIが実施した内容 (What the AI did)</h2>
+<ol>
+  <li>source-of-truth ドキュメント (<code>AGENTS.md</code>, <code>docs/VISION.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/ARCHITECTURE.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/API.md</code>, <code>docs/DEPLOYMENT.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/adr/0001-development-workflow.md</code>, <code>.ai/tasks/001-docker-foundation.md</code>) を読了した。</li>
+  <li>人間が配置した未コミットの starter files を保持したまま、<code>main</code> から branch <code>ai/001-docker-foundation</code> を作成した。</li>
+  <li>provenance を明確にするため、starter pack を独立した commit として登録した (<code>docs: establish WildLive project foundation</code>)。</li>
+  <li>一時的な <code>composer:2</code> コンテナで Laravel 13 skeleton を bootstrap し、frontend 関連 (<code>vendor/</code>, <code>package.json</code>, Vite/Tailwind) を除いた framework ファイルのみを working tree にコピーした。</li>
+  <li><code>docker/php/Dockerfile</code>, <code>docker/php/entrypoint.sh</code>, <code>docker-compose.yml</code>, <code>.env.example</code>, <code>.dockerignore</code> を作成した。</li>
+  <li>Laravel を PostgreSQL 向けに設定し、API router を有効化、<code>App\Http\Controllers\HealthController</code> を実装、<code>GET /api/health</code> を配線した。</li>
+  <li><code>phpunit.xml</code> を書き換え、テストは SQLite ではなく PostgreSQL の <code>wildlive_test</code> データベースに対して実行するようにした。</li>
+  <li><code>tests/Feature/HealthTest.php</code> を作成 (3 tests): 正常系、degraded 系、実エンジンへの疎通確認。</li>
+  <li><code>.github/workflows/ci.yml</code> を追加し、あらゆる PR / push で PHP 8.5 + PostgreSQL 16 の検証が走るようにした。</li>
+  <li>ローカルでスタック全体を検証したのち、branch を push し PR #1 をオープンした。</li>
+  <li>検証中に発見した healthcheck のバグ (<code>wget</code> → <code>curl</code>) を fix commit として追加した。</li>
+  <li>次のセッションで PR #1 を再audit し、merge commit で merge した。</li>
+</ol>
+
+<h2>実装 (Implementation)</h2>
+<table>
+  <thead><tr><th>要素</th><th>選択</th></tr></thead>
+  <tbody>
+    <tr><td>PHP</td><td>8.5 (image <code>php:8.5-cli-bookworm</code>)</td></tr>
+    <tr><td>Framework</td><td>Laravel 13.25</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 16-alpine</td></tr>
+    <tr><td>Orchestration</td><td>Docker Compose v2 — service は <code>app</code> と <code>postgres</code> のみ</td></tr>
+    <tr><td>PHP extensions</td><td><code>pdo_pgsql</code>, <code>pgsql</code>, <code>intl</code>, <code>zip</code>, <code>bcmath</code></td></tr>
+    <tr><td>Composer</td><td>2 (公式 <code>composer:2</code> image から COPY)</td></tr>
+    <tr><td>HTTP server (dev)</td><td><code>php artisan serve</code> を <code>0.0.0.0:8000</code> で起動</td></tr>
+    <tr><td>Application health</td><td><code>GET /api/health</code> — <code>select 1</code> を実行し、正常時は HTTP 200 <code>{status:"ok"}</code>、DB 不通時は HTTP 503 <code>{status:"degraded"}</code></td></tr>
+    <tr><td>Framework liveness</td><td><code>GET /up</code> (Laravel 標準)</td></tr>
+    <tr><td>Tests</td><td>PHPUnit 12 を専用の <code>wildlive_test</code> PostgreSQL データベースに対して実行</td></tr>
+    <tr><td>CI</td><td>GitHub Actions workflow <code>.github/workflows/ci.yml</code> — PHP 8.5 + <code>postgres:16-alpine</code> service を使い、<code>main</code> 宛の全 PR で実行</td></tr>
+  </tbody>
+</table>
+
+<h2>アーキテクチャ / 設計判断 (Architecture / Design Decisions)</h2>
+<ul>
+  <li><strong>PostgreSQL 17 ではなく 16 を採用</strong> — WildLive が production で利用予定の Sakura Cloud PostgreSQL appliance との整合性を優先した。</li>
+  <li><strong>テストは SQLite ではなく実 PostgreSQL に対して実行</strong> — WildLive で将来必要になる並行制御 (World First、所有権移転、expedition finalization) は PostgreSQL 固有の挙動に依存するため、テストエンジンも本番と同じである必要がある。</li>
+  <li><strong>Nginx + PHP-FPM ではなく <code>php artisan serve</code> を採用</strong> — dev stack を最小構成に保つ。production 向けの multi-stage image は将来 task に意図的に先送りする。</li>
+  <li><strong>dev image は <code>require-dev</code> を含めて install</strong> — コンテナ内に PHPUnit / Pint 等が存在する必要があるため。production/dev image の分離は今回のスコープ外。</li>
+  <li><strong>Laravel 標準の <code>users</code>/<code>cache</code>/<code>jobs</code> migration は保持</strong> — framework の足場としてであり、WildLive のゲーム上の <code>User</code> ドメインではない。ゲーム側の <code>User</code> は将来のタスクで再設計され、このテーブルを置き換える可能性がある。</li>
+  <li><strong><code>composer.lock</code> を Composer container 内で pre-generate</strong> — PHP 8.5 に対して <code>--ignore-platform-req</code> で resolve。runtime image のビルド時は <code>composer install</code> のみで済み、決定論的なビルドを担保する。</li>
+  <li><strong>Compose service は <code>app</code> と <code>postgres</code> の 2 つだけ</strong> — Redis、queue、WebSocket、mail、object storage は追加しない。追加する場合は <code>docs/ARCHITECTURE.md</code> に沿った明示的な task justification が必要。</li>
+  <li><strong>PostgreSQL の port は <code>127.0.0.1</code> にのみバインド</strong> — 開発者のネットワーク上の他ホストからは到達できない。</li>
+</ul>
+
+<h2>変更ファイル (Files Changed)</h2>
+<p>
+  PR #1 全体: <strong>83 files changed, +12278 insertions, −18 deletions</strong>
+  (<code>gh pr diff 1 --stat</code> で確認)。
+</p>
+<h3>主要な新規ファイル</h3>
+<ul>
+  <li><code>docker-compose.yml</code>, <code>docker/php/Dockerfile</code>, <code>docker/php/entrypoint.sh</code>, <code>.dockerignore</code></li>
+  <li><code>.env.example</code> (placeholder credentials のみ、実 secret は無し)</li>
+  <li><code>.github/workflows/ci.yml</code></li>
+  <li><code>app/Http/Controllers/HealthController.php</code></li>
+  <li><code>routes/api.php</code></li>
+  <li><code>tests/Feature/HealthTest.php</code></li>
+  <li><code>docs/DEVELOPMENT.md</code></li>
+  <li>Laravel 13 skeleton: <code>app/</code>, <code>bootstrap/</code>, <code>config/</code>, <code>database/</code>, <code>public/</code>, <code>resources/</code>, <code>routes/</code>, <code>storage/</code>, <code>tests/</code>, <code>artisan</code>, <code>composer.json</code>, <code>composer.lock</code>, <code>phpunit.xml</code></li>
+</ul>
+<h3>主要な既存ファイル変更</h3>
+<ul>
+  <li><code>.gitignore</code> — Laravel のディレクトリ毎 <code>.gitignore</code> 方式と整合するように整理。<code>STARTER_PACK.md</code> (repository 履歴に含めない ZIP-manifest) も除外対象に追加。</li>
+  <li><code>README.md</code> — ローカル開発の quick-start を追記。</li>
+  <li><code>CLAUDE.md</code> — Docker foundation が完成した状態を反映するよう更新。</li>
+  <li><code>bootstrap/app.php</code> — <code>/api</code> prefix の API routing を有効化。</li>
+</ul>
+
+<h2>検証 (Validation)</h2>
+<p>
+  以下はいずれもレポートに使う数値を得るために実際に実行したもの。出力は要約ではなく実測値を掲載している。
+</p>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker compose build</code></td><td>成功 (上記の extension を含む PHP 8.5 image)</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>両サービスが <code>healthy</code> に到達</td></tr>
+    <tr><td><code>curl http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>curl http://localhost:8000/up</code></td><td>HTTP 200</td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate --force</code></td><td>framework migration 3 件が適用</td></tr>
+    <tr><td><code>docker compose exec app vendor/bin/phpunit</code></td><td><strong>5 tests, 9 assertions, 全て pass</strong> (PHP 8.5.9 + PostgreSQL 16)</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>合計テスト: <strong>5 件</strong> (assertions: <strong>9 件</strong>)。PR #1 を open する前と、<code>main</code> にmerge した後の両方で <code>vendor/bin/phpunit</code> により確認済み。</li>
+  <li>PHPUnit version: 12.5.33。</li>
+  <li>実行環境: app コンテナ内の PHP 8.5.9、テスト DB は PostgreSQL 16-alpine。</li>
+  <li>本 task による新規カバレッジ: <code>tests/Feature/HealthTest.php</code> (3 tests): 正常系 / degraded 系 / 実エンジン疎通。</li>
+  <li>保持した scaffolding: <code>tests/Feature/ExampleTest.php</code> と <code>tests/Unit/ExampleTest.php</code> (Laravel デフォルト、各 1 test)。</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<table>
+  <thead><tr><th>SHA</th><th>Subject</th></tr></thead>
+  <tbody>
+    <tr><td class="commit-hash">9c000c8</td><td>docs: establish WildLive project foundation</td></tr>
+    <tr><td class="commit-hash">f9f348a</td><td>build: add Laravel + PostgreSQL Docker foundation</td></tr>
+    <tr><td class="commit-hash">427d37d</td><td>fix(docker): use curl (present in the image) in app healthcheck</td></tr>
+    <tr><td class="commit-hash">a007055</td><td>Merge pull request #1 from sugie/ai/001-docker-foundation</td></tr>
+  </tbody>
+</table>
+<p>
+  squash ではなく merge commit を意図的に使用している。AI が書いた個々の
+  commit を <code>git log</code> 上で残すためである。
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/1">#1 — build: establish WildLive Docker development foundation</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/001-docker-foundation</code> (merge 後に削除)。</li>
+  <li>State: <strong>MERGED</strong>。Merge commit: <code>a007055f75541aa42ddc5b8d6433af52b2c38c6b</code>。Merged at: <code>2026-08-14T00:31:06Z</code>。</li>
+  <li>CI runs (すべて <span class="badge badge-ok">success</span>):
+    <ul>
+      <li>Pull request run <a href="https://github.com/sugie/wildlive/actions/runs/31756966550">31756966550</a> — 36秒</li>
+      <li>Pull request run <a href="https://github.com/sugie/wildlive/actions/runs/31757031475">31757031475</a> — 30秒</li>
+      <li>Merge 後の <code>main</code> への push run <a href="https://github.com/sugie/wildlive/actions/runs/31757617154">31757617154</a> — 40秒</li>
+    </ul>
+  </li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li>production 向けの multi-stage Dockerfile はまだ無い。現在の image は <code>require-dev</code> を含んでおり、クラウドデプロイ用途は想定していない。</li>
+  <li><code>wildlive_test</code> データベースは初回に手動で作成する必要がある (<code>docker compose exec postgres psql -U wildlive -d wildlive -c "CREATE DATABASE wildlive_test OWNER wildlive;"</code>)。テスト DB を自動生成する仕組みはまだ用意していない。</li>
+  <li>Migration は app コンテナの entrypoint では自動実行していない。デプロイ時にどう扱うかは将来の deploy task で決定する。</li>
+  <li>Load / security / resilience テストは未実施。本 task は開発土台であり、本番運用可否の証明ではない。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<p>以下はすべて Task 001 のスコープ外であり、未実装のまま残っている:</p>
+<ul>
+  <li>ゲームドメイン一切 — WildLive 独自の <code>User</code>, <code>Zoo</code>, <code>Hunter</code>, <code>Explorer</code>, <code>Region</code>, <code>Species</code>, <code>Animal</code>, <code>Exploration</code>, <code>Discovery</code>, <code>Expedition</code>, <code>WorldEvent</code>。</li>
+  <li>認証・認可の仕組み。</li>
+  <li>フロントエンド framework および Laravel 標準の welcome page 以外の UI。</li>
+  <li>課金、決済、購入フロー。</li>
+  <li>X (Twitter) 連携、SNS 自動投稿。</li>
+  <li>クラウドデプロイ。roadmap には Sakura Cloud AppRun と Sakura Cloud PostgreSQL appliance が挙がっているが、リソースは何も provisioning していない。</li>
+  <li>公開メトリクスやプレイヤー数の類 — WildLive にはまだプレイヤーが存在しない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>ADR-0002 — MVP-0 のドメイン決定</strong>:
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/DECISIONS_PENDING.md"><code>docs/DECISIONS_PENDING.md</code></a>
+  のうち最初の垂直スライスに必要な部分 (Hunter と Explorer の呼称、動物を個体として扱うか種のカウントだけにするか、expedition の所要時間モデル、region の解放条件) を先に確定させる。
+  この ADR が書き上がるまでは migration や Eloquent model の追加は行わない。
+  本レポートは実装の許可を与えるものではない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
