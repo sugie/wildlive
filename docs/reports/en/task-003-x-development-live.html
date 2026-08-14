@@ -196,14 +196,25 @@ OAuth 1.0a request signed → POST /2/tweets → audit marker written</code></pr
 </ul>
 
 <h2>Human setup required to activate</h2>
+<p>
+  Note the design constraint: the kill switch
+  <code>X_AUTOPOST_ENABLED</code> gates <strong>every</strong> live call,
+  including manual <code>workflow_dispatch</code> runs with
+  <code>dry_run = false</code>. Setting the switch to <code>true</code>
+  is therefore not a "verified-and-done" flag; it is the authorisation
+  that unlocks any live posting, including the first controlled test.
+  It can be toggled off again in seconds if anything looks wrong.
+</p>
 <ol>
   <li>Read X's current Automation Rules and configure the posting account (label, linked human account if required). The AI does not touch the X profile.</li>
   <li>Create the X Developer App and generate the four OAuth 1.0a credentials. Add them to GitHub Actions <em>Secrets</em>: <code>X_API_KEY</code>, <code>X_API_KEY_SECRET</code>, <code>X_ACCESS_TOKEN</code>, <code>X_ACCESS_TOKEN_SECRET</code>.</li>
   <li>Create the audit issue once with <code>gh issue create --title "[automation] WildLive X Development Live Audit" --body "Automated audit log."</code></li>
-  <li>Leave the repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> unset (or set to <code>false</code>).</li>
-  <li>Run the workflow manually: <em>Actions → X Development Live → Run workflow</em>, keeping <code>dry_run = true</code>. Confirm the rendered preview.</li>
-  <li>Repeat with <code>dry_run = false</code> and an explicit <code>pr_number</code> to send exactly one live test post. Verify the post shows up on X and that the audit marker was appended.</li>
-  <li>Only then, set <code>X_AUTOPOST_ENABLED = true</code>. From that moment, future task/milestone merges publish automatically.</li>
+  <li>Confirm the repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> is unset (or <code>false</code>) — this is the default that shipped with the implementation PR.</li>
+  <li>Run the workflow manually with the switch still off: <em>Actions → X Development Live → Run workflow</em>, keeping <code>dry_run = true</code>. Confirm the rendered preview. Nothing is posted to X in this state, by design.</li>
+  <li>If the preview is correct, set <code>X_AUTOPOST_ENABLED = true</code>. This authorises live posting; it does not by itself post anything (no automatic event has fired).</li>
+  <li>Immediately run the workflow manually one more time with <code>pr_number = &lt;N&gt;</code> (a known merged milestone PR) <strong>and</strong> <code>dry_run = false</code>. This sends exactly one live post. Verify the post appears on X and that the new audit marker was appended.</li>
+  <li>If anything looks wrong at any point, set <code>X_AUTOPOST_ENABLED</code> back to <code>false</code> (or delete the variable) immediately. Subsequent runs short-circuit at the kill switch; credentials do not need to be touched.</li>
+  <li>If the controlled live test looked correct, leave <code>X_AUTOPOST_ENABLED = true</code>. From that moment, future task/milestone merges publish automatically.</li>
 </ol>
 
 <h2>Next Recommended Task</h2>
