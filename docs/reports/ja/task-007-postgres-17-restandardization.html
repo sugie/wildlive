@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 007 — Task 006 の PostgreSQL 15 標準化を取り消し、本番は Sakura Cloud PostgreSQL Appliance ではなく既存 PostgreSQL Cluster 1 (PostgreSQL 17 + pgvector) を利用する方針に整合させ、dev / CI を PostgreSQL 17 に再標準化。">
+<title>Task 007 — PostgreSQL 17 への再標準化 · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-007-postgres-17-restandardization.html">English version</a>
+</nav>
+
+<h1>Task 007 — 開発環境 / CI を PostgreSQL 17 + pgvector に再標準化</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>Task 006 で前提とした Sakura Cloud PostgreSQL Appliance が WildLive の実ネットワーク構成では利用できないことを人間 (repository owner) が確認し、本番 DB は既存の PostgreSQL Cluster 1 (PostgreSQL 17 + pgvector) を利用する方針に切り替え、Task 006 の PostgreSQL 15 標準化を取り消して PostgreSQL 17 に再標準化する、と決定した。</strong>
+  併せて、push / PR / merge の権限は明示的に人間側で保留 — AI は local commit までで停止し、指示を待つ。
+</p>
+
+<h2>直近の文脈 — 本 task は Task 006 の巻き戻し</h2>
+<p>
+  <a href="task-006-postgres-15-standardization.html">Task 006</a> は Sakura Cloud PostgreSQL Appliance に揃えるため WildLive を PostgreSQL 15 に pin した。この rationale はもう成立しない — 計画中のネットワーク構成では API サーバから appliance に接続できず、appliance は利用しない。Task 006 の report / X manifest / AI session archive は <em>遡って編集しない</em>。それぞれ、当時決めて ship された内容の正確な snapshot として残す。現行仕様の source of truth は本 report。
+</p>
+<p>
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/adr/0004-postgresql-15-standardization.md">ADR-0004</a> は status 行のみ <em>Superseded by ADR-0005</em> に変更、本文は不変で保持。
+</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  開発 / CI / 本番の PostgreSQL メジャーバージョンを、今回は正しい 17 に整合させる。最小限で行う: pin されている image tag 2 か所を変更、現行仕様として version に言及している docs 数か所を訂正、決定を ADR として記録、そして image tag ではなく実サーバに対して 17.x であること・<code>CREATE EXTENSION vector</code> が通ることを検証する。
+</p>
+
+<h2>PR #10 (Task 006) の diff の扱い</h2>
+<p>PR #10 が触ったファイル 1 件ずつ分類し、それぞれ異なる扱いをした:</p>
+<table>
+  <thead><tr><th>分類</th><th>ファイル</th><th>Task 007 での扱い</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Current spec</td>
+      <td><code>docker-compose.yml</code>, <code>.github/workflows/ci.yml</code>, <code>CLAUDE.md</code>, <code>docs/DEVELOPMENT.md</code></td>
+      <td><strong>PostgreSQL 17 に revert</strong> (次節参照)。</td>
+    </tr>
+    <tr>
+      <td>ADR</td>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>status 行のみ</strong> 「Superseded by ADR-0005」に変更。本文は当時の記録として不変で保持。</td>
+    </tr>
+    <tr>
+      <td>歴史的 audit</td>
+      <td><code>docs/reports/{ja,en}/task-006-postgres-15-standardization.html</code>、<code>docs/social/x/task-006-postgres-15-standardization.json</code>、および <code>docs/ai-sessions/task-006-postgres-15-standardization/</code> 配下 4 ファイル</td>
+      <td><strong>編集しない。</strong>Task 006 の X post は <a href="https://x.com/i/status/2088205139912044809">https://x.com/i/status/2088205139912044809</a> に既に公開されており、un-post できない。「WildLive がある方針を発表し、後に取り消した」という事実は、まさにこの公開 archive が保存すべき履歴。</td>
+    </tr>
+    <tr>
+      <td>Index</td>
+      <td><code>docs/reports/index.html</code>, <code>docs/ai-sessions/index.md</code></td>
+      <td>Task 007 行を top に追加。Task 006 行に「(superseded by Task 007)」注記を追加。</td>
+    </tr>
+  </tbody>
+</table>
+<p><code>git revert</code> は使用していない — 一括 revert は保持すべき audit deliverables まで消してしまうため。</p>
+
+<h2>本 task で変更したもの</h2>
+<table>
+  <thead><tr><th>File</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>docker-compose.yml</code></td>
+      <td><code>image: postgres:15-alpine</code> → <code>image: pgvector/pgvector:pg17</code>。ADR-0005 (ADR-0004 を supersede) を指す inline コメント付き。</td>
+    </tr>
+    <tr>
+      <td><code>.github/workflows/ci.yml</code></td>
+      <td>同じ image 変更。job 名を <code>PHPUnit (PHP 8.5 / PostgreSQL 15)</code> から <code>PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)</code> に更新し、Actions UI 上で version と extension が一目で分かるようにした。</td>
+    </tr>
+    <tr>
+      <td><code>CLAUDE.md</code></td>
+      <td>「PostgreSQL 15」表記 2 か所を「PostgreSQL 17 (via <code>pgvector/pgvector:pg17</code>)」に更新、ADR-0005 リンク付き。</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEVELOPMENT.md</code></td>
+      <td>version-choices 表の行を「15-alpine」から「17 (<code>pgvector/pgvector:pg17</code>)」へ。rationale を正しいもの (本番 PostgreSQL Cluster 1 = PostgreSQL 17 + pgvector) に置換。</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>status 行のみ</strong>「Superseded by ADR-0005」に変更。本文は不変で保持。</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0005-postgresql-17-restandardization.md</code></td>
+      <td><strong>新規</strong> accepted ADR。本番 hostname / port / PgBouncer 設定 / credential は一切載せず、ネットワーク topology 理由を記述。live 検証結果を記載。<code>postgres:latest</code> 禁止 (ADR-0004 から継承)、将来のメジャーバージョン bump には新規 ADR を必須化。</td>
+    </tr>
+    <tr>
+      <td>Task 007 governance deliverables</td>
+      <td>bilingual report (本 file + 英語版)、X manifest (v2 English only)、AI session archive (<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>)、index 行。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>本番インフラ</h2>
+<p>
+  本番 PostgreSQL は既存の PostgreSQL Cluster 1 (PostgreSQL 17 + pgvector)。API サーバは既存 IaaS 上の既存サーバを再利用する予定。本番の詳細なインフラ情報 (cluster / API サーバ の hostname、node role、PgBouncer 設定、port 番号、OS、credential) は本 repository にも ADR-0005 にも意図的に記載していない — operations documentation として repository 外で管理される。AI は本番 DB に一切接続しておらず、本番の値を一切観測していない。
+</p>
+
+<h2>実環境での検証</h2>
+<p>clean な <code>postgres-data</code> volume で実施。旧 PG15 volume は <code>docker compose down -v</code> で削除した (PostgreSQL 17 は上位 / 異なる major で作成された data directory を開けないため)。削除前に人間に明示的に事前報告している。volume には Task 006 検証で作成された Laravel の framework migration 3 件の空スキーマしか含まれておらず、WildLive 固有データは無かった。</p>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker pull pgvector/pgvector:pg17</code></td><td>Success (Debian 12 base、aarch64)</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>両サービス healthy</td></tr>
+    <tr>
+      <td><code>SELECT version();</code></td>
+      <td><code>PostgreSQL 17.11 (Debian 17.11-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit</code></td>
+    </tr>
+    <tr><td><code>SHOW server_version;</code></td><td><code>17.11 (Debian 17.11-1.pgdg12+2)</code></td></tr>
+    <tr><td><code>SHOW server_version_num;</code></td><td><code>170011</code></td></tr>
+    <tr><td><code>CREATE EXTENSION IF NOT EXISTS vector;</code></td><td><code>CREATE EXTENSION</code></td></tr>
+    <tr>
+      <td><code>SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';</code></td>
+      <td><code>vector | 0.8.6</code></td>
+    </tr>
+    <tr>
+      <td><code>SELECT '[1,2,3]'::vector <-> '[1,2,4]'::vector;</code></td>
+      <td><code>1</code> (L2 distance 演算子が正常動作)</td>
+    </tr>
+    <tr>
+      <td><code>curl http://localhost:8000/api/health</code></td>
+      <td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td>
+    </tr>
+    <tr>
+      <td><code>docker compose exec app php artisan migrate --force</code></td>
+      <td>framework migration 3 件が適用</td>
+    </tr>
+    <tr>
+      <td><code>docker compose exec app vendor/bin/phpunit</code></td>
+      <td><strong>5 tests, 9 assertions, all pass</strong> (PHP 8.5.9 + PostgreSQL 17.11 + pgvector 0.8.6)</td>
+    </tr>
+    <tr>
+      <td><code>python3 -m unittest scripts.social.tests.test_post_x</code></td>
+      <td>55 tests, all pass — 不変</td>
+    </tr>
+    <tr>
+      <td><code>python3 -m unittest scripts.ai.tests.test_validate_session</code></td>
+      <td>35 tests, all pass — 不変</td>
+    </tr>
+    <tr>
+      <td><code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-007-postgres-17-restandardization/</code></td>
+      <td>OK</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>pgvector バージョンの整合</h2>
+<p>
+  本番は pgvector <strong>0.8.5</strong>、dev image <code>pgvector/pgvector:pg17</code> は pgvector <strong>0.8.6</strong> を同梱。両方 0.8.x line で、現在 WildLive が設計している範囲では API 互換。ADR-0005 では pgvector patch を pin しない — アプリケーションコードで特定 pgvector 機能に依存している箇所がまだ無いため。将来、vector index コード等が特定 patch に依存する場合、その task で image を具体 tag に pin し、新規 ADR に記録する。
+</p>
+
+<h2>互換性 audit</h2>
+<p>本 task の一環として実施。コード変更は不要だった。</p>
+<ul>
+  <li>raw SQL 無し。migration 3 件は Laravel Blueprint API のみを使用しており、PostgreSQL 15 / 17 いずれでもサポートされる portable な SQL に compile される。</li>
+  <li><code>tests/Feature/HealthTest.php</code> の唯一の PostgreSQL 固有 assertion (<code>stringContainsStringIgnoringCase('postgresql', $version->version)</code>) は 17.x でも同一に動作する。</li>
+  <li>アプリコードには PostgreSQL 15 固有の構文で「17 では違う書き方が必要」となるものは存在しなかった。</li>
+  <li>Task 006 report / X manifest / AI session archive の「PostgreSQL 15」表記は歴史的事実の記述であり、現行仕様ではない。</li>
+</ul>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規の自動テストは追加していない。今回の変更は version bump + docs 更新であり、既存 suite が既に重要な path (PostgreSQL 接続、migration 実行、publisher render、session-archive validation) を carry している。</li>
+  <li>3 つの test suite (<strong>PHPUnit 5/9</strong>、<strong>publisher 55/55</strong>、<strong>validator 35/35</strong>) すべて新 PostgreSQL 17 + pgvector stack で不変で pass。</li>
+  <li>テストの弱体化・skip は無し。</li>
+</ul>
+
+<h2>Volume 移行に関する注意</h2>
+<p>
+  Task 006 スタックを起動して <code>postgres:15-alpine</code> で初期化された <code>wildlive_postgres-data</code> volume を持つ開発者は、新スタック起動前に <code>docker compose down -v</code> を実行する必要がある。PostgreSQL 17 は異なる major で作成された data directory を開くことを拒否する。影響を受けるのはローカルの破棄可能データのみ — WildLive は developer マシンに本番データを一切保存しない。本 session では、人間の明示的指示に従い、削除前に状況を報告してから wipe を実行した。
+</p>
+
+<h2>「PostgreSQL 15」残存確認</h2>
+<p>本 task 後、「PostgreSQL 15」および <code>postgres:15</code> の記述が repository 内に残るのは <strong>歴史的 / audit コンテキストのみ</strong>:</p>
+<ul>
+  <li><code>docs/adr/0004-postgresql-15-standardization.md</code> — ADR 本文 (superseded と明記済)。</li>
+  <li><code>docs/reports/{en,ja}/task-006-postgres-15-standardization.html</code> — Task 006 決定の歴史的 bilingual report。</li>
+  <li><code>docs/social/x/task-006-postgres-15-standardization.json</code> — 実際に公開投稿済で un-post 不可の manifest。</li>
+  <li><code>docs/ai-sessions/task-006-postgres-15-standardization/</code> — Task 006 決定の full session archive (prompt / transcript / metadata / per-task README)。</li>
+  <li><code>docs/reports/en/task-007-…html</code> と <code>docs/reports/ja/task-007-…html</code> — 本 report とその英語版。いずれも「PostgreSQL 15」を過去方針として言及している。</li>
+</ul>
+<p>現行仕様として PostgreSQL 15 を参照している箇所は残っていない。</p>
+
+<h2>Git / Commits</h2>
+<p>
+  <code>ai/010-postgres-17-restandardization</code> 上の single local commit。<strong>push していない。</strong>PR も merge も未実施。人間の Task 007 プロンプトが明示的にこれら 3 つを保留するよう指示している。
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/11">#11 — chore(db): restandardize development and CI on PostgreSQL 17 with pgvector</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/010-postgres-17-restandardization</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash 不使用)。既存 repository の PR merge policy に整合。</li>
+  <li>CI: PHPUnit workflow を新 <code>pgvector/pgvector:pg17</code> service に対して PR 上と merge 後 <code>main</code> で <span class="badge badge-ok">success</span> と確認。</li>
+</ul>
+
+<h2>X Development Live</h2>
+<p>
+  Manifest は <code>docs/social/x/task-007-postgres-17-restandardization.json</code> に存在 (schema v2 English only、placeholder PR URL に対する render で 205 weighted chars / cap 280)。workflow は PR open → merge → post-merge <code>CI</code> success で初めて参照するため、本 session の範囲では発火しない。今回の task から X API を呼んだ回数は 0。
+</p>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li>Task 006 の X post は既に公開済で un-post 不可。Task 007 の post は — 人間が push / merge を認可したのち — X 上で reversal を明確に告知する予定。</li>
+  <li>dev image は pgvector 0.8.6、本番は 0.8.5。同じ 0.8.x line で既知の API 差分は無し。アプリ層で特定 pgvector 挙動に依存していないため ADR-0005 では pin しない。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li><code>git revert</code> / <code>git reset</code> は使っていない。歴史的 audit records を意図的に保持。</li>
+  <li>push / PR / merge を実施していない (人間の明示的制約)。</li>
+  <li>本番 PostgreSQL cluster への接続 / 変更なし。DDL / DML / configuration いずれも本番に対しては実行していない。</li>
+  <li>アプリケーションコード、controller、route、migration、依存パッケージ、workflow permission いずれも変更していない。</li>
+  <li>Task 006 の report / X manifest / AI session archive を遡及編集していない。</li>
+  <li>ADR-0005 では pgvector の patch pin を行っていない (依存する code が現在無いため)。</li>
+  <li>本番の credential / hostname / port / PgBouncer 設定 / OS 詳細を repository に記述していない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>本 branch を push して PR を open する認可を人間から取得する</strong>。merge 後に、本 task の metadata の未確定フィールド (<code>pr_number</code>, <code>pr_url</code>, 必要なら <code>merge_commit</code> / <code>ci_status</code>) を小さな follow-up commit で backfill する。同時に Task 007 の X manifest が <em>X Development Live</em> workflow に picked up される (kill switch は Task 005 / 006 の live post 時点で <code>true</code> のままなので、恐らく実 post が生成される)。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

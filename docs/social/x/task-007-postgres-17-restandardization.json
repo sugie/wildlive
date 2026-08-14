@@ -1,0 +1,7 @@
+{
+  "schema_version": 2,
+  "task": "Task 007",
+  "slug": "postgres-17-restandardization",
+  "post_on_merge": true,
+  "en": "WildLive dev and CI now run PostgreSQL 17 with pgvector, matching the actual production cluster. Reverses the earlier PostgreSQL 15 plan."
+}
