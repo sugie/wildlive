@@ -6,7 +6,7 @@ Reverses the immediately-preceding Task 006 decision. WildLive's production Post
 
 - [View Prompt](prompt.en.md) — faithful English translation of the Japanese prompt the AI actually received.
 - [View AI Conversation](transcript.en.md) — visible human/AI interaction and tool activity for this session.
-- [View Pull Request](#pull-request-pending) — pending. This branch has not been pushed. The human explicitly withheld push/PR/merge authorisation for this task.
+- [View Pull Request](https://github.com/sugie/wildlive/pull/11) — PR #11.
 - [View Development Report (EN)](../../reports/en/task-007-postgres-17-restandardization.html)
 - [View Development Report (JA)](../../reports/ja/task-007-postgres-17-restandardization.html)
 - [View ADR-0005](../../adr/0005-postgresql-17-restandardization.md)
@@ -14,9 +14,7 @@ Reverses the immediately-preceding Task 006 decision. WildLive's production Post
 
 ## Pull Request
 
-<a id="pull-request-pending"></a>
-
-**Not yet opened.** The human's Task 007 prompt explicitly withheld push, PR-creation, and merge authorisation. This archive record is committed locally so the human can review the full branch before authorising the next step. Once the PR exists, `pr_number` and `pr_url` in [`metadata.json`](metadata.json) will be backfilled by a small follow-up commit on this branch.
+**PR:** [#11 — chore(db): restandardize development and CI on PostgreSQL 17 with pgvector](https://github.com/sugie/wildlive/pull/11). The human's Task 007 prompt initially withheld push, PR-creation, and merge authorisation; a subsequent instruction authorised the push, PR, and merge, at which point the branch was published and `pr_number` / `pr_url` in [`metadata.json`](metadata.json) were backfilled by a small follow-up commit on this branch.
 
 ## Metadata
 

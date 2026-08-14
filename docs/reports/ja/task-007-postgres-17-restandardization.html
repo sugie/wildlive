@@ -25,7 +25,7 @@
   Project: WildLive
   &nbsp;·&nbsp; 日付: 2026-08-14
   &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
-  &nbsp;·&nbsp; Status: <span class="badge badge-warn">local commit のみ。push / PR / merge は人間指示待ち</span>
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
 </p>
 
 <h2>人間による介入 (Human intervention)</h2>
@@ -209,9 +209,12 @@
 </p>
 
 <h2>Pull Request</h2>
-<p>
-  <strong>Pending。</strong>本 branch は local commit として review 可能な状態にあり、人間の明示的な push/PR 認可を待機している。
-</p>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/11">#11 — chore(db): restandardize development and CI on PostgreSQL 17 with pgvector</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/010-postgres-17-restandardization</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash 不使用)。既存 repository の PR merge policy に整合。</li>
+  <li>CI: PHPUnit workflow を新 <code>pgvector/pgvector:pg17</code> service に対して PR 上と merge 後 <code>main</code> で <span class="badge badge-ok">success</span> と確認。</li>
+</ul>
 
 <h2>X Development Live</h2>
 <p>
