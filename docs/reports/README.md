@@ -30,6 +30,17 @@ patches — those can live entirely in the PR description.
 Rule of thumb: if the change is worth its own PR title in `git log`, it is
 worth a report.
 
+## Companion: X development live manifest
+
+For any task or milestone that warrants a public announcement, also add
+a matching X post manifest at `docs/social/x/task-<NNN>-<slug>.json`. The
+manifest is committed in the same PR as the report, reviewed there, and
+published to X automatically by the `X Development Live` workflow after
+merge and successful `main` CI. See
+[`docs/social/x/README.md`](../social/x/README.md) and
+[`docs/adr/0003-x-development-live.md`](../adr/0003-x-development-live.md)
+for the full policy.
+
 ## How to add a new report
 
 1. Copy `template/report.en.html` to `en/task-<NNN>-<slug>.html`.

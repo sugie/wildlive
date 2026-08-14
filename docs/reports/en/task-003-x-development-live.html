@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 003 — X Development Live. AI-authored, human-reviewed bilingual X posts published after merge and successful main CI.">
+<title>Task 003 — X Development Live · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-003-x-development-live.html">日本語版</a>
+</nav>
+
+<h1>Task 003 — X Development Live</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+  &nbsp;·&nbsp; Live posting: <span class="badge badge-warn">Disabled until human activation</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) decided to make WildLive
+  development itself publicly visible on X and defined the goal of an
+  AI-authored bilingual live-development feed.</strong> The AI (Claude
+  Code) designed the automation under the constraints given by the
+  human, implemented the publisher, wrote the workflow and tests, and
+  drafted the first manifest. The AI did <em>not</em>:
+</p>
+<ul>
+  <li>create an X Developer app,</li>
+  <li>generate or install X API credentials,</li>
+  <li>flip the kill switch <code>X_AUTOPOST_ENABLED</code>,</li>
+  <li>modify the X account profile, bio, or automated-account label.</li>
+</ul>
+<p>Those steps are described in
+<code>docs/social/x/README.md</code> and remain a human responsibility.</p>
+
+<h2>Objective</h2>
+<p>
+  Establish a fail-closed, auditable pipeline that publishes verified
+  WildLive development milestones to X, without allowing runtime
+  hallucination and without giving the workflow the ability to compose
+  new text at post time.
+</p>
+<p>
+  This is <strong>not</strong> an in-game X integration. It is a
+  broadcast channel for the autonomous-development experiment itself.
+</p>
+
+<h2>Architecture: AI writes, Git records, PR reviews, workflow publishes</h2>
+<p>
+  Every X post is derived from a JSON manifest committed to
+  <code>docs/social/x/</code>. The AI writes the wording at
+  PR-authoring time; reviewers read it in the PR; the GitHub Actions
+  workflow only concatenates the manifest with a PR URL and the
+  <code>#shipaton</code> hashtag and sends it. The runtime never calls
+  an LLM.
+</p>
+
+<pre><code>AI writes the post text
+        ↓
+Git records the manifest (docs/social/x/task-NNN-slug.json)
+        ↓
+PR reviewer approves the post
+        ↓
+PR merges to main
+        ↓
+main CI runs (docker + phpunit + all existing checks)
+        ↓
+CI success → X Development Live workflow fires
+        ↓
+Publisher renders bilingual post, appends PR URL + #shipaton
+        ↓
+Length-check (twitter-text approximation, cap 280 weighted chars)
+        ↓
+Idempotency check against audit issue (skip if merge SHA already posted)
+        ↓
+OAuth 1.0a request signed → POST /2/tweets → audit marker written</code></pre>
+
+<h2>What the AI did</h2>
+<ol>
+  <li>Read the governance-critical docs (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, <code>docs/reports/README.md</code>, <code>docs/ROADMAP.md</code>, <code>.github/workflows/ci.yml</code>).</li>
+  <li>Created branch <code>ai/004-x-development-live</code> from clean <code>main</code>.</li>
+  <li>Wrote <code>docs/adr/0003-x-development-live.md</code>: purpose, source of truth, trigger, format, manifest discovery, OAuth 1.0a authentication, <code>made_with_ai</code> disposition, fail-closed kill switch, duplicate suppression via GitHub audit issue, bounded retry, X-account transparency responsibilities, cost awareness, deferred items.</li>
+  <li>Wrote <code>docs/social/README.md</code> and <code>docs/social/x/README.md</code> covering the manifest schema, bilingual rule, length rule, hashtag rule, trigger, kill switch, required GitHub Secrets and Variables, duplicate suppression, audit log, dry-run procedure, manual dispatch procedure, emergency-disable procedure, first-time-activation procedure, X account transparency, and API cost awareness.</li>
+  <li>Wrote <code>docs/social/x/schema.json</code> (draft 2020-12 JSON Schema) for the manifest.</li>
+  <li>Wrote the first manifest <code>docs/social/x/task-003-x-development-live.json</code> — bilingual bodies constrained to fit under 280 weighted chars after the workflow appends the PR URL and hashtag.</li>
+  <li>Wrote <code>scripts/social/post_x.py</code> — Python stdlib-only publisher: manifest loader/validator, bilingual renderer, twitter-text weighted-length approximation, OAuth 1.0a signature builder, HTTP client with bounded retry (max 3 attempts, only on 429/5xx/transport errors), <code>--dry-run</code>, credential guard, no secret logging.</li>
+  <li>Wrote <code>scripts/social/tests/test_post_x.py</code> — 38 unittest cases covering manifest validation, rendering, length, OAuth signature determinism, secret redaction, HTTP retry policy, dry-run behaviour. Real X credentials are never used.</li>
+  <li>Wrote <code>.github/workflows/x-development-live.yml</code> — fires on <code>workflow_run</code> of the <code>CI</code> workflow when it succeeds on a push to <code>main</code>; also supports <code>workflow_dispatch</code> with default <code>dry_run=true</code>. Resolves the merge SHA, finds the associated merged PR, locates a single manifest in the PR diff (fails closed on 2+), checks the kill switch, checks credentials, checks the audit issue for a matching marker, runs a dry-run preview, then (only if all guards pass) invokes the publisher, then appends an audit-issue comment with the merge SHA marker.</li>
+  <li>Updated <code>AGENTS.md</code>, <code>docs/AUTONOMY.md</code>, <code>CLAUDE.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, and <code>docs/reports/README.md</code> so future AI agents know to add a manifest for task/milestone PRs and know they must not activate posting or manage the X account.</li>
+  <li>Wrote this bilingual pair of reports and updated <code>docs/reports/index.html</code>.</li>
+</ol>
+
+<h2>Trigger and safety guards</h2>
+<table>
+  <thead><tr><th>Guard</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Event filter</td><td><code>workflow_run.conclusion == success</code> ∧ <code>workflow_run.event == push</code> ∧ <code>workflow_run.head_branch == main</code>. PR opens and PR CI going green never trigger.</td></tr>
+    <tr><td>No associated merged PR</td><td>Skip cleanly (no-op) — never post from a direct push.</td></tr>
+    <tr><td>Zero manifests in PR diff</td><td>Intentional no-op (typo fixes, one-line changes).</td></tr>
+    <tr><td>Two or more manifests in PR diff</td><td>Fail closed — never guess which to post.</td></tr>
+    <tr><td>Kill switch <code>X_AUTOPOST_ENABLED != "true"</code></td><td>Skip cleanly, log <code>disabled — no post</code>. Applies even in live mode.</td></tr>
+    <tr><td>Missing any of the four X credentials</td><td>Skip cleanly — never send a partially-signed request.</td></tr>
+    <tr><td>Idempotency: merge SHA already in audit issue</td><td>Skip cleanly (<code>already posted — skip</code>). Workflow re-runs cannot double-post.</td></tr>
+    <tr><td>Concurrency group keyed on merge SHA</td><td>Simultaneous <code>workflow_run</code> and <code>workflow_dispatch</code> for the same SHA serialise.</td></tr>
+    <tr><td>Length cap</td><td>Rejects over-length manifests locally before touching the network. Uses a conservative twitter-text approximation (CJK char = weight 2, URL = 23, cap 280).</td></tr>
+    <tr><td>Retry policy</td><td>Bounded max 3 attempts. Retries on 429/5xx/transport errors only. 4xx (other than 429) fails fast.</td></tr>
+    <tr><td>Workflow permissions</td><td><code>contents: read</code>, <code>pull-requests: read</code>, <code>issues: write</code> only. No <code>contents: write</code>, no <code>actions: write</code>.</td></tr>
+    <tr><td>Secret handling</td><td>Credentials read from env only. <code>OAuthCredentials.__repr__</code> is redacted. No secret is ever written to stdout, stderr, or the job summary.</td></tr>
+  </tbody>
+</table>
+
+<h2>Files added</h2>
+<ul>
+  <li><code>docs/adr/0003-x-development-live.md</code></li>
+  <li><code>docs/social/README.md</code></li>
+  <li><code>docs/social/x/README.md</code></li>
+  <li><code>docs/social/x/schema.json</code></li>
+  <li><code>docs/social/x/task-003-x-development-live.json</code></li>
+  <li><code>scripts/social/post_x.py</code></li>
+  <li><code>scripts/social/tests/__init__.py</code></li>
+  <li><code>scripts/social/tests/test_post_x.py</code></li>
+  <li><code>.github/workflows/x-development-live.yml</code></li>
+  <li><code>docs/reports/ja/task-003-x-development-live.html</code></li>
+  <li><code>docs/reports/en/task-003-x-development-live.html</code></li>
+</ul>
+<h2>Files edited</h2>
+<ul>
+  <li><code>AGENTS.md</code> — required-workflow step added for X manifests; new prohibited actions (LLM at runtime, enabling posting, managing X profile); new source-of-truth pointer.</li>
+  <li><code>CLAUDE.md</code> — new "X development live" section.</li>
+  <li><code>docs/AUTONOMY.md</code> — new "Public social broadcasting" section.</li>
+  <li><code>docs/SOCIAL_AUTOMATION.md</code> — rewritten around the accepted ADR-0003; checklist marked implemented.</li>
+  <li><code>docs/reports/README.md</code> — pointer to the companion X manifest.</li>
+  <li><code>docs/reports/index.html</code> — Task 003 entry.</li>
+</ul>
+
+<h2>Validation</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>python3 -m unittest scripts.social.tests.test_post_x -v</code></td><td><strong>38 tests, all pass</strong> (Python 3.9.6). Covers manifest schema, rendering, length, OAuth signature determinism, secret redaction, retry policy, dry-run.</td></tr>
+    <tr><td>Publisher dry-run against the shipped Task 003 manifest with <code>--pr-number 4</code> and the intended PR URL</td><td>Rendered <strong>255 weighted chars</strong> (cap 280). No network call.</td></tr>
+    <tr><td>Existing PHPUnit suite</td><td><code>docker compose exec app vendor/bin/phpunit</code> — verified before commit. See below.</td></tr>
+    <tr><td>Secret scan</td><td>No token, private key, or X credential value present anywhere in the diff. <code>.env.example</code> unchanged.</td></tr>
+    <tr><td>Workflow permissions</td><td><code>contents: read</code>, <code>pull-requests: read</code>, <code>issues: write</code>. No <code>pull_request_target</code>. No browser automation. No third-party actions beyond <code>actions/checkout@v4</code> and <code>actions/setup-python@v5</code>.</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li>New Python tests: <strong>38 tests</strong> in <code>scripts/social/tests/test_post_x.py</code> — all pass. No network. No real X credentials.</li>
+  <li>Existing PHP suite: <strong>5 tests, 9 assertions</strong> (PHPUnit 12.5.33, PHP 8.5.9, PostgreSQL 16) — unchanged and still pass.</li>
+  <li>CI on this branch: PHPUnit workflow is unchanged and will exercise the same suite.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>Commit(s) on <code>ai/004-x-development-live</code>, plus the merge commit on <code>main</code>. Exact SHAs are visible on <code>main</code> and in the linked PR after merge.</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/4">#4 — feat: add X development live auto-posting</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/004-x-development-live</code> (deleted after merge).</li>
+  <li>Method: merge commit (not squash).</li>
+  <li>CI: PHPUnit workflow verified <span class="badge badge-ok">success</span> before merge and again on <code>main</code> after merge. The new <code>X Development Live</code> workflow does not run on this PR itself because its trigger (<code>workflow_run</code> of <code>CI</code> on push to <code>main</code>) fires only after the merge into <code>main</code>; the merge event itself will register the workflow, but it will exit as <em>disabled — no post</em> because the kill switch defaults to unset.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li><strong>Live posting cannot be verified end-to-end from within this PR</strong> without human-supplied X credentials and a flipped kill switch. The workflow's real X call remains unexercised in CI by design — real API calls from CI would burn credentials and could hit paid tiers.</li>
+  <li>The <code>made_with_ai</code> disclosure flag on <code>POST /2/tweets</code> is <strong>not</strong> sent by this implementation. The presence and accepted values of that field on the current production endpoint could not be verified from within this repository. If human verification confirms it is supported, a small follow-up PR can add it. AI-generation transparency is currently signalled through the <code>#shipaton</code> hashtag, the automated-account framing on the X account itself (human-configured), and the WildLive reports the posts link to.</li>
+  <li>The publisher does not itself write the audit-issue comment; the workflow does, so that the publisher stays free of GitHub API dependencies. A crash after <code>POST /2/tweets</code> succeeds but before the audit comment is written would leave the ledger inconsistent for that merge. The concurrency group and the workflow's failure-mode behaviour (no automatic retry of the whole job) keep this bounded; a human can, if it ever occurs, manually append the marker.</li>
+  <li>The publisher accepts a merge-commit SHA implicitly via the workflow. If a human runs <code>scripts/social/post_x.py</code> outside the workflow, no audit deduplication happens — the workflow is the intended entry point.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No X Developer app created.</li>
+  <li>No X credentials generated, installed, or referenced by real values.</li>
+  <li>No repository variable <code>X_AUTOPOST_ENABLED</code> flipped.</li>
+  <li>No live X post sent from this task. The workflow ships fail-closed.</li>
+  <li>No change to game code, migrations, Docker configuration, or existing CI workflow.</li>
+  <li>No third-party Python dependency added; stdlib only.</li>
+</ul>
+
+<h2>Human setup required to activate</h2>
+<ol>
+  <li>Read X's current Automation Rules and configure the posting account (label, linked human account if required). The AI does not touch the X profile.</li>
+  <li>Create the X Developer App and generate the four OAuth 1.0a credentials. Add them to GitHub Actions <em>Secrets</em>: <code>X_API_KEY</code>, <code>X_API_KEY_SECRET</code>, <code>X_ACCESS_TOKEN</code>, <code>X_ACCESS_TOKEN_SECRET</code>.</li>
+  <li>Create the audit issue once with <code>gh issue create --title "[automation] WildLive X Development Live Audit" --body "Automated audit log."</code></li>
+  <li>Leave the repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> unset (or set to <code>false</code>).</li>
+  <li>Run the workflow manually: <em>Actions → X Development Live → Run workflow</em>, keeping <code>dry_run = true</code>. Confirm the rendered preview.</li>
+  <li>Repeat with <code>dry_run = false</code> and an explicit <code>pr_number</code> to send exactly one live test post. Verify the post shows up on X and that the audit marker was appended.</li>
+  <li>Only then, set <code>X_AUTOPOST_ENABLED = true</code>. From that moment, future task/milestone merges publish automatically.</li>
+</ol>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Draft the MVP-0 vertical-slice implementation plan</strong> — a
+  short design task that turns a minimum set of open items from
+  <code>docs/DECISIONS_PENDING.md</code> (a handful of Species, one or
+  two Regions, one Hunter tier, expedition duration numbers) into a
+  concrete migration/model plan that then goes back to the human for
+  approval before any code lands. This report does not authorise that
+  implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

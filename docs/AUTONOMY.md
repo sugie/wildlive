@@ -89,6 +89,28 @@ commit SHA, PR number, CI run, test count, and design decision cited in
 a report must be independently verifiable in the repository. Reports may
 not invent state.
 
+## Public social broadcasting (X development live)
+
+Task- or milestone-scale PRs that warrant a public announcement must
+also ship with a bilingual X manifest at
+`docs/social/x/task-<NNN>-<slug>.json`. The AI writes and commits the
+post text at PR-authoring time; a GitHub Actions workflow publishes it
+only after the PR is merged and the `main` CI passes. Trivial typo /
+one-line config fixes are exempt.
+
+Design and operator guarantees:
+
+- The publisher is stdlib-only and never calls an LLM at runtime.
+- Live posting is fail-closed until the repository variable
+  `X_AUTOPOST_ENABLED == "true"` (a human step, not an AI step).
+- Every successful post is recorded against its merge commit SHA in a
+  dedicated GitHub audit issue, so workflow re-runs cannot double-post.
+- The AI must not create the X Developer App, install X credentials,
+  flip the kill switch, or modify the X account profile.
+
+Truthfulness rules for reports apply verbatim to social posts. See
+`docs/adr/0003-x-development-live.md` and `docs/social/x/README.md`.
+
 ## Principle
 
 Autonomy should reduce repeated manual work.
