@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 006 — 本番の Sakura Cloud PostgreSQL Appliance と揃えるため、ローカル Docker 開発環境と CI を PostgreSQL 15 に統一。">
+<title>Task 006 — PostgreSQL 15 に統一 · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-006-postgres-15-standardization.html">English version</a>
+</nav>
+
+<h1>Task 006 — 開発環境と CI を PostgreSQL 15 に統一</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>本番で使用する Sakura Cloud PostgreSQL Appliance のメジャーバージョンが 15 であることを人間 (repository owner) が確定し、ローカル開発環境と CI も PostgreSQL 15 に統一する、という判断を行った。</strong>
+  AI (Claude Code) は repository を audit し、最小限の編集を行い、実サーバのバージョンを検証し、<a href="https://github.com/sugie/wildlive/blob/main/docs/adr/0004-postgresql-15-standardization.md">ADR-0004</a> を執筆して、このレコードを ship した。
+</p>
+
+<h2>過去の記述の訂正</h2>
+<p>
+  Task 001 の bilingual report は「<code>postgres:16-alpine</code> は Sakura Cloud PostgreSQL appliance との整合のために採用した」と記していた。人間が今回、appliance のメジャーバージョンは実際には <strong>15</strong> であることを確認した。Task 001 report は <em>遡って書き換えていない</em> — 当時の理解を正しく記録した audit record として保持する。ADR-0004 が今後の選択を正式に訂正し、過去 report への provenance link を張っている。
+</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  開発 / CI / 本番の PostgreSQL メジャーバージョンを揃える。そのために必要な最小限だけ行う: pin されている image tag 2 か所を変更、バージョンに言及している docs の rationale を訂正、決定を ADR として記録、そして「image tag ではなく実サーバに対して」 15.x であることを検証する。
+</p>
+
+<h2>変更内容</h2>
+<table>
+  <thead><tr><th>File</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>docker-compose.yml</code></td>
+      <td><code>image: postgres:16-alpine</code> → <code>image: postgres:15-alpine</code>。ADR-0004 を指す inline コメント付き。</td>
+    </tr>
+    <tr>
+      <td><code>.github/workflows/ci.yml</code></td>
+      <td><code>services.postgres.image</code> を同様に bump。job 名を <code>PHPUnit (PHP 8.5 / PostgreSQL 16)</code> から <code>PHPUnit (PHP 8.5 / PostgreSQL 15)</code> に更新し、GitHub Actions UI 上で version が一目で分かるようにした。</td>
+    </tr>
+    <tr>
+      <td><code>CLAUDE.md</code></td>
+      <td>「PostgreSQL 16」への 2 か所の言及を「PostgreSQL 15 (<code>postgres:15-alpine</code>)」に更新、ADR-0004 へのリンクを付与。</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEVELOPMENT.md</code></td>
+      <td>version-choices 表の行を「16-alpine」から「15-alpine」へ。rationale を正しいもの (Sakura Cloud Appliance = 15) に置換し、ADR-0004 へのリンクを付与。</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>新規。</strong>承認済 ADR: context、決定、consequences、in/out of scope、compatibility audit、実環境検証の逐語 transcript、human-intervention 記述。<code>postgres:latest</code> を repository 全体で禁止し、将来のメジャーバージョン bump には新規 ADR を必須とする。</td>
+    </tr>
+    <tr>
+      <td>過去 report (<code>docs/reports/{ja,en}/task-001…005-…html</code>)</td>
+      <td><strong>編集しない。</strong>「PostgreSQL 16」表記は各 task の PR 時点で実際に稼働していたバージョンの正確な snapshot。書き換えると audit trail が壊れる。</td>
+    </tr>
+    <tr>
+      <td><code>docs/ai-sessions/task-006-…/</code> + <code>docs/ai-sessions/index.md</code></td>
+      <td>PR #9 で導入された governance に沿った、本 task の Public AI session archive レコード。<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code> を含む。</td>
+    </tr>
+    <tr>
+      <td><code>docs/social/x/task-006-postgres-15-standardization.json</code></td>
+      <td>X Development Live manifest、schema v2 (English only)、本文: <em>"WildLive now runs PostgreSQL 15 in dev and CI, matching the Sakura Cloud PostgreSQL Appliance in production."</em></td>
+    </tr>
+    <tr>
+      <td>本 report + 英語版 + <code>docs/reports/index.html</code></td>
+      <td>新しい top entry。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>PostgreSQL 15 互換性 audit</h2>
+<p>本 task の一環として実施。互換性修正は不要だった。</p>
+<ul>
+  <li><strong>pgvector 無し。</strong> repository 全体で <code>pgvector</code>, <code>CREATE EXTENSION</code>, <code>USING ivfflat</code>, <code>USING hnsw</code>, <code>vector(</code> のいずれも 0 hit。<code>postgres:15-alpine</code> base image は pgvector を同梱しておらず、WildLive の現状では不要。</li>
+  <li><strong>raw SQL 無し。</strong> 現在 ship されている migration 3 件 (<code>0001_01_01_000000_create_users_table</code>, <code>0001_01_01_000001_create_cache_table</code>, <code>0001_01_01_000002_create_jobs_table</code>) は Laravel Blueprint API のみを使用しており、PostgreSQL 15 以前でもサポートされる portable な SQL に compile される。</li>
+  <li><strong>アプリケーションコード。</strong> PostgreSQL 固有の呼び出しは health check の <code>DB::selectOne('select version() as version')</code> と <code>tests/Feature/HealthTest.php</code> の identity assertion のみ。いずれも 15.x で同一に動作する。</li>
+  <li><strong>設定。</strong> <code>.env.example</code> は <code>DB_CONNECTION=pgsql</code> と service hostname <code>postgres</code> を使用。アプリ層でメジャーバージョンを pin していない。</li>
+  <li><strong>PostgreSQL 16 以降専用機能</strong> (<code>MERGE … RETURNING</code>、<code>IS JSON</code>、拡張された logical-replication surface、ICU default collations 等) はいずれも未使用。</li>
+</ul>
+
+<h2>実環境での検証</h2>
+<p>clean な <code>postgres-data</code> volume に対して実施 (PostgreSQL は上位メジャーで初期化された data directory を開けないため、PG15 起動前に <code>docker compose down -v</code> で旧 PG16 volume を削除した)。</p>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>両サービス healthy</td></tr>
+    <tr>
+      <td><code>SELECT version();</code></td>
+      <td><code>PostgreSQL 15.19 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit</code></td>
+    </tr>
+    <tr><td><code>SHOW server_version;</code></td><td><code>15.19</code></td></tr>
+    <tr><td><code>SHOW server_version_num;</code></td><td><code>150019</code></td></tr>
+    <tr>
+      <td><code>SELECT name FROM pg_available_extensions WHERE name IN ('vector','pgvector');</code></td>
+      <td>0 行 (pgvector 未搭載、WildLive では不要)</td>
+    </tr>
+    <tr><td><code>curl http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate --force</code></td><td>framework migration 3 件が適用</td></tr>
+    <tr><td><code>docker compose exec app vendor/bin/phpunit</code></td><td><strong>5 tests, 9 assertions, all pass</strong> (PHP 8.5.9 + PostgreSQL 15.19)</td></tr>
+    <tr><td><code>python3 -m unittest scripts.social.tests.test_post_x</code></td><td>55 tests, all pass — 変更なし</td></tr>
+    <tr><td><code>python3 -m unittest scripts.ai.tests.test_validate_session</code></td><td>35 tests, all pass — 変更なし</td></tr>
+    <tr><td><code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-006-postgres-15-standardization/</code></td><td>OK</td></tr>
+    <tr>
+      <td>X manifest dry-run (<code>--pr-number 10</code>)</td>
+      <td>176 weighted characters (cap 280)、network 未使用</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規の自動テストは追加していない。今回の変更は version bump + docs 更新であり、既存 suite が既に重要な path (PostgreSQL 接続、migration 実行、publisher render、session-archive validation) を carry している。</li>
+  <li>3 つの test suite (<strong>PHPUnit 5/9</strong>、<strong>publisher 55/55</strong>、<strong>session-archive validator 35/35</strong>) すべて新 PostgreSQL 15 stack で不変で pass。</li>
+  <li>テストの弱体化・skip は無し。</li>
+</ul>
+
+<h2>Volume 移行に関する注意</h2>
+<p>
+  ローカルで <code>postgres:16-alpine</code> により初期化された <code>wildlive_postgres-data</code> volume を持つ開発者は、新スタック起動前に <code>docker compose down -v</code> を実行する必要がある。PostgreSQL 15 は上位メジャーで初期化された data directory を開くことを拒否する。影響を受けるのはローカルの破棄可能データのみ — WildLive は developer マシンに本番データを一切保存しない。
+</p>
+
+<h2>Git / Commits</h2>
+<p><code>ai/009-postgres-15-standardization</code> 上の commit と、<code>main</code> 側の merge commit。正確な SHA は merge 後の <code>main</code> の <code>git log</code> と PR ページで確認できる。</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/10">#10 — chore(db): standardize development and CI on PostgreSQL 15</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/009-postgres-15-standardization</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash 不使用)。</li>
+  <li>CI: PHPUnit workflow を新 <code>postgres:15-alpine</code> service に対して PR 上と merge 後 <code>main</code> で <span class="badge badge-ok">success</span> と確認。</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-006-postgres-15-standardization.json</code> — schema v2 (English only)、176 weighted chars。</li>
+  <li>Merge 後の <em>X Development Live</em> workflow の挙動は merge 時点の repository variable <code>X_AUTOPOST_ENABLED</code> の状態に依存する。これは人間管理下にあり、本 task では触れていない。switch が <code>true</code> の場合 (PR #9 では <code>true</code> だった)、workflow は上記 manifest で live post を 1 件 publish し、audit issue に marker を追記する。switch が off の場合、workflow は preview を実行して kill-switch 段階で exit する。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li>Task 001〜Task 005 の過去 bilingual report は validation 表内で「PostgreSQL 16」表記のままとなっている。これは意図的 — 各 PR の時点で実際に稼働していたバージョンの audit snapshot として保持する。ADR-0004 が今後の訂正を担う。</li>
+  <li>複数 PostgreSQL メジャーバージョンにわたる matrix test は追加していない。プロジェクト方針 (ADR-0004) は single-major-version discipline: dev / CI / 本番いずれも PostgreSQL 15。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>PostgreSQL 16 以降へのアップグレードや <code>postgres:latest</code> の使用は行っていない。</li>
+  <li>アプリケーションコード、migration、controller、route、依存パッケージのいずれも変更していない。</li>
+  <li>workflow permissions、GitHub Secrets、X 関連 governance のいずれも変更していない。</li>
+  <li>Task 001〜Task 005 の過去 report は遡及編集していない。</li>
+  <li>pgvector の追加・削除は無し (元々存在しない)。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>WildLive 本筋に戻り、MVP-0 の最初の migration を書くために必要な最小限の open question を解消する。</strong>
+  具体的には、starter となる少数の <code>Species</code>、1〜2 の <code>Region</code> 名、最小の <code>Hunter</code> 属性 schema、そして <code>HunterContract</code>–<code>Expedition</code> のカーディナリティ (<a href="https://github.com/sugie/wildlive/blob/main/docs/DECISIONS_PENDING.md"><code>docs/DECISIONS_PENDING.md</code></a>)。人間がこれらを承認して初めて migration に着手する。本レポートは実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

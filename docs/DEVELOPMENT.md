@@ -107,7 +107,7 @@ Do not add extensions speculatively. See
 |---------------|-------------------|------------------------------------------------------------------------------------|
 | PHP           | 8.5 (cli, bookworm) | Explicit target in the project brief; 8.5 is the current stable line.            |
 | Laravel       | ^13.17 (currently 13.25) | Latest 13.x, the target framework version.                                  |
-| PostgreSQL    | 16-alpine          | Widely supported by managed offerings (including Sakura Cloud PostgreSQL appliance) while remaining current. |
+| PostgreSQL    | 15-alpine          | Matches the Sakura Cloud PostgreSQL Appliance used in production. Standardisation is fixed by [`docs/adr/0004-postgresql-15-standardization.md`](adr/0004-postgresql-15-standardization.md); bumping the major version requires a new ADR. |
 | Composer      | 2.x                | Standard modern Composer, pulled from `composer:2` image at build time.           |
 
 Bumping any of these is a governance change — open a PR with a short
