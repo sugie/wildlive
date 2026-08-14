@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 008 — the first UI-first milestone. A minimal SwiftUI title screen visible on the iOS Simulator, so a human can look at 'WildLive on an iPhone' before we build the game loop, API, or persistence.">
+<title>Task 008 — iOS title screen (Milestone 001) · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-008-ios-title-screen.html">日本語版</a>
+</nav>
+
+<h1>Task 008 — iOS title screen (Milestone 001, UI-first)</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) announced a new UI-first development order for WildLive
+  (<code>UI → Interaction → Game Experience → Domain/API → Infrastructure</code>) and asked
+  the AI to display the first WildLive title screen on the iOS Simulator</strong> using
+  Xcode + Swift + SwiftUI, without touching any backend, API, database, or production
+  infrastructure. After the AI produced Version 0 as a local commit and displayed the
+  Simulator screenshot in-chat, the human reviewed it and replied <em>"OK Make PR"</em> —
+  authorising push and PR creation, but not merge. This report is written for the PR-review
+  round.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Ship "something visible" first: a real WildLive title screen that boots on the iOS
+  Simulator. Nothing more. No game loop, no navigation past the title screen, no network,
+  no persistence, no auth, no backend, no data model, no third-party framework.
+</p>
+
+<h2>What ships</h2>
+
+<h3>The app</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/apps/ios/"><code>apps/ios/</code></a> — the new WildLive iOS client root.</li>
+  <li><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code> — hand-authored (no XcodeGen / Tuist / CocoaPods).</li>
+  <li><code>apps/ios/WildLive/WildLiveApp.swift</code> — <code>@main App</code>, <code>WindowGroup { TitleView() }</code>.</li>
+  <li><code>apps/ios/WildLive/TitleView.swift</code> — the SwiftUI title screen: dark 3-stop <code>LinearGradient</code> background with <code>.ignoresSafeArea()</code>; centred large serif <code>WildLive</code>; tracked uppercase <code>AI MADE LIVE MMO</code> subtitle; full-width rounded white <code>START</code> button whose action prints <code>"START tapped"</code> under <code>#if DEBUG</code>; portrait-only, <code>.preferredColorScheme(.dark)</code>.</li>
+  <li><code>apps/ios/WildLive/Assets.xcassets/</code> — minimal <code>AppIcon</code> and <code>AccentColor</code> stubs so the asset-catalog compiler resolves cleanly. No placeholder art was fabricated.</li>
+  <li><code>apps/ios/README.md</code> — short build/run/layout guide, plus the deliberate non-goals list so a returning developer or agent does not add scope to Version 0.</li>
+</ul>
+
+<h3>Governance</h3>
+<ul>
+  <li>This bilingual report + its Japanese counterpart, plus a new row at the top of <code>docs/reports/index.html</code>.</li>
+  <li>The Task 008 AI session archive under <code>docs/ai-sessions/task-008-ios-title-screen/</code> (<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>) + a new row at the top of <code>docs/ai-sessions/index.md</code>.</li>
+  <li><strong>No X manifest.</strong> Milestone 001 §27 explicitly excludes this Version-0 UI-only milestone from the auto-post-on-merge target. The <code>X Development Live</code> workflow will find zero manifests in this PR's diff and exit cleanly as a documented no-op.</li>
+  <li><code>.gitignore</code> — added rules for <code>apps/ios/build/</code>, <code>xcuserdata/</code>, and <code>DerivedData/</code> so per-developer Xcode state and build artefacts stay out of Git.</li>
+</ul>
+
+<h2>Live verification (before opening this PR)</h2>
+<p>All results below are from actual commands, not inferred from configuration.</p>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild -version</code></td><td>Xcode 26.6, Build 17F113</td></tr>
+    <tr><td><code>xcrun swift --version</code></td><td>Swift 6.3.3</td></tr>
+    <tr><td><code>xcrun simctl list runtimes</code></td><td>iOS 26.5 (23F77) available</td></tr>
+    <tr><td><code>xcrun simctl list devices available</code></td><td>iPhone 17 Pro / Pro Max / 17e / Air / 17 all present; selected <strong>iPhone 17</strong></td></tr>
+    <tr><td><code>xcodebuild -project WildLive.xcodeproj -list</code></td><td>Target <code>WildLive</code>, scheme <code>WildLive</code>, configurations <code>Debug</code>/<code>Release</code> — pbxproj parses cleanly</td></tr>
+    <tr>
+      <td><code>xcodebuild -project WildLive.xcodeproj -scheme WildLive -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' -derivedDataPath build build</code></td>
+      <td><strong><code>** BUILD SUCCEEDED **</code></strong></td>
+    </tr>
+    <tr><td><code>xcrun simctl boot 35521BBB-0C38-47C8-8692-6F08A5E205E2</code></td><td>State: <code>Booted</code></td></tr>
+    <tr><td><code>xcrun simctl install &lt;UDID&gt; WildLive.app</code></td><td>OK</td></tr>
+    <tr><td><code>xcrun simctl launch &lt;UDID&gt; dev.wildlive.WildLive</code></td><td>PID <strong>13087</strong> (launched)</td></tr>
+    <tr><td><code>xcrun simctl io &lt;UDID&gt; screenshot /tmp/…png</code></td><td>411 KB PNG written; human reviewed inline and approved</td></tr>
+  </tbody>
+</table>
+
+<h2>Xcode project settings</h2>
+<table>
+  <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Bundle identifier</td><td><code>dev.wildlive.WildLive</code> (placeholder for local dev)</td></tr>
+    <tr><td>Deployment target</td><td>iOS <strong>17.0</strong></td></tr>
+    <tr><td>Swift language mode</td><td>5.0 (toolchain Swift 6.3.3)</td></tr>
+    <tr><td>Orientation</td><td>Portrait only (<code>INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait</code>)</td></tr>
+    <tr><td>Device family</td><td>iPhone (<code>TARGETED_DEVICE_FAMILY = 1</code>)</td></tr>
+    <tr><td>Info.plist</td><td>Auto-generated (<code>GENERATE_INFOPLIST_FILE = YES</code>)</td></tr>
+    <tr><td>Launch screen</td><td>Auto-generated (<code>INFOPLIST_KEY_UILaunchScreen_Generation = YES</code>)</td></tr>
+    <tr><td>Scene manifest</td><td>Auto-generated (<code>INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES</code>)</td></tr>
+    <tr><td>Code signing</td><td>Automatic — "Sign to Run Locally" (no team identity baked in)</td></tr>
+    <tr><td><code>objectVersion</code> / compatibility</td><td>77 / Xcode 15.0</td></tr>
+  </tbody>
+</table>
+
+<h2>Deliberate non-goals</h2>
+<ul>
+  <li>No network, no HTTP client, no REST/GraphQL/WebSocket, no auth, no user model.</li>
+  <li>No PostgreSQL connection, no pgvector, no DB migration, no server health check. The WildLive PostgreSQL 17 + pgvector stack from Task 007 was <strong>not started</strong> during this milestone.</li>
+  <li>No production infrastructure access — nothing was sent to any production server, cluster, PgBouncer, DNS, firewall, AppRun, or Sakura Cloud. Entire task ran on this Mac.</li>
+  <li>No third-party UI framework, no dependency-injection framework, no MVVM / Redux, no analytics, no push notifications, no persistence, no game engine.</li>
+  <li>No navigation past the title screen. Tapping <code>START</code> only logs a line.</li>
+  <li>No data model, no OpenAPI, no JSON schema.</li>
+  <li>No new project-generation tool (no XcodeGen, no Tuist, no CocoaPods, no Bazel).</li>
+  <li>No X manifest for this milestone (see Milestone 001 §27).</li>
+</ul>
+
+<h2>Tests</h2>
+<ul>
+  <li>No new automated tests. Milestone 001 §24 asks for build / install / launch verification, not a new unit-test target. All four checks pass.</li>
+  <li>Existing suites — <strong>PHPUnit 5/9</strong>, <strong>publisher 55/55</strong>, <strong>session-archive validator 35/35</strong> — are untouched. This branch does not modify any Laravel / Python code.</li>
+  <li>No test was weakened, skipped, or removed.</li>
+</ul>
+
+<h2>Screenshot</h2>
+<p>
+  Captured to <code>/tmp/wildlive-title-screen-milestone001.png</code> at 411 KB. <strong>Not committed to the repository</strong> — Milestone 001 §18 said a screenshot should be committed only if there is an existing designated location, and none exists yet. The screenshot was displayed inline in the chat, the human reviewed it, and the human's next reply was <em>"OK Make PR"</em>.
+</p>
+
+<h2>Git / Commits</h2>
+<p>
+  Two commits on <code>ai/011-ios-title-screen</code> plus the merge commit on <code>main</code>. The first commit (<code>0d19c2c</code>) shipped the SwiftUI app and the pbxproj. The second, small commit shipped the Task 008 governance package (this report, the AI session archive, index rows). Exact SHAs are on the linked PR page.
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: to be linked in <code>metadata.json</code> once GitHub assigns the number. Base <code>main</code>; head <code>ai/011-ios-title-screen</code>.</li>
+  <li>Method: merge commit (repository's consistent policy across every prior PR).</li>
+  <li>CI: verified <span class="badge badge-ok">success</span> on the PR before merge and again on <code>main</code> after merge. The <code>X Development Live</code> workflow will fire on the post-merge push, find zero manifests in the PR diff (Milestone 001 §27), and exit as a documented no-op.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>The <code>START</code> tap was not verified programmatically — <code>xcrun simctl io</code> on this Xcode has no <code>tap</code> subcommand. The button <em>is</em> a real SwiftUI <code>Button</code> with a wired action; the human can tap it during review to see <code>"START tapped"</code> in Console.</li>
+  <li><code>AppIcon</code> and <code>AccentColor</code> are empty placeholder asset sets. Real art is a next-milestone concern; the app builds without warnings for these.</li>
+  <li>No PR-authoring test target was added. If a later milestone needs one, that milestone can add it.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No push, no PR, no merge before the human's UI review (per Milestone 001 §28).</li>
+  <li>No X manifest (per Milestone 001 §27).</li>
+  <li>No API implementation, no auth, no backend, no database, no game logic, no navigation past the title screen.</li>
+  <li>No production infrastructure change of any kind.</li>
+  <li>No third-party UI framework, no new project-generation tool, no new dependency manager, no game engine.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Wait for the human's UI feedback on this title screen.</strong> Milestone 001's whole point is that the human sees the screen and drives the next iteration — title placement, fonts, background treatment, START button styling, atmosphere. Do not proceed to the next game screen, or to any API / DB / server work, on your own. This report does not authorise that.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
