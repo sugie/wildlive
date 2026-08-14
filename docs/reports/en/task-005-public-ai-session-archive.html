@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 005 — Public AI Development Archive. English-only faithful translations of the prompts and visible AI interactions used to build WildLive, published as a public reference for AI-assisted software development.">
+<title>Task 005 — Public AI Development Archive · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-005-public-ai-session-archive.html">日本語版</a>
+</nav>
+
+<h1>Task 005 — Public AI Development Archive</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) decided that WildLive should publicly archive the prompts and visible AI interactions used to build the project as an educational reference for AI-assisted software development.</strong>
+  The human also set the language policy: development frequently happens in Japanese, but the public archive is published in English only as a faithful translation, while the bilingual (Japanese + English) HTML development reports under
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/reports/"><code>docs/reports/</code></a>
+  are unchanged. The AI (Claude Code) designed and implemented the archive structure, the validator, the governance updates, and bootstrapped the archive with Task 005 (this task) as its first record.
+</p>
+
+<h2>Session note</h2>
+<p>
+  The first two attempts to send the full specification arrived truncated in the chat channel. The AI declined to start any repository work on those turns and asked for a complete resend rather than filling in the missing sections by guessing. The full specification arrived on the third attempt. That entire visible history is preserved in
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md"><code>docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md</code></a>
+  because it is part of how this task actually unfolded.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Turn WildLive into a public reference for AI-assisted software development: anyone reading the repository should be able to see what the human prompted, what the AI visibly replied, what commands ran, and which Pull Request and merge came out of the session — for every milestone the AI works on going forward.
+</p>
+<p>
+  This is <strong>governance and infrastructure only</strong>. No database migration, no Eloquent model, no game logic, no game API in this task.
+</p>
+
+<h2>What ships</h2>
+<h3>The archive itself</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/"><code>docs/ai-sessions/</code></a> — the new archive root.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/README.md"><code>docs/ai-sessions/README.md</code></a> — policy, language rules, what-is-and-is-not-archived, security rules, per-task navigation contract, validator instructions.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/index.md"><code>docs/ai-sessions/index.md</code></a> — the top-level chronological index. Newest first; Task 005 is the first entry.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/schema.json"><code>docs/ai-sessions/schema.json</code></a> — JSON Schema (draft 2020-12) for each task's <code>metadata.json</code>.</li>
+</ul>
+
+<h3>First archived task (bootstrap)</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/README.md"><code>task-005-public-ai-session-archive/README.md</code></a> — per-task navigation hub.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/prompt.en.md"><code>prompt.en.md</code></a> — faithful English translation of the Japanese prompt the AI actually received. No summary, no added / removed requirements, structure preserved.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md"><code>transcript.en.md</code></a> — timeline of the visible human/AI interaction and verified tool activity. No private chain-of-thought. Where information was unavailable, marked <code>Not captured</code>.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/metadata.json"><code>metadata.json</code></a> — machine-readable metadata against <code>schema.json</code>. Post-merge fields (<code>pr_number</code>, <code>pr_url</code>, <code>merge_commit</code>, <code>ci_status</code>, <code>post_merge_ci_status</code>) are <code>null</code> at author time; <code>pr_number</code> and <code>pr_url</code> are filled by a small follow-up commit on this branch once the PR is opened.</li>
+</ul>
+
+<h3>Validator</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/scripts/ai/validate_session.py"><code>scripts/ai/validate_session.py</code></a> — Python stdlib-only linter. Verifies <code>metadata.json</code> against the schema; verifies the referenced <code>prompt.en.md</code> and <code>transcript.en.md</code> exist; scans every file in the task directory for common credential patterns (GitHub PAT, OAuth token, OpenAI-style key, AWS access key, Slack token, PEM private-key header, Authorization bearer, quoted <code>password=</code>/<code>secret=</code>); rejects a banned English phrase that would misrepresent a translation as an unedited reproduction of the source; confirms every relative link in the per-task <code>README.md</code> resolves on disk.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/scripts/ai/tests/test_validate_session.py"><code>scripts/ai/tests/test_validate_session.py</code></a> — 35 stdlib <code>unittest</code> cases: manifest schema (14), task directory (8, including anchor-fragment handling), credential scan (9), banned phrase (2), and a bootstrap test that validates the shipped Task 005 record itself.</li>
+</ul>
+
+<h3>Governance</h3>
+<ul>
+  <li><code>AGENTS.md</code> — new required-workflow step (add the session record before opening the PR; run the validator); new prohibited actions (fabricating transcript, leaking secrets, misrepresenting translation); new source-of-truth pointer for the archive.</li>
+  <li><code>CLAUDE.md</code> — new "Public AI development archive" section pointing at the policy and the validator.</li>
+  <li><code>docs/AUTONOMY.md</code> — new "Public AI development archive" section restating the language, transparency, and security rules and their audit-log intent.</li>
+  <li><code>docs/reports/README.md</code> — pointer so milestone reports link to their session record.</li>
+</ul>
+
+<h3>Bilingual report + X manifest</h3>
+<ul>
+  <li>This report (<code>docs/reports/en/task-005-…html</code>) + its Japanese counterpart + a new row in <code>docs/reports/index.html</code>.</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/social/x/task-005-public-ai-session-archive.json"><code>docs/social/x/task-005-public-ai-session-archive.json</code></a> — X manifest, schema v2 (English only), body exactly as the human specified: <em>"Prompts and visible AI development interactions are now archived for public reference."</em> Publisher dry-run rendered <strong>153 weighted chars</strong> (cap 280).</li>
+</ul>
+
+<h2>Language and transparency policy (from this task)</h2>
+<ul>
+  <li><strong>Archive is English only.</strong> Prompts and transcripts are faithful English translations of the Japanese originals. Bilingual HTML reports under <code>docs/reports/</code> continue to be produced in both languages.</li>
+  <li><strong>Translation faithfulness.</strong> No summary, no beautification, no added or removed requirements, no meaning changes. Code, commands, paths, URLs, identifiers, and error messages stay in original form.</li>
+  <li><strong>Visible only.</strong> No private chain-of-thought, no hidden reasoning. What is archived is what the human could see in the chat, plus verified tool activity.</li>
+  <li><strong>No fabrication.</strong> Missing turns are marked <code>Not captured</code> or <code>Not available in the public session record</code>.</li>
+  <li><strong>Security.</strong> No credential, token, cookie, <code>.env</code> value, or GitHub Secret value may appear in the archive. Real values are redacted as <code>[REDACTED]</code>. The validator's secret scanner enforces this.</li>
+</ul>
+
+<h2>Validation</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>New validator tests (<code>python3 -m unittest scripts.ai.tests.test_validate_session</code>)</td><td><strong>35 tests, all pass</strong></td></tr>
+    <tr><td>Publisher tests (<code>python3 -m unittest scripts.social.tests.test_post_x</code>)</td><td><strong>55 tests, all pass</strong> — unchanged from PR #8</td></tr>
+    <tr><td>X manifest dry-run against Task 005 manifest, <code>--pr-number 9</code></td><td><strong>153 weighted characters</strong> (cap 280), no network</td></tr>
+    <tr><td>Existing PHPUnit (<code>docker compose exec app vendor/bin/phpunit</code>)</td><td><strong>5 tests, 9 assertions, all pass</strong> on PHP 8.5.9 + PostgreSQL 16 — unchanged</td></tr>
+    <tr><td>Standalone validator on the Task 005 record (<code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-005-public-ai-session-archive/</code>)</td><td>OK</td></tr>
+    <tr><td>Secret scan across the diff</td><td>Clean; no credential-like pattern present</td></tr>
+    <tr><td>Fact parity (ja/en Task 005 reports)</td><td>Cross-checked before commit</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li><strong>New:</strong> 35 stdlib unittest cases in <code>scripts/ai/tests/test_validate_session.py</code>. Fixtures resemble credential shapes but are not valid secrets.</li>
+  <li><strong>Preserved:</strong> 55 publisher tests, 5 PHPUnit tests / 9 assertions — all still pass.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>Commits on <code>ai/008-public-ai-session-archive</code> plus the merge commit on <code>main</code>. Exact SHAs are visible in <code>git log</code> on <code>main</code> after merge and on the linked PR page.</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/9">#9 — feat: add public AI development archive</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/008-public-ai-session-archive</code> (deleted after merge).</li>
+  <li>Method: merge commit (not squash).</li>
+  <li>CI: PHPUnit workflow verified <span class="badge badge-ok">success</span> on the PR and on <code>main</code> after merge.</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-005-public-ai-session-archive.json</code> — schema v2 (English only).</li>
+  <li>Post-merge <em>X Development Live</em> workflow behaviour: found this PR's manifest, ran the preview, and stopped at the kill switch because <code>X_AUTOPOST_ENABLED</code> is still not <code>"true"</code>. Zero X API calls made from this task.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li><strong>Session capture is human-driven.</strong> The MVP validator sanitises and publishes; it does not yet automate capture. A future task can wire up structured session logging once Claude Code exposes a stable JSON transcript surface. This task did not build a framework around undocumented Claude Code behaviour.</li>
+  <li><strong>Post-merge metadata fields are optional.</strong> <code>merge_commit</code>, <code>ci_status</code>, and <code>post_merge_ci_status</code> may remain <code>null</code> in the shipped <code>metadata.json</code>; they can always be verified through the linked PR page and, if desired, backfilled in a small follow-up PR.</li>
+  <li><strong>Prior milestones are not retroactively archived.</strong> Task 001 through Task 004 do not have session records; they can still be reconstructed from Git history, the PRs, and the bilingual HTML reports.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No database migration, no Eloquent model, no controller, no route, no seed data, no game logic, no game API.</li>
+  <li>No X Developer app creation, no X credential handling, no change to <code>X_AUTOPOST_ENABLED</code>, no change to the X publisher's specification beyond adding a v2 manifest for this task.</li>
+  <li>No third-party Python dependency added; the validator uses only the standard library.</li>
+  <li>No workflow permissions were widened.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Return to the WildLive main line and resolve the smallest set of open questions needed to write the first MVP-0 migrations</strong> — a starter Species set, one or two Region names, a minimal <code>Hunter</code> attribute schema, and the <code>HunterContract</code>–<code>Expedition</code> cardinality (per the ER-model open questions in <code>docs/DECISIONS_PENDING.md</code>). Only after the human ratifies those decisions should any migration be written. This report does not authorise that implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

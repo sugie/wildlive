@@ -89,6 +89,45 @@ commit SHA, PR number, CI run, test count, and design decision cited in
 a report must be independently verifiable in the repository. Reports may
 not invent state.
 
+## Public AI development archive
+
+Every milestone-level AI development task ships a public session record
+under `docs/ai-sessions/task-<NNN>-<slug>/`. Trivial typo / one-line
+config fixes are exempt. The record contains:
+
+- `prompt.en.md` — a **faithful English translation** of the human
+  prompt the AI actually received. No summary, no beautification, no
+  added or removed requirements. Code, commands, file paths, URLs,
+  identifiers, and error messages stay in their original form.
+- `transcript.en.md` — a timeline of the **visible** human/AI
+  interaction and verified tool activity, also English-only. No
+  private chain-of-thought, no hidden reasoning, no fabricated turns.
+  Where an interaction could not be captured honestly, write
+  `Not captured` or `Not available in the public session record`.
+- `metadata.json` — machine-readable per-session metadata against
+  `docs/ai-sessions/schema.json`. Post-merge fields
+  (`pr_number`, `pr_url`, `merge_commit`, `ci_status`,
+  `post_merge_ci_status`) may be `null` at author time and are
+  backfilled in a small follow-up commit rather than guessed.
+- `README.md` — per-task navigation hub with links to prompt,
+  transcript, PR, and the bilingual development reports.
+
+Also append the task to `docs/ai-sessions/index.md`, and run
+`python3 scripts/ai/validate_session.py <task_dir>` before pushing.
+
+**Security.** Nothing in `docs/ai-sessions/` may contain a real
+credential, token, cookie, `.env` value, GitHub Secret value, or any
+Authorization header. If such a value appeared in the source
+interaction, redact it as `[REDACTED]`. The validator's built-in
+secret scanner will fail the PR if a real-looking secret slips
+through. GitHub Secret values must not be fetched or printed by any
+code under `scripts/ai/`.
+
+**Language.** Development frequently happens in Japanese; the public
+archive is published in English only. The bilingual (Japanese +
+English) HTML reports under `docs/reports/` are unchanged and
+continue to be produced in both languages.
+
 ## Public social broadcasting (X development live)
 
 Task- or milestone-scale PRs that warrant a public announcement must

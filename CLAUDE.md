@@ -70,3 +70,7 @@ Task-scale or milestone-scale work must ship with a bilingual HTML report in `do
 ## X development live (public posting)
 
 Task/milestone PRs that warrant a public announcement also ship a bilingual X manifest at `docs/social/x/task-<NNN>-<slug>.json`. Write the post text at PR-authoring time so reviewers can read it in the PR. The workflow at `.github/workflows/x-development-live.yml` publishes it only after merge + `main` CI success. Live posting is fail-closed until a human sets the repository variable `X_AUTOPOST_ENABLED = true`. Never call an LLM from the workflow, never create the X app or credentials, never flip the kill switch. See `docs/adr/0003-x-development-live.md` and `docs/social/x/README.md`.
+
+## Public AI development archive
+
+Milestone-scale tasks also add a session record under `docs/ai-sessions/task-<NNN>-<slug>/` (English-only). Contents: `prompt.en.md` (faithful English translation of the human prompt, no summary / no added requirements), `transcript.en.md` (visible human/AI interaction and verified tool activity — no private reasoning, no fabrication), `metadata.json` (see `docs/ai-sessions/schema.json`), and a per-task `README.md`. Also append to `docs/ai-sessions/index.md`. Run `python3 scripts/ai/validate_session.py <task_dir>` before pushing. Never include a secret / credential / token / cookie / `.env` value / GitHub Secret value; use `[REDACTED]` if the source text mentioned one. Never invent interaction — use `Not captured` when necessary. See `docs/ai-sessions/README.md`.

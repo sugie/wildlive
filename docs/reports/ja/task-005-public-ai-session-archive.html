@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 005 — Public AI Development Archive。WildLive を作る際の prompt と AI との可視インタラクションを英訳で公開し、AI-assisted software development の公開参考資料とする。">
+<title>Task 005 — Public AI Development Archive · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-005-public-ai-session-archive.html">English version</a>
+</nav>
+
+<h1>Task 005 — Public AI Development Archive</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>WildLive の開発に使った prompt と AI との可視インタラクションを、
+  AI-assisted software development の公開参考資料として repository に
+  アーカイブする、という判断は人間 (repository owner) が行った。</strong>
+  language policy も人間の決定: 開発は日本語で行われることが多いが、
+  公開 archive は英訳のみ、一方で <code>docs/reports/</code> 配下の
+  bilingual HTML report は従来どおり日英両方で作成する。AI (Claude Code)
+  は archive の構造・validator・governance 更新を設計 / 実装し、Task 005
+  (本 task) 自身を最初の archive record として bootstrap した。
+</p>
+
+<h2>Session note</h2>
+<p>
+  最初の 2 回、仕様の送信は chat channel の途中で切れて届いた。AI は
+  それらの turn では repository に一切変更を加えず、欠けているセクションを
+  推測で埋めるのではなく完全な再送を依頼した。3 回目の送信で仕様が全部
+  届き、そこから本 task を開始した。この visible な履歴は
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md"><code>docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md</code></a>
+  に English として残してある — 本 task が実際にどう展開したかの一部として。
+</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  WildLive を、AI-assisted software development の公開参考資料に
+  すること。今後 AI が milestone を実装するたびに、
+  「人間がどう prompt したか」「AI が visibly どう応答したか」
+  「どんな command が走ったか」「どの PR / merge に到達したか」を、
+  repository を読むだけで追えるようにする。
+</p>
+<p>
+  今回は <strong>governance と infrastructure のみ</strong>。
+  database migration、Eloquent model、game logic、game API は
+  本 task では実装しない。
+</p>
+
+<h2>今回 ship したもの</h2>
+<h3>Archive 本体</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/"><code>docs/ai-sessions/</code></a> — 新設の archive root。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/README.md"><code>docs/ai-sessions/README.md</code></a> — policy、language rule、archive 対象 / 非対象、security rule、per-task navigation 契約、validator の使い方。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/index.md"><code>docs/ai-sessions/index.md</code></a> — top-level の時系列 index。新しいものが上、Task 005 が最初のエントリ。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/schema.json"><code>docs/ai-sessions/schema.json</code></a> — 各 task の <code>metadata.json</code> 用 JSON Schema (draft 2020-12)。</li>
+</ul>
+
+<h3>最初の archive record (bootstrap)</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/README.md"><code>task-005-public-ai-session-archive/README.md</code></a> — per-task navigation hub。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/prompt.en.md"><code>prompt.en.md</code></a> — AI が実際に受け取った日本語 prompt の faithful English translation。要約・美化・要件追加 / 削除なし、構造保持。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/transcript.en.md"><code>transcript.en.md</code></a> — visible な human/AI interaction と verified な tool activity の時系列。private chain-of-thought は含めない。取得できなかった部分は <code>Not captured</code> と明記。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/task-005-public-ai-session-archive/metadata.json"><code>metadata.json</code></a> — <code>schema.json</code> に沿った machine-readable metadata。post-merge fields (<code>pr_number</code>, <code>pr_url</code>, <code>merge_commit</code>, <code>ci_status</code>, <code>post_merge_ci_status</code>) は author 時点では <code>null</code>。PR open 後、同 branch 上の小さな fix commit で <code>pr_number</code> / <code>pr_url</code> を埋める。</li>
+</ul>
+
+<h3>Validator</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/scripts/ai/validate_session.py"><code>scripts/ai/validate_session.py</code></a> — Python 標準ライブラリのみの linter。<code>metadata.json</code> を schema と照合、<code>prompt.en.md</code> / <code>transcript.en.md</code> の存在確認、task directory 内の全ファイルに対する credential パターン検出 (GitHub PAT, OAuth token, OpenAI-style key, AWS access key, Slack token, PEM private-key ヘッダ, Authorization bearer, quoted <code>password=</code>/<code>secret=</code>)、翻訳を「未編集の再現」と誤表示する禁止語句の検出、per-task <code>README.md</code> の relative link 実在チェックを実行する。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/scripts/ai/tests/test_validate_session.py"><code>scripts/ai/tests/test_validate_session.py</code></a> — 標準ライブラリの unittest 35 件: manifest schema (14)、task directory (8、anchor-fragment 処理を含む)、credential scan (9)、banned phrase (2)、そして shipping 中の Task 005 record 自身を validate する bootstrap test。</li>
+</ul>
+
+<h3>Governance</h3>
+<ul>
+  <li><code>AGENTS.md</code> — required-workflow に新 step 追加 (PR open 前に session record を追加、validator を実行)。新 prohibitions (transcript の捏造、secret 漏洩、翻訳を未編集の再現として偽装しない)。archive 用の source-of-truth リンクを追加。</li>
+  <li><code>CLAUDE.md</code> — 「Public AI development archive」 section を新設、policy と validator を指す。</li>
+  <li><code>docs/AUTONOMY.md</code> — 「Public AI development archive」 section を新設、language / transparency / security rule と audit-log としての意図を明記。</li>
+  <li><code>docs/reports/README.md</code> — milestone report が対応する session record にリンクするよう pointer を追加。</li>
+</ul>
+
+<h3>Bilingual report + X manifest</h3>
+<ul>
+  <li>本 report (<code>docs/reports/ja/task-005-…html</code>) と英語版、および <code>docs/reports/index.html</code> への行追加。</li>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/docs/social/x/task-005-public-ai-session-archive.json"><code>docs/social/x/task-005-public-ai-session-archive.json</code></a> — X manifest、schema v2 (English only)、本文は人間が指定した通り: <em>"Prompts and visible AI development interactions are now archived for public reference."</em> publisher の dry-run で <strong>153 weighted chars</strong> (cap 280)。</li>
+</ul>
+
+<h2>本 task で定めた language / transparency policy</h2>
+<ul>
+  <li><strong>Archive は English only。</strong> prompt / transcript は日本語 original の faithful English translation。<code>docs/reports/</code> 配下の bilingual HTML report は従来どおり日英両方で作る。</li>
+  <li><strong>翻訳 faithfulness。</strong> 要約・美化・要件の追加 / 削除・意味変更を行わない。code、command、path、URL、identifier、error message は原文維持。</li>
+  <li><strong>Visible only。</strong> private chain-of-thought や hidden reasoning は含めない。archive するのは人間が chat 上で見えたもの + verified な tool activity のみ。</li>
+  <li><strong>捏造禁止。</strong> 取得できなかった部分は <code>Not captured</code> または <code>Not available in the public session record</code> と明記。</li>
+  <li><strong>Security。</strong> credential / token / cookie / <code>.env</code> value / GitHub Secret value を絶対に含めない。source 中に登場した場合は <code>[REDACTED]</code>。validator の secret scanner がこれを強制する。</li>
+</ul>
+
+<h2>検証 (Validation)</h2>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td>新 validator tests (<code>python3 -m unittest scripts.ai.tests.test_validate_session</code>)</td><td><strong>35 tests, all pass</strong></td></tr>
+    <tr><td>Publisher tests (<code>python3 -m unittest scripts.social.tests.test_post_x</code>)</td><td><strong>55 tests, all pass</strong> — PR #8 から変更なし</td></tr>
+    <tr><td>Task 005 manifest の X publisher dry-run (<code>--pr-number 9</code>)</td><td><strong>153 weighted characters</strong> (cap 280)、network 未使用</td></tr>
+    <tr><td>既存 PHPUnit (<code>docker compose exec app vendor/bin/phpunit</code>)</td><td><strong>5 tests, 9 assertions, all pass</strong> (PHP 8.5.9 + PostgreSQL 16) — 変更なし</td></tr>
+    <tr><td>Task 005 record への直接 validator 実行 (<code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-005-public-ai-session-archive/</code>)</td><td>OK</td></tr>
+    <tr><td>diff 全体の secret scan</td><td>Clean — credential-like パターン無し</td></tr>
+    <tr><td>ja/en report 事実整合</td><td>commit 前に相互チェック済</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li><strong>新規:</strong> <code>scripts/ai/tests/test_validate_session.py</code> の 35 件 (Python 標準ライブラリの unittest)。fixture は credential の「形」を模しているが、実在の secret は使っていない。</li>
+  <li><strong>保持:</strong> publisher tests 55 件、PHPUnit 5 tests / 9 assertions — 全て pass 継続。</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p><code>ai/008-public-ai-session-archive</code> 上の commit と、<code>main</code> 側の merge commit。正確な SHA は merge 後の <code>main</code> の <code>git log</code> および PR ページで確認できる。</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/9">#9 — feat: add public AI development archive</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/008-public-ai-session-archive</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash 不使用)。</li>
+  <li>CI: PHPUnit workflow を PR 上と merge 後の <code>main</code> で <span class="badge badge-ok">success</span> と確認。</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-005-public-ai-session-archive.json</code> — schema v2 (English only)。</li>
+  <li>Merge 後の <em>X Development Live</em> workflow は本 PR の manifest を発見して preview まで実行するが、kill switch (<code>X_AUTOPOST_ENABLED</code>) が依然として <code>"true"</code> ではないため publish は skipped で終わる。今回の task から X API を呼んだ回数は 0。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li><strong>Session capture は human-driven。</strong> 本 MVP の validator は sanitize と publish は担うが、capture 自体はまだ自動化していない。Claude Code が安定した structured session transcript を公開したら、後続の task で wire できる。undocumented な Claude Code behaviour を前提に framework を作ることは今回避けた。</li>
+  <li><strong>Post-merge metadata field は optional。</strong> <code>merge_commit</code>、<code>ci_status</code>、<code>post_merge_ci_status</code> は shipped <code>metadata.json</code> の中で <code>null</code> のまま残ってもよい。それらはいずれも link された PR page から検証できるし、必要なら小さな follow-up PR で backfill できる。</li>
+  <li><strong>過去 milestone は遡って archive しない。</strong> Task 001〜Task 004 は session record を持たない。それらは Git 履歴、PR、bilingual HTML report から復元可能。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>database migration、Eloquent model、controller、route、seed data、game logic、game API はいずれも追加していない。</li>
+  <li>X Developer app の作成、X credential の取扱い、<code>X_AUTOPOST_ENABLED</code> の変更、X publisher の仕様変更 (本 task 向けの v2 manifest 追加を除く) はいずれも行っていない。</li>
+  <li>third-party Python 依存は追加していない。validator は標準ライブラリのみ。</li>
+  <li>workflow permissions は widening していない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>WildLive 本筋に戻り、MVP-0 の最初の migration を書くために必要な最小限の open question を解消する。</strong>
+  具体的には、starter となる少数の Species、1〜2 の Region 名、最小の <code>Hunter</code> 属性 schema、そして <code>HunterContract</code>–<code>Expedition</code> のカーディナリティ (<code>docs/DECISIONS_PENDING.md</code> の ER-model open question)。人間がこれらを承認して初めて migration に着手する。本レポートは実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

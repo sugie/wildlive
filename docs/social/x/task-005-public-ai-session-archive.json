@@ -1,0 +1,7 @@
+{
+  "schema_version": 2,
+  "task": "Task 005",
+  "slug": "public-ai-session-archive",
+  "post_on_merge": true,
+  "en": "Prompts and visible AI development interactions are now archived for public reference."
+}
