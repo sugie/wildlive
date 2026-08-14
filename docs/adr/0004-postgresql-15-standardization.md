@@ -1,6 +1,6 @@
 # ADR-0004: Standardize on PostgreSQL 15
 
-- Status: Accepted
+- Status: **Superseded by [ADR-0005](0005-postgresql-17-restandardization.md)** (2026-08-14). The Sakura Cloud PostgreSQL Appliance is not viable for WildLive's network topology; production uses a different PostgreSQL cluster running PostgreSQL 17. The body of this ADR is preserved unchanged as a historical record of the decision made at the time.
 - Date: 2026-08-14
 - Supersedes (in part): the PostgreSQL version choice recorded in
   [`docs/reports/en/task-001-docker-foundation.html`](../reports/en/task-001-docker-foundation.html)

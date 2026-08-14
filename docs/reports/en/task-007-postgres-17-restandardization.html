@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 007 — reverse the Task 006 PostgreSQL 15 standardisation. Production is not the Sakura Cloud PostgreSQL Appliance but an existing PostgreSQL Cluster 1 running PostgreSQL 17 with pgvector. Development and CI re-aligned on PostgreSQL 17.">
+<title>Task 007 — Restandardise on PostgreSQL 17 · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-007-postgres-17-restandardization.html">日本語版</a>
+</nav>
+
+<h1>Task 007 — Restandardise development and CI on PostgreSQL 17 with pgvector</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-warn">Local commit; push / PR / merge withheld by human</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) determined that the Sakura Cloud PostgreSQL Appliance assumed by Task 006 is not viable for WildLive's actual network topology, confirmed that the production database will instead be an existing PostgreSQL Cluster 1 running PostgreSQL 17 with pgvector, and directed the AI to reverse Task 006's PostgreSQL 15 spec change and restandardise on PostgreSQL 17.</strong>
+  The human also explicitly withheld push / PR / merge authorisation for this task — the AI stops at a local commit and waits.
+</p>
+
+<h2>Immediate context — this task reverses Task 006</h2>
+<p>
+  <a href="task-006-postgres-15-standardization.html">Task 006</a> pinned WildLive on PostgreSQL 15 to align with the Sakura Cloud PostgreSQL Appliance. That rationale is no longer valid — the appliance is not reachable from WildLive's API server under the planned network topology, so it will not be used at all. The Task 006 report, X manifest, and AI session archive are deliberately <em>not</em> retroactively edited. They remain accurate snapshots of what was decided and shipped at their time of writing. This report is the new source of truth for the current version.
+</p>
+<p>
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/adr/0004-postgresql-15-standardization.md">ADR-0004</a> is marked <em>Superseded by ADR-0005</em> in its status line only; the body is preserved unchanged.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Realign development, CI, and production on the same PostgreSQL major version — this time on the correct version. Do the minimum needed: change the two pinned image tags, update the small number of docs that mention the version as current spec, capture the reversal as an ADR, and actually verify the live server reports 17.x and that <code>CREATE EXTENSION vector</code> succeeds.
+</p>
+
+<h2>Handling of PR #10's diff (Task 006)</h2>
+<p>
+  The AI classified every file PR #10 touched, and treated each class differently:
+</p>
+<table>
+  <thead><tr><th>Class</th><th>Files</th><th>Handling in Task 007</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Current spec</td>
+      <td><code>docker-compose.yml</code>, <code>.github/workflows/ci.yml</code>, <code>CLAUDE.md</code>, <code>docs/DEVELOPMENT.md</code></td>
+      <td><strong>Reverted to PostgreSQL 17</strong> (see next section).</td>
+    </tr>
+    <tr>
+      <td>ADR</td>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>Status line only</strong> changed to "Superseded by ADR-0005". Body preserved unchanged, as an accurate record of what was believed at the time.</td>
+    </tr>
+    <tr>
+      <td>Historical audit</td>
+      <td><code>docs/reports/{ja,en}/task-006-postgres-15-standardization.html</code>, <code>docs/social/x/task-006-postgres-15-standardization.json</code>, and all four files under <code>docs/ai-sessions/task-006-postgres-15-standardization/</code></td>
+      <td><strong>Not modified.</strong> The Task 006 X post is already publicly posted at <a href="https://x.com/i/status/2088205139912044809">https://x.com/i/status/2088205139912044809</a>; the fact that WildLive announced a plan and then reversed it is exactly the kind of history the public archive is designed to preserve.</td>
+    </tr>
+    <tr>
+      <td>Indexes</td>
+      <td><code>docs/reports/index.html</code>, <code>docs/ai-sessions/index.md</code></td>
+      <td>Task 007 row appended at the top. Task 006 row now carries a "(superseded by Task 007)" label.</td>
+    </tr>
+  </tbody>
+</table>
+<p>No <code>git revert</code> was used — a wholesale revert would have removed the historical audit deliverables that must remain intact.</p>
+
+<h2>What changed in this task</h2>
+<table>
+  <thead><tr><th>File</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>docker-compose.yml</code></td>
+      <td><code>image: postgres:15-alpine</code> → <code>image: pgvector/pgvector:pg17</code>, with an inline comment pointing at ADR-0005 (which supersedes ADR-0004).</td>
+    </tr>
+    <tr>
+      <td><code>.github/workflows/ci.yml</code></td>
+      <td>Same image change. Job name updated from <code>PHPUnit (PHP 8.5 / PostgreSQL 15)</code> to <code>PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)</code> so the version and extension are visible in the Actions UI.</td>
+    </tr>
+    <tr>
+      <td><code>CLAUDE.md</code></td>
+      <td>Two "PostgreSQL 15" mentions updated to "PostgreSQL 17 (via <code>pgvector/pgvector:pg17</code>)" with an ADR-0005 pointer.</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEVELOPMENT.md</code></td>
+      <td>Version-choices table row updated from "15-alpine" to "17 (<code>pgvector/pgvector:pg17</code>)". Rationale replaced with the correct one (production PostgreSQL Cluster 1 uses PostgreSQL 17 with pgvector).</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>Status line only</strong> changed to "Superseded by ADR-0005", with a one-sentence explanation. Body preserved.</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0005-postgresql-17-restandardization.md</code></td>
+      <td><strong>New</strong> accepted ADR. Cites the network-topology reason without leaking production hostnames, ports, PgBouncer configuration, or credentials. Records the live verification result. Bans <code>postgres:latest</code> (inherited from ADR-0004) and requires a new ADR for any future major bump.</td>
+    </tr>
+    <tr>
+      <td>Task 007 governance deliverables</td>
+      <td>Bilingual report (this file + Japanese counterpart), X manifest (v2 English-only), AI session archive (<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>), index rows.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Production infrastructure</h2>
+<p>
+  Production PostgreSQL is an existing PostgreSQL Cluster 1 running PostgreSQL 17 with pgvector. WildLive's production API server plan is to reuse an existing IaaS server. Detailed production infrastructure — cluster and API-server hostnames, node roles, PgBouncer configuration, port numbers, OS, and credentials — is intentionally <em>not</em> recorded in this repository or in ADR-0005. Those details live in operations documentation outside this repository. The AI never connected to the production database and never observed any production value.
+</p>
+
+<h2>Live verification</h2>
+<p>Performed on a clean <code>postgres-data</code> volume. The previous PG15-initialised volume was wiped with <code>docker compose down -v</code> because PostgreSQL 17 cannot open a data directory belonging to a different major version. The wipe was explicitly reported before it was executed; the volume contained only Laravel's three empty framework migrations from Task 006 verification and no WildLive-specific data.</p>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker pull pgvector/pgvector:pg17</code></td><td>Success (Debian 12 base, aarch64)</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>Both services healthy</td></tr>
+    <tr>
+      <td><code>SELECT version();</code></td>
+      <td><code>PostgreSQL 17.11 (Debian 17.11-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit</code></td>
+    </tr>
+    <tr><td><code>SHOW server_version;</code></td><td><code>17.11 (Debian 17.11-1.pgdg12+2)</code></td></tr>
+    <tr><td><code>SHOW server_version_num;</code></td><td><code>170011</code></td></tr>
+    <tr><td><code>CREATE EXTENSION IF NOT EXISTS vector;</code></td><td><code>CREATE EXTENSION</code></td></tr>
+    <tr>
+      <td><code>SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';</code></td>
+      <td><code>vector | 0.8.6</code></td>
+    </tr>
+    <tr>
+      <td><code>SELECT '[1,2,3]'::vector <-> '[1,2,4]'::vector;</code></td>
+      <td><code>1</code> (L2 distance operator functional)</td>
+    </tr>
+    <tr>
+      <td><code>curl http://localhost:8000/api/health</code></td>
+      <td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td>
+    </tr>
+    <tr>
+      <td><code>docker compose exec app php artisan migrate --force</code></td>
+      <td>3 framework migrations applied</td>
+    </tr>
+    <tr>
+      <td><code>docker compose exec app vendor/bin/phpunit</code></td>
+      <td><strong>5 tests, 9 assertions, all pass</strong> on PHP 8.5.9 + PostgreSQL 17.11 + pgvector 0.8.6</td>
+    </tr>
+    <tr>
+      <td><code>python3 -m unittest scripts.social.tests.test_post_x</code></td>
+      <td>55 tests, all pass — unchanged</td>
+    </tr>
+    <tr>
+      <td><code>python3 -m unittest scripts.ai.tests.test_validate_session</code></td>
+      <td>35 tests, all pass — unchanged</td>
+    </tr>
+    <tr>
+      <td><code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-007-postgres-17-restandardization/</code></td>
+      <td>OK</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>pgvector version reconciliation</h2>
+<p>
+  Production runs pgvector <strong>0.8.5</strong>; the dev image <code>pgvector/pgvector:pg17</code> ships pgvector <strong>0.8.6</strong>. Both are on the 0.8.x line and are API-compatible for the operations WildLive is currently designing around. ADR-0005 deliberately does not pin the pgvector patch version — no application code depends on a specific pgvector feature today. If a future task adds vector-index code that relies on a particular pgvector patch, that task should pin the image to a specific tag and record the pin in its own ADR.
+</p>
+
+<h2>Compatibility audit</h2>
+<p>Performed as part of this task; no code changes required.</p>
+<ul>
+  <li>No raw SQL migrations. All three shipped migrations use Laravel Blueprint methods that compile to portable SQL supported on both PostgreSQL 15 and 17.</li>
+  <li>The one PostgreSQL identity assertion in <code>tests/Feature/HealthTest.php</code> (<code>stringContainsStringIgnoringCase('postgresql', $version->version)</code>) works identically against 17.x.</li>
+  <li>No application code used any PostgreSQL-15-only construct that would need a PostgreSQL-17 equivalent.</li>
+  <li>The Task 006 report, X manifest, and AI session archive contain textual references to PostgreSQL 15 as historical fact — they are audit records of that decision, not active spec.</li>
+</ul>
+
+<h2>Tests</h2>
+<ul>
+  <li>No new automated tests. The change is a version bump + doc update; existing suites already exercise the paths that matter (PostgreSQL connectivity via <code>HealthTest</code>, migration execution, publisher rendering, session-archive validation).</li>
+  <li>All three test suites — <strong>PHPUnit 5/9</strong>, <strong>publisher 55/55</strong>, <strong>validator 35/35</strong> — pass unchanged on the new PostgreSQL 17 + pgvector stack.</li>
+  <li>No test was weakened or skipped.</li>
+</ul>
+
+<h2>Volume migration</h2>
+<p>
+  Any developer with an existing local <code>wildlive_postgres-data</code> volume built by <code>postgres:15-alpine</code> (i.e. anyone who ran the Task 006 stack) must run <code>docker compose down -v</code> before the new stack will start. PostgreSQL 17 refuses to open a data directory belonging to a different major version. This affects only local disposable data — WildLive stores no production data on developer machines. In this session the AI reported the situation before executing the wipe, per the human's explicit instruction.
+</p>
+
+<h2>Residual "PostgreSQL 15" check</h2>
+<p>After this task, "PostgreSQL 15" (and <code>postgres:15</code>) remain in the repository <strong>only</strong> in historical / audit contexts:</p>
+<ul>
+  <li><code>docs/adr/0004-postgresql-15-standardization.md</code> — the ADR body, now clearly marked as superseded.</li>
+  <li><code>docs/reports/{en,ja}/task-006-postgres-15-standardization.html</code> — historical bilingual report of the Task 006 decision.</li>
+  <li><code>docs/social/x/task-006-postgres-15-standardization.json</code> — the manifest that was actually posted publicly and cannot be un-posted.</li>
+  <li><code>docs/ai-sessions/task-006-postgres-15-standardization/</code> — full session archive of the Task 006 decision (prompt, transcript, metadata, per-task README).</li>
+  <li><code>docs/reports/en/task-007-…html</code> and <code>docs/reports/ja/task-007-…html</code> — this report and its Japanese counterpart, both of which explain the reversal by referring to "PostgreSQL 15" as the prior plan.</li>
+</ul>
+<p>No <em>current-spec</em> reference to PostgreSQL 15 remains.</p>
+
+<h2>Git / Commits</h2>
+<p>
+  A single local commit on <code>ai/010-postgres-17-restandardization</code>. <strong>Not pushed.</strong> No PR was opened. No merge was performed. The human's Task 007 prompt explicitly withheld all three of those steps until further instruction.
+</p>
+
+<h2>Pull Request</h2>
+<p>
+  <strong>Pending.</strong> This branch is committed locally and ready for review; awaiting the human's explicit push/PR authorisation.
+</p>
+
+<h2>X Development Live</h2>
+<p>
+  A manifest exists at <code>docs/social/x/task-007-postgres-17-restandardization.json</code> (schema v2, English only, 205 weighted characters at cap 280 when rendered against a placeholder PR URL). The workflow will only see it after a PR is opened, merged, and the post-merge <code>CI</code> workflow succeeds — none of which happens in this session. No X API call is made by this task.
+</p>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>The Task 006 X post is public and cannot be un-posted. Task 007's post — once the human authorises push and merge — will announce the reversal on X.</li>
+  <li>The dev image ships pgvector 0.8.6; production runs 0.8.5. Same 0.8.x line, no known API skew. Not pinned in this ADR because no application code depends on any pgvector-specific behaviour yet.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No <code>git revert</code>, no <code>git reset</code>. Historical audit records intentionally preserved.</li>
+  <li>No push, no PR, no merge (per the human's explicit constraint).</li>
+  <li>No connection to, or change against, the production PostgreSQL cluster. No DDL, no DML, no configuration change against production.</li>
+  <li>No change to any application code, controller, route, migration, dependency, or workflow permission.</li>
+  <li>No retroactive edit of the historical Task 006 report / X manifest / AI session archive.</li>
+  <li>No pgvector patch-version pin in ADR-0005 (no code depends on a specific patch yet).</li>
+  <li>No production credentials, hostnames, ports, PgBouncer config, or OS details written to the repository.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Await the human's explicit authorisation to push this branch and open the PR</strong> for review + merge. Once merged, the pending fields in this task's metadata (<code>pr_number</code>, <code>pr_url</code>, and optionally <code>merge_commit</code> / <code>ci_status</code>) can be backfilled by a small follow-up commit, and the Task 007 X manifest will be picked up by the <em>X Development Live</em> workflow (posting is fail-closed unless the human's kill switch is still on, which it currently is per Task 005 and Task 006's live posts).
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

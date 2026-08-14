@@ -15,15 +15,17 @@ permissions:
 
 jobs:
   test:
-    name: PHPUnit (PHP 8.5 / PostgreSQL 15)
+    name: PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        # Pinned to PostgreSQL 15 to match the Sakura Cloud PostgreSQL
-        # Appliance used in production. See
-        # docs/adr/0004-postgresql-15-standardization.md.
-        image: postgres:15-alpine
+        # Pinned to PostgreSQL 17 (via the official pgvector image) to
+        # match WildLive's production PostgreSQL cluster, which runs
+        # PostgreSQL 17 with pgvector 0.8.5. See
+        # docs/adr/0005-postgresql-17-restandardization.md (supersedes
+        # docs/adr/0004-postgresql-15-standardization.md).
+        image: pgvector/pgvector:pg17
         env:
           POSTGRES_DB: wildlive_test
           POSTGRES_USER: wildlive
