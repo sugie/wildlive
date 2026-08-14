@@ -71,16 +71,43 @@ Consequences:
 
 ### 4. Posting rate
 
-At most **one bilingual post per merged, milestone-scale PR** — never
-one per language, never one per commit. Trivial fixes (typos,
-one-line config edits) are exempt from having a manifest at all; no
-manifest ⇒ no post (a documented no-op, not an error).
+At most **one post per merged, milestone-scale PR** — never one per
+language, never one per commit. Trivial fixes (typos, one-line
+config edits) are exempt from having a manifest at all; no manifest
+⇒ no post (a documented no-op, not an error).
 
 ### 5. Format
 
-Each post is bilingual, in a fixed template:
+> **Amended 2026-08-14 by a follow-up human decision (see the
+> "Amendments" section at the end of this ADR).** New public X posts
+> are English only. The bilingual HTML development reports under
+> `docs/reports/` remain Japanese + English — that is deliberately
+> unchanged. The manifest schema was extended with a `schema_version`
+> discriminator so historical bilingual manifests already merged to
+> `main` continue to render identically.
+
+Each post uses one of two fixed templates, chosen by the manifest's
+`schema_version`.
+
+**v2 (English only) — the format for all new manifests:**
 
 ```text
+WildLive Dev · {task}
+
+{en}
+
+PR #{N}
+{pr_url}
+
+#shipaton
+```
+
+**v1 (legacy bilingual) — retained only so already-merged manifests
+render identically:**
+
+```text
+WildLive Dev · {task}
+
 {ja}
 
 {en}
@@ -91,7 +118,7 @@ PR #{N}
 #shipaton
 ```
 
-- `{ja}` and `{en}` come from the manifest.
+- `{task}`, `{ja}`, `{en}` come from the manifest.
 - `PR #{N}` and `{pr_url}` are added by the workflow / publisher,
   never by the AI at authoring time — the AI does not know a future
   PR number.
@@ -279,3 +306,35 @@ The AI must **not**:
 
 Those actions require an explicit human step described in
 `docs/social/x/README.md`.
+
+## Amendments
+
+### 2026-08-14 — X posting is English only
+
+**Human decision.** Bilingual (Japanese + English) posts turned out
+to be too long to read on the X timeline as development updates.
+Starting with the next milestone, public X posts are English only.
+The bilingual HTML development reports under `docs/reports/` are
+**unchanged** and remain Japanese + English — the split of language
+policy is intentional.
+
+**Implementation shape** (see [`docs/social/x/README.md`](../social/x/README.md)
+for the operator-facing detail):
+
+- The manifest schema now discriminates on `schema_version`:
+  - **v1** (`schema_version: 1`) — legacy bilingual (`ja` + `en`).
+    Retained only for historical compatibility with manifests already
+    merged to `main`. The publisher renders v1 byte-identically to
+    the pre-amendment output.
+  - **v2** (`schema_version: 2`) — English only (`en`; `ja` is
+    forbidden). Preferred format for all new manifests.
+- The publisher (`scripts/social/post_x.py`) dispatches
+  validation *and* rendering on `schema_version`. Unknown versions
+  fail closed. A byte-stable v1 render is enforced by unit test.
+- The workflow, credentials, kill switch, audit ledger, and
+  transport behaviour are **unchanged**.
+- The migration PR that introduced this amendment (a documentation
+  and publisher-behaviour change only) does **not** carry its own
+  X manifest — the shipping of this amendment is not itself
+  announced. English-only posting begins with the next
+  game-development milestone that ships a v2 manifest.

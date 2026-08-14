@@ -28,7 +28,50 @@ by the workflow.
 Rule of thumb: if it warrants a bilingual HTML report under
 `docs/reports/`, it warrants a manifest here.
 
+## Posting language policy
+
+**Public X posts are English only.** The bilingual HTML development
+reports under [`docs/reports/`](../../reports/) remain Japanese +
+English — that is deliberately unchanged. The reason for the split
+is legibility on the X timeline: a combined bilingual body makes
+each post too long to skim.
+
+New manifests must use **schema version 2** (English only). Schema
+version 1 (bilingual) is retained only for backwards compatibility
+with manifests already merged to `main`
+(`task-003-x-development-live.json`, `task-004-minimal-er-model.json`)
+so that a `workflow_dispatch` backfill against those PRs still
+renders exactly the same output as before.
+
 ## Manifest schema
+
+### v2 (English-only) — preferred format for all new manifests
+
+```json
+{
+  "schema_version": 2,
+  "task": "Task NNN",
+  "slug": "kebab-slug",
+  "post_on_merge": true,
+  "en": "Short English development update."
+}
+```
+
+- **`schema_version`** — integer. **`2`** for new manifests.
+- **`task`** — display label for the post header (e.g. `Task 005`).
+  Must be non-empty.
+- **`slug`** — kebab-case ASCII; matches the filename slug and the
+  bilingual report slug.
+- **`post_on_merge`** — boolean. If `false`, the manifest is
+  reviewed but not posted. Useful for landing an AI-drafted post as
+  documentation without publishing it.
+- **`en`** — English body. Must **not** include the PR URL or the
+  `#shipaton` hashtag — the publisher appends both.
+- **`ja`** — **forbidden in v2.** The publisher rejects a v2
+  manifest that contains a `ja` field, so a stale bilingual manifest
+  cannot silently be treated as English-only.
+
+### v1 (legacy bilingual) — retained for historical compatibility
 
 ```json
 {
@@ -41,28 +84,33 @@ Rule of thumb: if it warrants a bilingual HTML report under
 }
 ```
 
-- **`schema_version`** — integer. Only `1` is currently accepted.
-- **`task`** — the display label used in the post
-  (e.g. `Task 003`). Must be non-empty.
-- **`slug`** — matches the filename slug and the bilingual report
-  slug. Kebab-case ASCII.
-- **`post_on_merge`** — boolean. If `false`, the manifest is
-  reviewed but not posted. Useful for landing an AI-drafted post as
-  documentation without publishing it.
-- **`ja`** — Japanese body. Must not include the PR URL or the
-  `#shipaton` hashtag — the publisher appends both.
-- **`en`** — English body. Same rules as `ja`.
+Same rules as v2 for `task`, `slug`, `post_on_merge`, and `en`.
+Additionally requires `ja` — a Japanese body under the same
+no-hashtag / no-PR-URL rules as `en`. New manifests should not use
+v1; it exists purely so already-merged manifests still validate.
 
-Both `ja` and `en` must be present and non-empty; the workflow rejects
-a manifest that has only one language.
-
-Full JSON Schema: [`schema.json`](schema.json).
+Full JSON Schema (both versions): [`schema.json`](schema.json).
 
 ## Rendered post format
 
-The publisher builds the actual post from the manifest like this:
+### v2 (English only)
 
 ```text
+WildLive Dev · {task}
+
+{en}
+
+PR #{N}
+{pr_url}
+
+#shipaton
+```
+
+### v1 (legacy bilingual)
+
+```text
+WildLive Dev · {task}
+
 {ja}
 
 {en}
@@ -89,11 +137,11 @@ time.
 
 Aim for roughly:
 
-- Japanese body: ≤ 60 CJK characters,
-- English body: ≤ 130 ASCII characters,
-
-which comfortably fits the URL + hashtag + `Task N` line + the two
-bodies inside the 280-weight cap.
+- v2 English body: ≤ 220 ASCII characters. The `Task N` line, PR
+  line, URL, hashtag, and their separators consume ~55 weighted
+  chars, leaving plenty of headroom under the 280-weight cap.
+- v1 legacy bilingual: ≤ 60 CJK characters for `ja` and ≤ 130 ASCII
+  characters for `en` combined.
 
 ## Truthfulness
 
