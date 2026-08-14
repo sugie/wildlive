@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "task": "Task 003",
+  "slug": "x-development-live",
+  "post_on_merge": true,
+  "ja": "AI開発実況を追加。task PR merge → main CI 成功で、AIが書いた日英ポストを自動投稿します。",
+  "en": "Added AI dev-live posting. Task PR merge + main CI success posts an AI-authored bilingual update."
+}
