@@ -25,9 +25,15 @@ Build **WildLive**, a text-only asynchronous multiplayer game and a public exper
    text at PR-authoring time so it can be reviewed in the PR; the workflow
    only publishes it after merge + successful main CI. Trivial fixes are
    exempt. See `docs/social/x/README.md`.
-9. Open a Pull Request.
-10. Record agent metadata in the PR template.
-11. Do not merge security-sensitive or production-sensitive changes without human approval.
+9. Before opening the PR, add a public AI development session record
+   under `docs/ai-sessions/task-<NNN>-<slug>/` (English-only translation
+   of the prompt + visible interaction transcript + `metadata.json`),
+   and add the task to `docs/ai-sessions/index.md`. Trivial fixes are
+   exempt. Run `python3 scripts/ai/validate_session.py <task_dir>`
+   before pushing. See `docs/ai-sessions/README.md`.
+10. Open a Pull Request.
+11. Record agent metadata in the PR template.
+12. Do not merge security-sensitive or production-sensitive changes without human approval.
 
 ## Branch naming
 
@@ -74,6 +80,13 @@ Examples:
   Developer App, install X credentials into GitHub Secrets, or change the
   X account profile. Those are human-only steps described in
   `docs/social/x/README.md`.
+- Publish anything in `docs/ai-sessions/` that reconstructs private
+  chain-of-thought, invents interaction that did not occur, includes a
+  secret / credential / token / cookie / `.env` value / GitHub Secret
+  value, or misrepresents an English translation as an unedited
+  reproduction of the source. Save what was actually visible; use
+  `Not captured` / `Not available in the public session record` for
+  everything else; redact secrets as `[REDACTED]`.
 
 ## Pull Request metadata
 
@@ -112,5 +125,11 @@ For public social automation (X development live), use:
 - `docs/SOCIAL_AUTOMATION.md`
 - `docs/adr/0003-x-development-live.md`
 - `docs/social/x/README.md`
+
+For the public AI development archive, use:
+
+- `docs/ai-sessions/README.md`
+- `docs/ai-sessions/schema.json`
+- `scripts/ai/validate_session.py`
 
 If documentation conflicts, stop and flag the conflict rather than guessing.

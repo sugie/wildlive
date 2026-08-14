@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sugie/wildlive/blob/main/docs/ai-sessions/schema.json",
+  "title": "WildLive Public AI Development Archive — session metadata",
+  "description": "One metadata document per archived AI development session. Fields that cannot be known until after merge (pr_number, pr_url, merge_commit, ci_status, post_merge_ci_status) are nullable; leaving them null is preferable to guessing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task",
+    "slug",
+    "title",
+    "agent",
+    "source_language",
+    "published_language",
+    "translation_policy",
+    "human_directed",
+    "prompt_path",
+    "transcript_path",
+    "repository",
+    "branch",
+    "base_commit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "task": {
+      "type": "string",
+      "pattern": "^Task [0-9]{3,}$",
+      "description": "Human-readable label, e.g. 'Task 005'. Must match the milestone report numbering, not the PR number."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "agent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The AI agent that performed the session, e.g. 'Claude Code (claude-opus-4-7[1m])'."
+    },
+    "source_language": {
+      "type": "string",
+      "enum": ["Japanese", "English", "mixed"],
+      "description": "The language the interaction actually happened in."
+    },
+    "published_language": {
+      "type": "string",
+      "const": "English",
+      "description": "The language the archived record is published in. Always English per the current policy."
+    },
+    "translation_policy": {
+      "type": "string",
+      "description": "Human-readable statement of the translation rules used, e.g. 'Faithful English translation of the original Japanese prompt and visible AI interaction. No summary, beautification, or added requirements.'"
+    },
+    "human_directed": {
+      "type": "boolean",
+      "description": "true when the session was driven by an explicit human prompt (the normal case). false only for automation-only sessions with no human trigger."
+    },
+    "prompt_path": {
+      "type": "string",
+      "pattern": "^prompt\\.en\\.md$",
+      "description": "Relative to the task directory. Always 'prompt.en.md' in the current layout."
+    },
+    "transcript_path": {
+      "type": "string",
+      "pattern": "^transcript\\.en\\.md$",
+      "description": "Relative to the task directory. Always 'transcript.en.md' in the current layout."
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
+    },
+    "branch": {
+      "type": "string",
+      "pattern": "^ai/[0-9]{3}-[a-z0-9-]+$"
+    },
+    "base_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$",
+      "description": "The commit on `main` this branch was created from."
+    },
+    "pr_number": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "pr_url": {
+      "type": ["string", "null"],
+      "pattern": "^https://github\\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+/pull/[0-9]+$"
+    },
+    "merge_commit": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "ci_status": {
+      "type": ["string", "null"],
+      "enum": ["success", "failure", "cancelled", "skipped", "neutral", null],
+      "description": "Conclusion of the PR's CI run before merge."
+    },
+    "post_merge_ci_status": {
+      "type": ["string", "null"],
+      "enum": ["success", "failure", "cancelled", "skipped", "neutral", null],
+      "description": "Conclusion of the CI run on main after the merge commit."
+    },
+    "report_en": {
+      "type": ["string", "null"],
+      "description": "Path to the English development report, relative to repository root."
+    },
+    "report_ja": {
+      "type": ["string", "null"],
+      "description": "Path to the Japanese development report, relative to repository root."
+    },
+    "x_manifest": {
+      "type": ["string", "null"],
+      "description": "Path to the X Development Live manifest for this task, relative to repository root. May be null when the task explicitly ships without one."
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Optional free-form note. Do not use to smuggle in requirements or unverifiable claims."
+    }
+  }
+}

@@ -41,6 +41,16 @@ merge and successful `main` CI. See
 [`docs/adr/0003-x-development-live.md`](../adr/0003-x-development-live.md)
 for the full policy.
 
+## Companion: public AI development archive
+
+Milestone-scale reports should also link to their session record under
+[`docs/ai-sessions/`](../ai-sessions/) — an English-only, faithful
+translation of the human prompt and the visible AI interaction that
+produced the change. Add the session record in the same PR, run
+`python3 scripts/ai/validate_session.py <task_dir>` before pushing,
+and include the link from the report body. See
+[`docs/ai-sessions/README.md`](../ai-sessions/README.md).
+
 ## How to add a new report
 
 1. Copy `template/report.en.html` to `en/task-<NNN>-<slug>.html`.
