@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 002 — Core Game System Foundation。ゲームシステムは人間が設計し、AIが整理・文書化した。">
+<title>Task 002 — Core Game System Foundation · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-002-game-design-foundation.html">English version</a>
+</nav>
+
+<h1>Task 002 — Core Game System Foundation</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>WildLive のゲームシステムの根幹は、人間 (repository
+  owner) がインタラクティブな設計セッションの中で決定した。
+  今回のタスクにおける AI の役割は、その決定内容を整理し、
+  repository 全体に一貫した形で文書化し、既存の working notes
+  との矛盾を解消することである。</strong>
+  AI がゲームのルールを自分で作ったわけではない。セッション
+  で決まっていない事項は、推測で埋めずに「未決定」として
+  明示的に記録している。
+</p>
+<ul>
+  <li>人間が決定した内容: ADR-0002 の 19 項目に記載した全て — コアコンセプト、実在動物のみ、Species と Animal の分離、実在の生物学的特徴による個体レア度モデル、Hunter の用語統一と能力/コストのカーブ、Guild ベースの Hunter プールと共有希少性、capture / no capture の失敗モデル、経営 sim にしない Zoo、diminishing returns 付きの Zoo Value、Visitors 経済、通貨名 (<code>G</code>)、盗み禁止の multiplayer、実在動物を用いた Seasonal Event、power inflation を避ける方針、Animal の historical identity、monetization は将来方針のみ。</li>
+  <li>AI が実施した作業: source-of-truth ドキュメントの読了、セッション内容から ADR-0002 の起草、<code>docs/GAME_DESIGN.md</code> と <code>docs/DOMAIN_MODEL.md</code> の整合的な書き換え、<code>docs/DECISIONS_PENDING.md</code> からの解決済み事項の移動、<code>docs/ROADMAP.md</code> の更新、<code>README.md</code> と <code>docs/VISION.md</code> からの「Explorer」「unknown creatures」表現の除去、そして本 bilingual report の作成。</li>
+  <li>AI が勝手に決めなかったこと: 具体的な species 一覧、region 名、数式、価格、アルゴリズム、DB schema。すべての未決定項目は <code>docs/DECISIONS_PENDING.md</code> に明示的に残してある。</li>
+</ul>
+
+<h2>目的 (Objective)</h2>
+<p>
+  「WildLive はどんなゲームなのか」に対する回答を Architecture
+  Decision Record として正式に確定し、migration や Eloquent model、
+  gameplay endpoint を書き始める前に、既存の working notes を
+  そのアンサーに合わせて整合させる。
+</p>
+<p>
+  今回のタスクは <strong>documentation only</strong> である。
+  runtime code、DB schema、コンテナ設定はいずれも変更していない。
+</p>
+
+<h2>AIが実施した内容 (What the AI did)</h2>
+<ol>
+  <li><code>main</code> を pull し、PR #1 / PR #2 後の repository の現在状態を確認した。</li>
+  <li>governance に関わる主要ドキュメントを再読した: <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/VISION.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/reports/README.md</code>, <code>docs/adr/0001-development-workflow.md</code>。</li>
+  <li>branch <code>ai/003-game-design-foundation</code> を <code>main</code> から作成した。</li>
+  <li><code>docs/adr/0002-game-system-foundation.md</code> を起草。19 項目の decision、そのうち何が決着し・何を意図的に未決定として残すかを整理した Consequences section、および Human Intervention に関する明示的な記述を含める。</li>
+  <li><code>docs/GAME_DESIGN.md</code> を、ADR-0002 を source of truth として指し、矛盾する記述 (Explorer 用語、unknown creatures、player-owned Hunter lending、Zoo maintenance コスト、Animal 盗難) をすべて除去する形に書き換えた。</li>
+  <li><code>docs/DOMAIN_MODEL.md</code> を書き換え、<code>Species</code> と <code>Animal</code> を明確に分離、<code>Guild</code> / <code>Zoo Value</code> / <code>Visitors</code> / <code>Seasonal Event</code> を first-class 概念に格上げし、「unknown creatures」の open question を削除、Hunter lending を deferred として記載した。</li>
+  <li><code>docs/DECISIONS_PENDING.md</code> を 3 section に整理した: Resolved (ADR-0002 で確定)、Still open、Future-only (monetisation)。</li>
+  <li><code>docs/ROADMAP.md</code> を更新: Phase 2 の項目を ADR-0002 参照付きで checked に、Phase 6 を Guild scarcity / Zoo visits / ranking / Seasonal Events を軸にリフレーム (旧「player lends Hunter」表現は削除)。</li>
+  <li><code>README.md</code> と <code>docs/VISION.md</code> から「Explorer」表現を除去した。</li>
+  <li>本 bilingual report のペアを作成し、<code>docs/reports/index.html</code> を更新した。</li>
+</ol>
+
+<h2>実装 (Implementation)</h2>
+<p>
+  今回はコード実装は行っていない。整合の取れた documentation
+  surface を「実装」した。以下の表に、変更したドキュメントと、
+  今回以降そのドキュメントが果たす役割をまとめる。
+</p>
+<table>
+  <thead><tr><th>ドキュメント</th><th>今回以降の役割</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/adr/0002-game-system-foundation.md</code></td><td>人間が決定したゲームシステムの authoritative record。既存 working notes と矛盾する記述より優先される。</td></tr>
+    <tr><td><code>docs/GAME_DESIGN.md</code></td><td>ADR-0002 を指す人間向けサマリ。矛盾する記述は削除済み。</td></tr>
+    <tr><td><code>docs/DOMAIN_MODEL.md</code></td><td>design workspace のみ、ADR-0002 と整合。DB spec ではない。</td></tr>
+    <tr><td><code>docs/DECISIONS_PENDING.md</code></td><td>「Resolved (ADR-0002)」と「Still open」(game / multiplayer / product / monetisation / operations) に分割済み。</td></tr>
+    <tr><td><code>docs/ROADMAP.md</code></td><td>Phase 2 の項目を ADR-0002 参照付きで design-decision レベルとして完了マーク。Phase 6 は用語更新。</td></tr>
+    <tr><td><code>README.md</code>, <code>docs/VISION.md</code></td><td>用語修正 — 「Explorer」除去、Guild model 反映。</td></tr>
+  </tbody>
+</table>
+
+<h2>アーキテクチャ / 設計判断 (Architecture / Design Decisions)</h2>
+<p>
+  19 項目のフルリストは <code>docs/adr/0002-game-system-foundation.md</code>
+  にある。将来の AI agent とレビュワーが必ず把握すべきハイライト:
+</p>
+<ul>
+  <li><strong>実在動物のみ。</strong> 架空・fantasy creature は使わない。mystery は実在の rare trait と探索報告の表現で伝える。</li>
+  <li><strong>Species ≠ Animal。</strong> <code>Species</code> は global master data。<code>Animal</code> は捕獲された個体であり、独自の traits, sex, weight, rarity, 履歴を持つ。同じ Species でも別 Animal は別 entity。</li>
+  <li><strong>Species 目標数: 120。</strong> ただし hard な technical constant ではなく、design goal。</li>
+  <li><strong>Hunter 用語で統一。</strong> 「Explorer」は全ドキュメントで非推奨。</li>
+  <li><strong>Guild ベースの Hunter プール。</strong> 上位 Hunter は全プレイヤー共有の有限資源。一方 basic-tier Hunter は必ず契約可能で、初心者が常にゲームを開始できることを保証する。player-to-player の Hunter 貸出は MVP スコープ外。</li>
+  <li><strong>capture / no-capture の結果モデル。</strong> 低能力 Hunter を高難易度 Region に送ることは禁止しないが、no capture で帰ってくる確率が高くなる。</li>
+  <li><strong>Zoo は経営 sim ではない。</strong> MVP では food / land / staffing / cleaning / illness / budget を導入しない。</li>
+  <li><strong>Zoo Value ランキング</strong>、ただし diminishing returns を織り込む: 同じ Animal を大量に集めるだけで支配できてはいけない。</li>
+  <li><strong>盗みは禁止。</strong> multiplayer の competition は collection / Zoo Value / ranking / Hunter 共有希少性のみ — attack / destruction / theft は決して含まない。</li>
+  <li><strong>Power inflation は取らない。</strong> 追加コンテンツは「より珍しい」動物であって、「より強い」動物ではない。</li>
+  <li><strong>Historical / event identity は保持。</strong> 古い Animal が新しい Animal より弱くなって価値を失う設計は取らない。</li>
+  <li><strong>Monetisation は将来方針のみ。</strong> 本 ADR では価格・特典・RevenueCat 統合・payment code は一切決めない・実装しない。</li>
+</ul>
+
+<h2>変更ファイル (Files Changed)</h2>
+<p>
+  documentation-only の変更。新規: <code>docs/adr/0002-game-system-foundation.md</code>。
+  編集: <code>docs/GAME_DESIGN.md</code>, <code>docs/DOMAIN_MODEL.md</code>,
+  <code>docs/DECISIONS_PENDING.md</code>, <code>docs/ROADMAP.md</code>,
+  <code>docs/VISION.md</code>, <code>README.md</code>,
+  <code>docs/reports/index.html</code>。bilingual report を
+  <code>docs/reports/{ja,en}/</code> 配下に追加。正確な diff stat は
+  下記の PR ページで確認できる。
+</p>
+
+<h2>検証 (Validation)</h2>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>*.md</code> 全体に対する <code>explorer</code> / <code>unknown creatur</code> / <code>unclassified</code> / <code>fantasy</code> の grep</td><td>残っているのはすべて meta 的な記述 (「非推奨」「削除済み」「対象外」の文脈)。今回の decision と矛盾する形で active spec に残っているものは無い。</td></tr>
+    <tr><td>migration、Eloquent、controller、route が追加されていないこと</td><td>確認済 — 今回の diff は documentation-only。</td></tr>
+    <tr><td>ja / en report の事実整合</td><td>commit 前に相互チェック済。</td></tr>
+    <tr><td>既存 PHPUnit スイート</td><td>doc-only 変更が runtime に影響していないことを確認 — Tests セクション参照。</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規の自動テストは追加していない。今回の変更は documentation-only。</li>
+  <li>既存 PHPUnit スイート (<strong>5 tests, 9 assertions</strong>, PHPUnit 12.5.33、PHP 8.5.9 + PostgreSQL 16) は引き続き pass — commit 直前にローカルで、PR 作成後に CI で確認済み。</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>
+  task branch <code>ai/003-game-design-foundation</code> 上の task
+  commit と、<code>main</code> 側の merge commit で構成される。
+  正確な SHA は merge 後の <code>main</code> 上の <code>git log</code>
+  および下記の PR ページで確認できる。
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/3">#3 — docs: define WildLive core game system</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/003-game-design-foundation</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash ではない)。AI が書いた個々の commit を <code>git log</code> 上に残すため。</li>
+  <li>CI: PR 上で merge 前に <span class="badge badge-ok">success</span> を確認し、merge 後の <code>main</code> でも再度確認済。documentation-only の変更のため、PR #1 / PR #2 と同じテストスイートが走る。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li>ADR-0002 はゲーム-<em>デザイン</em> レベルの決定であり、schema、formula、コンテンツを確定するものではない。実際にゲームを実装するために必要な事項 — species 名、region 名、timer、価格、rarity 表、formula — はすべて <code>docs/DECISIONS_PENDING.md</code> に open として残っている。</li>
+  <li>いくつかの旧 multiplayer アイデア (World First、Cooperative Expedition) は本 ADR で確定も廃止もされていない。scope open として明記してある。</li>
+  <li>WildLive にはまだゲームコードが存在しないため、実際に動くゲームに対する検証は行っていない。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>migration、Eloquent model、controller、REST endpoint、seed data のいずれも作成していない。</li>
+  <li>frontend、client、RevenueCat 統合、X 連携、cloud deployment のいずれも行っていない。</li>
+  <li>dependency、container、CI、環境設定のいずれも変更していない。</li>
+  <li>authoritative な Species 一覧、Region 一覧、価格表、rarity 表のいずれも作成していない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>MVP-0 vertical-slice の実装プラン起草</strong> — 短い
+  design task として、<code>docs/DECISIONS_PENDING.md</code> 内の
+  open 項目のうち MVP-0 loop (<code>docs/GAME_DESIGN.md</code> 参照)
+  を成立させるために最低限必要な部分を選ぶ (数種類の Species、
+  1〜2 の Region、1 tier の Hunter、expedition 所要時間、
+  capture-outcome の解決方法)。プランが人間と合意されるまでは
+  migration もコードも書かない。本レポートは実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

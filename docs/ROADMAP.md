@@ -25,13 +25,18 @@ This roadmap is intentionally lightweight.
 
 ## Phase 2 — Game specification
 
-- [ ] confirm first playable loop
-- [ ] define progression
-- [ ] define hunter model
-- [ ] define region model
-- [ ] define species / rarity model
-- [ ] define expedition resolution rules
-- [ ] define economy boundaries
+Design-level decisions for these items are captured in
+[`docs/adr/0002-game-system-foundation.md`](adr/0002-game-system-foundation.md).
+Exact formulas, tables, and content lists are still open — see
+[`docs/DECISIONS_PENDING.md`](DECISIONS_PENDING.md).
+
+- [x] confirm first playable loop (ADR-0002 §1)
+- [x] define progression (ADR-0002 §12–§14)
+- [x] define hunter model at design level (ADR-0002 §6–§7)
+- [x] define region model at design level (ADR-0002 §8–§9)
+- [x] define species / rarity model at design level (ADR-0002 §3–§5, §17)
+- [x] define expedition resolution rules at design level (ADR-0002 §10)
+- [x] define economy boundaries (ADR-0002 §11–§14, §19)
 
 ## Phase 3 — Domain / DB design
 
@@ -59,11 +64,17 @@ One complete vertical slice:
 
 ## Phase 6 — Multiplayer
 
-- [ ] World First
-- [ ] Hunter Contract
-- [ ] Cooperative Expedition
-- [ ] Shared World Event
-- [ ] Zoo visit / public profile
+Design-level decisions for the multiplayer surface are in
+ADR-0002 §7 and §15. The specific mechanics below are still open:
+
+- [ ] Guild Hunter availability across players (shared scarcity of
+  top Hunters — ADR-0002 §7)
+- [ ] Zoo visit / public profile (ADR-0002 §15)
+- [ ] Zoo Value ranking (ADR-0002 §12, §15)
+- [ ] Seasonal Events (ADR-0002 §16)
+- [ ] World First — scope still open (see
+  [`DECISIONS_PENDING.md`](DECISIONS_PENDING.md))
+- [ ] Cooperative Expedition — scope still open
 
 ## Phase 7 — Autonomous development
 
