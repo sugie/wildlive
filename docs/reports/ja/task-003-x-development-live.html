@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 003 — X Development Live。AIが書き人間がレビュー済みの日英ポストを、merge と main CI 成功後に自動投稿。">
+<title>Task 003 — X Development Live · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-003-x-development-live.html">English version</a>
+</nav>
+
+<h1>Task 003 — X Development Live</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">main に merge 済み</span>
+  &nbsp;·&nbsp; Live 投稿: <span class="badge badge-warn">人間による有効化まで無効</span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>WildLive の開発過程そのものを X に公開する、という判断は人間
+  (repository owner) が行った。</strong> Claude Code は、その方針に沿って
+  自動化を設計・実装し、publisher / workflow / tests / 最初の manifest を
+  書いた。AI は以下を <em>行っていない</em>:
+</p>
+<ul>
+  <li>X Developer app の作成、</li>
+  <li>X API credentials の生成 / 設定、</li>
+  <li>kill switch <code>X_AUTOPOST_ENABLED</code> の有効化、</li>
+  <li>X アカウントの profile / bio / automated-account label の変更。</li>
+</ul>
+<p>これらの操作は <code>docs/social/x/README.md</code> にまとめてあり、人間の作業として残る。</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  検証可能な WildLive の開発マイルストーンを X に自動投稿する、
+  fail-closed で audit 可能なパイプラインを整備する。ただし runtime での
+  hallucination を許さず、workflow 側が投稿文を新規生成できないようにする。
+</p>
+<p>
+  これは <strong>ゲーム内 X 連携ではない</strong>。
+  自律開発実験そのものを外に見せるための broadcast チャネルである。
+</p>
+
+<h2>アーキテクチャ: AIが書き、Gitが記録し、PRがレビューし、workflowが配送する</h2>
+<p>
+  X 投稿は <code>docs/social/x/</code> にコミットされた JSON manifest
+  から生成する。AI が PR 作成時に文面を書き、reviewer が PR 上で確認し、
+  GitHub Actions は manifest に PR URL と <code>#shipaton</code> を連結して
+  送信するだけ。runtime で LLM を呼ばない。
+</p>
+
+<pre><code>AI が投稿文を書く
+        ↓
+Git が manifest として記録 (docs/social/x/task-NNN-slug.json)
+        ↓
+PR reviewer が投稿文を承認
+        ↓
+PR を main に merge
+        ↓
+main CI 実行 (docker + phpunit + 既存 check すべて)
+        ↓
+CI success → X Development Live workflow 発火
+        ↓
+publisher が日英ポストを render、PR URL と #shipaton を追加
+        ↓
+length check (twitter-text 近似、cap 280 weighted chars)
+        ↓
+audit issue に対する idempotency check (同じ merge SHA なら skip)
+        ↓
+OAuth 1.0a で署名 → POST /2/tweets → audit marker 追記</code></pre>
+
+<h2>AIが実施した内容 (What the AI did)</h2>
+<ol>
+  <li>governance の主要ドキュメント (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, <code>docs/reports/README.md</code>, <code>docs/ROADMAP.md</code>, <code>.github/workflows/ci.yml</code>) を読了した。</li>
+  <li>clean な <code>main</code> から branch <code>ai/004-x-development-live</code> を作成した。</li>
+  <li><code>docs/adr/0003-x-development-live.md</code> を執筆: 目的、source of truth、trigger、投稿フォーマット、manifest 検出、OAuth 1.0a 認証、<code>made_with_ai</code> の扱い、fail-closed kill switch、GitHub audit issue による duplicate 抑制、bounded retry、X アカウント transparency の人間側責任、API コスト認識、deferred 事項。</li>
+  <li><code>docs/social/README.md</code> と <code>docs/social/x/README.md</code> を執筆: manifest schema、bilingual rule、length rule、hashtag rule、trigger、kill switch、必要な GitHub Secrets / Variable、duplicate 抑制、audit log、dry-run 手順、manual dispatch 手順、緊急停止手順、初回 activation 手順、X アカウント transparency、API コスト認識。</li>
+  <li><code>docs/social/x/schema.json</code> (draft 2020-12 JSON Schema) を作成した。</li>
+  <li>最初の manifest <code>docs/social/x/task-003-x-development-live.json</code> を作成した。workflow が PR URL と hashtag を追加した後で 280 weighted chars に収まるよう日英本文を調整済み。</li>
+  <li><code>scripts/social/post_x.py</code> を執筆 (Python 標準ライブラリのみ): manifest 読込 / validation、日英 renderer、twitter-text 重み付け長さ近似、OAuth 1.0a signature 生成、bounded retry HTTP client (max 3 回、429 / 5xx / transport error のみ)、<code>--dry-run</code>、credential guard、secret のログ出力なし。</li>
+  <li><code>scripts/social/tests/test_post_x.py</code> を執筆: unittest 38 件。manifest validation、rendering、length、OAuth signature の決定性、secret redaction、HTTP retry policy、dry-run を網羅。real X credentials は使用しない。</li>
+  <li><code>.github/workflows/x-development-live.yml</code> を執筆: <code>CI</code> workflow が push to <code>main</code> で success したときに <code>workflow_run</code> で発火。加えて <code>workflow_dispatch</code> をサポート (デフォルト <code>dry_run=true</code>)。merge SHA を確定し、対応する merged PR を検索し、PR の diff から manifest を 1 件だけ検出 (2 件以上は fail closed)、kill switch を確認し、credentials を確認し、audit issue に marker が無いか確認し、dry-run preview を実行し、すべての guard を通過した場合のみ publisher を呼ぶ。posting 成功後、audit issue に merge SHA marker を含む comment を追記する。</li>
+  <li><code>AGENTS.md</code>, <code>docs/AUTONOMY.md</code>, <code>CLAUDE.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, <code>docs/reports/README.md</code> を更新し、今後の AI agent が task/milestone PR で manifest を追加すること、AI が posting を有効化したり X account を管理してはいけないことを governance として明記した。</li>
+  <li>本 bilingual report のペアを作成し、<code>docs/reports/index.html</code> を更新した。</li>
+</ol>
+
+<h2>Trigger と safety guards</h2>
+<table>
+  <thead><tr><th>Guard</th><th>挙動</th></tr></thead>
+  <tbody>
+    <tr><td>Event フィルタ</td><td><code>workflow_run.conclusion == success</code> ∧ <code>workflow_run.event == push</code> ∧ <code>workflow_run.head_branch == main</code>。PR open や PR CI が緑になっただけでは絶対に発火しない。</td></tr>
+    <tr><td>関連する merged PR が見つからない</td><td>clean skip (no-op)。direct push で投稿することは決して無い。</td></tr>
+    <tr><td>PR diff に manifest が 0 件</td><td>意図的 no-op (typo fix、one-line 変更)。</td></tr>
+    <tr><td>PR diff に manifest が 2 件以上</td><td>fail closed — どちらを投稿するか AI が推測することは無い。</td></tr>
+    <tr><td>Kill switch <code>X_AUTOPOST_ENABLED != "true"</code></td><td>clean skip、<code>disabled — no post</code> と記録。live mode でも適用。</td></tr>
+    <tr><td>X credentials 4 つのうち 1 つでも欠落</td><td>clean skip — 部分署名の request は絶対に送らない。</td></tr>
+    <tr><td>Idempotency: audit issue に同じ merge SHA marker が既存</td><td>clean skip (<code>already posted — skip</code>)。workflow を re-run しても重複投稿されない。</td></tr>
+    <tr><td>Concurrency group を merge SHA で keying</td><td>同じ SHA に対する <code>workflow_run</code> と <code>workflow_dispatch</code> の同時実行は serialise される。</td></tr>
+    <tr><td>Length 上限</td><td>network に到達する前に、conservative な twitter-text 近似 (CJK 文字 = weight 2、URL = 23、cap 280) で over-length manifest を rejects。</td></tr>
+    <tr><td>Retry policy</td><td>max 3 attempts。429 / 5xx / transport error のみ retry。それ以外の 4xx は即失敗。</td></tr>
+    <tr><td>Workflow permissions</td><td><code>contents: read</code>, <code>pull-requests: read</code>, <code>issues: write</code> のみ。<code>contents: write</code> や <code>actions: write</code> は与えない。</td></tr>
+    <tr><td>Secret 取扱い</td><td>credentials は env のみから読む。<code>OAuthCredentials.__repr__</code> は redacted。secret が stdout / stderr / job summary に出ることは無い。</td></tr>
+  </tbody>
+</table>
+
+<h2>追加したファイル</h2>
+<ul>
+  <li><code>docs/adr/0003-x-development-live.md</code></li>
+  <li><code>docs/social/README.md</code></li>
+  <li><code>docs/social/x/README.md</code></li>
+  <li><code>docs/social/x/schema.json</code></li>
+  <li><code>docs/social/x/task-003-x-development-live.json</code></li>
+  <li><code>scripts/social/post_x.py</code></li>
+  <li><code>scripts/social/tests/__init__.py</code></li>
+  <li><code>scripts/social/tests/test_post_x.py</code></li>
+  <li><code>.github/workflows/x-development-live.yml</code></li>
+  <li><code>docs/reports/ja/task-003-x-development-live.html</code></li>
+  <li><code>docs/reports/en/task-003-x-development-live.html</code></li>
+</ul>
+<h2>更新したファイル</h2>
+<ul>
+  <li><code>AGENTS.md</code> — required workflow に X manifest step を追加。新規禁止事項 (runtime での LLM 呼び出し、posting の有効化、X profile 管理) を追加。source-of-truth リンクを追加。</li>
+  <li><code>CLAUDE.md</code> — 新しい「X development live」section を追加。</li>
+  <li><code>docs/AUTONOMY.md</code> — 新しい「Public social broadcasting」section を追加。</li>
+  <li><code>docs/SOCIAL_AUTOMATION.md</code> — ADR-0003 を軸に書き直し。checklist を implemented として更新。</li>
+  <li><code>docs/reports/README.md</code> — 併走する X manifest への pointer を追加。</li>
+  <li><code>docs/reports/index.html</code> — Task 003 エントリを追加。</li>
+</ul>
+
+<h2>検証 (Validation)</h2>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>python3 -m unittest scripts.social.tests.test_post_x -v</code></td><td><strong>38 tests, all pass</strong> (Python 3.9.6)。manifest schema、rendering、length、OAuth signature 決定性、secret redaction、retry policy、dry-run を網羅。</td></tr>
+    <tr><td>Task 003 manifest に対する publisher の dry-run (<code>--pr-number 4</code>、想定 PR URL)</td><td>rendered <strong>255 weighted chars</strong> (cap 280)。network call 無し。</td></tr>
+    <tr><td>既存 PHPUnit スイート</td><td><code>docker compose exec app vendor/bin/phpunit</code> — commit 直前に確認。下記参照。</td></tr>
+    <tr><td>Secret スキャン</td><td>token、private key、X credential 値は diff 内のどこにも存在しない。<code>.env.example</code> は変更なし。</td></tr>
+    <tr><td>Workflow permissions</td><td><code>contents: read</code>, <code>pull-requests: read</code>, <code>issues: write</code>。<code>pull_request_target</code> は使用せず。browser automation 無し。<code>actions/checkout@v4</code> と <code>actions/setup-python@v5</code> 以外の third-party action は無し。</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規 Python テスト: <code>scripts/social/tests/test_post_x.py</code> の <strong>38 tests</strong> — 全 pass。network 未使用、real X credentials 未使用。</li>
+  <li>既存 PHP スイート: <strong>5 tests, 9 assertions</strong> (PHPUnit 12.5.33、PHP 8.5.9、PostgreSQL 16) — 変更なしで pass 維持。</li>
+  <li>本 branch の CI: PHPUnit workflow は不変で、同じスイートを実行する。</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p><code>ai/004-x-development-live</code> 上の commit と、<code>main</code> 側の merge commit で構成される。正確な SHA は merge 後の <code>main</code> と下記の PR ページで確認できる。</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/4">#4 — feat: add X development live auto-posting</a></li>
+  <li>Base: <code>main</code>。Head: <code>ai/004-x-development-live</code> (merge 後に削除)。</li>
+  <li>Method: merge commit (squash ではない)。</li>
+  <li>CI: PHPUnit workflow を PR 上と merge 後の <code>main</code> で <span class="badge badge-ok">success</span> と確認。新しい <code>X Development Live</code> workflow は本 PR 上では走らない (trigger は <code>CI</code> の push to <code>main</code> success)。merge 時に workflow が登録され、その直後の main CI 成功で発火するが、kill switch が未設定のため <em>disabled — no post</em> で clean exit する。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li><strong>Live posting の end-to-end 検証は、本 PR 内では行えない</strong>。人間が X credentials を設定し kill switch を有効化して初めて可能になる。real X API を CI から呼ぶことは意図的に避けている (credentials 消費、paid tier 課金リスク)。</li>
+  <li><code>POST /2/tweets</code> の <code>made_with_ai</code> disclosure フィールドは <strong>本実装では送信していない</strong>。現在の production endpoint でこのフィールドが受理されるか、本 repository 内から確認できなかったため。人間側で最新公式仕様を確認して supported と判明したら、小さな follow-up PR で追加できる。AI 生成の transparency は現状、<code>#shipaton</code> hashtag、X アカウント側 (人間が設定) の automated-account 表示、そして投稿が指す WildLive report によって示す。</li>
+  <li>publisher 自身は audit issue にコメントを書かない (workflow 側の役割)。<code>POST /2/tweets</code> 成功後、audit comment を書く前に crash した場合、その merge に対する ledger が inconsistent になる。concurrency group と workflow の失敗時挙動 (自動 job re-run を行わない) により影響は限定的で、万が一発生した場合は人間が marker を手動で追記できる。</li>
+  <li><code>scripts/social/post_x.py</code> を workflow 外部から直接実行した場合、audit 重複抑制は働かない。workflow を通した実行を想定している。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>X Developer app は作成していない。</li>
+  <li>X credentials は生成 / 設定 / 参照していない。real 値は一切 repository に存在しない。</li>
+  <li>repository variable <code>X_AUTOPOST_ENABLED</code> は変更していない。</li>
+  <li>本 task から live X post は 1 件も送信されていない。workflow は fail-closed で ship する。</li>
+  <li>game code、migration、Docker 設定、既存 CI workflow はいずれも変更していない。</li>
+  <li>third-party Python package は追加していない (stdlib のみ)。</li>
+</ul>
+
+<h2>Activation に必要な人間側手順</h2>
+<ol>
+  <li>X の現在の Automation Rules を確認し、投稿用アカウントを設定 (label、人間アカウントとの link 等)。AI は X profile を触らない。</li>
+  <li>X Developer App を作成し、4 つの OAuth 1.0a credentials を生成し、GitHub Actions <em>Secrets</em> に登録: <code>X_API_KEY</code>, <code>X_API_KEY_SECRET</code>, <code>X_ACCESS_TOKEN</code>, <code>X_ACCESS_TOKEN_SECRET</code>。</li>
+  <li>audit issue を一度だけ作成: <code>gh issue create --title "[automation] WildLive X Development Live Audit" --body "Automated audit log."</code></li>
+  <li>repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> は未設定 (または <code>false</code>) のままにする。</li>
+  <li>workflow を手動実行: <em>Actions → X Development Live → Run workflow</em>、<code>dry_run = true</code> で。rendered preview を確認する。</li>
+  <li>次に <code>dry_run = false</code> かつ明示的な <code>pr_number</code> で live 1 件送信をテスト。X 上に投稿されること、audit marker が追記されることを確認する。</li>
+  <li>すべて確認できたら <code>X_AUTOPOST_ENABLED = true</code>。この瞬間から、以後の task/milestone merge で自動投稿される。</li>
+</ol>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>MVP-0 vertical-slice の実装プラン起草</strong> — 短い design task
+  として、<code>docs/DECISIONS_PENDING.md</code> の open 項目のうち
+  MVP-0 loop を成立させる最低限 (数種類の Species、1〜2 Region、
+  1 tier の Hunter、expedition 所要時間) を選び、具体的な
+  migration / model plan にまとめる。プランが人間と合意されるまで
+  code は書かない。本レポートは実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

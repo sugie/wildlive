@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sugie/wildlive/blob/main/docs/social/x/schema.json",
+  "title": "WildLive X Development Live manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task", "slug", "post_on_merge", "ja", "en"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Manifest schema version. Only 1 is currently accepted."
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "description": "Human-readable label for the post header, e.g. 'Task 003'."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 60,
+      "description": "Kebab-case ASCII slug matching the filename and the bilingual report slug."
+    },
+    "post_on_merge": {
+      "type": "boolean",
+      "description": "When false, the manifest is reviewed but not posted (documented no-op)."
+    },
+    "ja": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Japanese post body. Must NOT include the PR URL or the #shipaton hashtag — the publisher appends both."
+    },
+    "en": {
+      "type": "string",
+      "minLength": 1,
+      "description": "English post body. Same rules as ja."
+    }
+  }
+}

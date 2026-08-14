@@ -1,0 +1,343 @@
+name: X Development Live
+
+# WildLive's public AI development log auto-poster.
+#
+# See docs/adr/0003-x-development-live.md and docs/social/x/README.md for the
+# full design. Highlights:
+#   * Fires ONLY after the CI workflow completes successfully on a push to main
+#     (i.e. after a PR is merged), or via manual workflow_dispatch.
+#   * Loads a committed manifest under docs/social/x/task-*.json — the AI
+#     never composes text at runtime.
+#   * Fails closed unless the repository variable X_AUTOPOST_ENABLED is exactly
+#     the string "true".
+#   * Fails closed unless all four X OAuth 1.0a secrets are present.
+#   * Fails closed unless exactly one manifest is present in the PR diff.
+#   * Idempotency: a GitHub audit issue records the merge SHA of each
+#     successful post. Duplicate merge SHAs are skipped.
+#
+# Do not change this workflow without re-reading ADR-0003.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Merged PR number to backfill/post about (leave empty for auto-detect)."
+        required: false
+        type: string
+      dry_run:
+        description: "Dry-run — validate and render only, do not call X API."
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  # Minimum required. contents:read for checkout, pull-requests:read to
+  # look up the PR from a merge SHA, issues:write to append to the audit
+  # ledger.
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  # Serialise by merge SHA (or by manually-supplied PR number / run id when
+  # SHA is not available yet), so simultaneous invocations for the same
+  # milestone cannot double-post.
+  group: >-
+    x-autopost-${{
+      github.event.workflow_run.head_sha
+      || github.event.inputs.pr_number
+      || github.run_id
+    }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    name: Post development update to X
+    runs-on: ubuntu-latest
+    # Automatic path: only when CI succeeded on a push to main.
+    # Manual path: always allowed (workflow_dispatch).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      X_AUTOPOST_ENABLED: ${{ vars.X_AUTOPOST_ENABLED }}
+      X_AUTOPOST_AUDIT_ISSUE_TITLE: "[automation] WildLive X Development Live Audit"
+      X_AUTOPOST_AUDIT_ISSUE_HINT: ${{ vars.X_AUTOPOST_AUDIT_ISSUE }}
+      MERGE_SHA: ${{ github.event.workflow_run.head_sha }}
+      MANUAL_PR_NUMBER: ${{ inputs.pr_number }}
+      DRY_RUN: ${{ inputs.dry_run == false && 'false' || 'true' }}
+
+    steps:
+      - name: Note trigger
+        run: |
+          echo "event=${{ github.event_name }}"
+          echo "workflow_run.event=${{ github.event.workflow_run.event }}"
+          echo "workflow_run.conclusion=${{ github.event.workflow_run.conclusion }}"
+          echo "workflow_run.head_branch=${{ github.event.workflow_run.head_branch }}"
+          echo "workflow_run.head_sha=${{ github.event.workflow_run.head_sha }}"
+          echo "manual pr_number=${{ inputs.pr_number }}"
+          echo "manual dry_run=${{ inputs.dry_run }}"
+          echo "effective DRY_RUN=$DRY_RUN"
+
+      - name: Determine effective dry-run
+        id: mode
+        run: |
+          # workflow_dispatch: honour input (default true).
+          # workflow_run: always live (dry-run is not meaningful post-merge).
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "dry_run=${DRY_RUN}" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout repository at merged main
+        uses: actions/checkout@v4
+        with:
+          # For workflow_run we want the SHA that CI validated (the merge commit).
+          # For manual dispatch, checkout defaults to the branch the workflow file
+          # is on (main), which is what we want.
+          ref: ${{ github.event.workflow_run.head_sha || 'main' }}
+          fetch-depth: 1
+
+      - name: Resolve merge SHA
+        id: sha
+        run: |
+          set -euo pipefail
+          if [ -n "${MERGE_SHA:-}" ]; then
+            SHA="$MERGE_SHA"
+          elif [ -n "${MANUAL_PR_NUMBER:-}" ]; then
+            SHA="$(gh pr view "$MANUAL_PR_NUMBER" --json mergeCommit --jq '.mergeCommit.oid')"
+            if [ -z "$SHA" ] || [ "$SHA" = "null" ]; then
+              echo "PR #$MANUAL_PR_NUMBER has no merge commit — refusing to post" >&2
+              exit 1
+            fi
+          else
+            SHA="$(git rev-parse HEAD)"
+          fi
+          echo "Resolved merge SHA: $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Find associated merged PR
+        id: pr
+        run: |
+          set -euo pipefail
+          if [ -n "${MANUAL_PR_NUMBER:-}" ]; then
+            PR_NUMBER="$MANUAL_PR_NUMBER"
+          else
+            # Search for a merged PR whose merge commit matches this SHA.
+            # gh will exit non-zero on 0 matches when using --jq strict, so
+            # fall back to jq scan on the raw output for resilience.
+            PR_NUMBER="$(gh api \
+              "repos/${REPO}/commits/${{ steps.sha.outputs.sha }}/pulls" \
+              --jq '[.[] | select(.merged_at != null and .base.ref == "main")] | first | .number // empty')"
+          fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No merged PR associated with SHA ${{ steps.sha.outputs.sha }} — skipping (fail closed, exit 0)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PR_URL="https://github.com/${REPO}/pull/${PR_NUMBER}"
+          echo "PR: #${PR_NUMBER} — ${PR_URL}"
+          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Locate manifest in PR diff
+        id: manifest
+        if: steps.pr.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          PR="${{ steps.pr.outputs.number }}"
+          # List changed files in the PR, filter to manifests, count.
+          MANIFESTS="$(gh pr view "$PR" --json files \
+            --jq '[.files[].path | select(test("^docs/social/x/task-.*\\.json$"))]')"
+          COUNT="$(echo "$MANIFESTS" | jq 'length')"
+          echo "manifests in PR: $MANIFESTS"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "no manifest in PR #$PR — treating as intentional no-op (exit 0)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$COUNT" -gt 1 ]; then
+            echo "PR #$PR touched $COUNT manifests — ambiguous, failing closed." >&2
+            exit 1
+          fi
+          MPATH="$(echo "$MANIFESTS" | jq -r '.[0]')"
+          if [ ! -f "$MPATH" ]; then
+            echo "Manifest path $MPATH from PR does not exist in checkout — failing closed." >&2
+            exit 1
+          fi
+          echo "manifest=$MPATH" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Report no-op and exit
+        if: steps.pr.outputs.skip == 'true' || steps.manifest.outputs.skip == 'true'
+        run: |
+          {
+            echo "### X Development Live — no-op"
+            echo ""
+            echo "- merge SHA: \`${{ steps.sha.outputs.sha }}\`"
+            echo "- reason: no manifest was included in the associated PR (or no PR found)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Kill switch — X_AUTOPOST_ENABLED
+        id: kill
+        if: steps.manifest.outputs.skip != 'true'
+        run: |
+          if [ "${X_AUTOPOST_ENABLED:-}" != "true" ]; then
+            echo "X_AUTOPOST_ENABLED != 'true' — disabled, no post."
+            echo "disabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "kill switch: enabled"
+            echo "disabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Python 3
+        if: steps.manifest.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Preview post (always runs when manifest is present)
+        if: steps.manifest.outputs.skip != 'true'
+        run: |
+          python3 scripts/social/post_x.py \
+            --manifest "${{ steps.manifest.outputs.manifest }}" \
+            --pr-number "${{ steps.pr.outputs.number }}" \
+            --pr-url "${{ steps.pr.outputs.url }}" \
+            --dry-run
+
+      - name: Idempotency check — has this merge SHA already been posted?
+        id: audit_check
+        if: steps.manifest.outputs.skip != 'true' && steps.kill.outputs.disabled != 'true' && steps.mode.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          MARKER="<!-- x-autopost:${{ steps.sha.outputs.sha }} -->"
+          # Resolve audit issue: prefer explicit repository variable, else find by title.
+          if [ -n "${X_AUTOPOST_AUDIT_ISSUE_HINT:-}" ]; then
+            ISSUE_NUM="$X_AUTOPOST_AUDIT_ISSUE_HINT"
+          else
+            ISSUE_NUM="$(gh issue list \
+              --state open \
+              --search "\"$X_AUTOPOST_AUDIT_ISSUE_TITLE\" in:title" \
+              --json number,title \
+              --jq "[.[] | select(.title == \"$X_AUTOPOST_AUDIT_ISSUE_TITLE\")] | first | .number // empty")"
+          fi
+          if [ -z "$ISSUE_NUM" ]; then
+            echo "No audit issue found; refuse to post without an audit ledger." >&2
+            echo "Create it once with:" >&2
+            echo "  gh issue create --title '$X_AUTOPOST_AUDIT_ISSUE_TITLE' --body 'Audit log for X development-live posts.'" >&2
+            exit 1
+          fi
+          echo "audit issue: #$ISSUE_NUM"
+          BODY="$(gh issue view "$ISSUE_NUM" --json body,comments \
+            --jq '.body + "\n" + ([.comments[].body] | join("\n"))')"
+          if echo "$BODY" | grep -qF "$MARKER"; then
+            echo "already posted for SHA ${{ steps.sha.outputs.sha }} — skipping."
+            echo "already_posted=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "not yet posted"
+            echo "already_posted=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "issue=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Credential guard
+        id: creds
+        if: steps.manifest.outputs.skip != 'true' && steps.kill.outputs.disabled != 'true' && steps.mode.outputs.dry_run != 'true' && steps.audit_check.outputs.already_posted != 'true'
+        run: |
+          MISSING=""
+          for v in X_API_KEY X_API_KEY_SECRET X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET; do
+            if [ -z "${!v:-}" ]; then MISSING="$MISSING $v"; fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "Missing X credentials:$MISSING — refusing to send." >&2
+            echo "have_creds=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "credentials present"
+            echo "have_creds=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+
+      - name: Publish post
+        id: publish
+        if: steps.manifest.outputs.skip != 'true' && steps.kill.outputs.disabled != 'true' && steps.mode.outputs.dry_run != 'true' && steps.audit_check.outputs.already_posted != 'true' && steps.creds.outputs.have_creds == 'true'
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: |
+          set -euo pipefail
+          OUTPUT="$(python3 scripts/social/post_x.py \
+            --manifest "${{ steps.manifest.outputs.manifest }}" \
+            --pr-number "${{ steps.pr.outputs.number }}" \
+            --pr-url "${{ steps.pr.outputs.url }}")"
+          echo "$OUTPUT"
+          # Extract "posted: id=... status=... url=..." for the summary.
+          POSTED_LINE="$(echo "$OUTPUT" | grep -E '^posted: id=' | tail -n1 || true)"
+          if [ -z "$POSTED_LINE" ]; then
+            echo "publisher did not print a posted: line — treating as failure" >&2
+            exit 1
+          fi
+          POST_ID="$(echo "$POSTED_LINE" | sed -E 's/.*id=([^ ]+).*/\1/')"
+          POST_URL="$(echo "$POSTED_LINE" | sed -E 's/.*url=([^ ]+).*/\1/')"
+          echo "post_id=$POST_ID" >> "$GITHUB_OUTPUT"
+          echo "post_url=$POST_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Append audit marker
+        if: steps.publish.outputs.post_id != ''
+        run: |
+          set -euo pipefail
+          ISSUE="${{ steps.audit_check.outputs.issue }}"
+          MARKER="<!-- x-autopost:${{ steps.sha.outputs.sha }} -->"
+          POST_ID="${{ steps.publish.outputs.post_id }}"
+          POST_URL="${{ steps.publish.outputs.post_url }}"
+          PR="${{ steps.pr.outputs.number }}"
+          MANIFEST="${{ steps.manifest.outputs.manifest }}"
+          NOW="$(date -u +%FT%TZ)"
+          BODY_FILE="$(mktemp)"
+          {
+            printf '%s\n\n' "$MARKER"
+            printf 'Posted at %s\n' "$NOW"
+            printf 'PR: #%s\n' "$PR"
+            printf 'merge SHA: %s\n' "${{ steps.sha.outputs.sha }}"
+            printf 'manifest: `%s`\n' "$MANIFEST"
+            printf 'X post ID: `%s`\n' "$POST_ID"
+            printf 'X post URL: %s\n' "$POST_URL"
+          } > "$BODY_FILE"
+          gh issue comment "$ISSUE" --body-file "$BODY_FILE"
+          rm -f "$BODY_FILE"
+
+      - name: Job summary
+        if: always() && steps.manifest.outputs.skip != 'true'
+        run: |
+          {
+            echo "### X Development Live"
+            echo ""
+            echo "- PR: [#${{ steps.pr.outputs.number }}](${{ steps.pr.outputs.url }})"
+            echo "- merge SHA: \`${{ steps.sha.outputs.sha }}\`"
+            echo "- manifest: \`${{ steps.manifest.outputs.manifest }}\`"
+            echo "- effective dry-run: \`${{ steps.mode.outputs.dry_run }}\`"
+            echo "- kill switch (X_AUTOPOST_ENABLED == 'true'): \`${{ steps.kill.outputs.disabled != 'true' }}\`"
+            echo "- audit issue: \`#${{ steps.audit_check.outputs.issue }}\`"
+            echo "- already-posted skip: \`${{ steps.audit_check.outputs.already_posted }}\`"
+            echo "- credentials present: \`${{ steps.creds.outputs.have_creds }}\`"
+            if [ -n "${{ steps.publish.outputs.post_id }}" ]; then
+              echo "- X post: [${{ steps.publish.outputs.post_id }}](${{ steps.publish.outputs.post_url }})"
+              echo "- posted at: \`$(date -u +%FT%TZ)\`"
+            else
+              echo "- X post: (not posted this run)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

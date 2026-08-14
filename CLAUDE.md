@@ -66,3 +66,7 @@ Every PR uses `.github/pull_request_template.md` and must fill in the autonomous
 ## Public development log
 
 Task-scale or milestone-scale work must ship with a bilingual HTML report in `docs/reports/` (`ja/task-<NNN>-<slug>.html` + `en/task-<NNN>-<slug>.html`) and a new entry in `docs/reports/index.html`. Trivial typo or one-line fixes are exempt. All commit SHAs, PR numbers, CI run IDs, and test counts cited in a report must be **verified** against `git log`, `gh`, and actual command output — never estimated. See `docs/reports/README.md`.
+
+## X development live (public posting)
+
+Task/milestone PRs that warrant a public announcement also ship a bilingual X manifest at `docs/social/x/task-<NNN>-<slug>.json`. Write the post text at PR-authoring time so reviewers can read it in the PR. The workflow at `.github/workflows/x-development-live.yml` publishes it only after merge + `main` CI success. Live posting is fail-closed until a human sets the repository variable `X_AUTOPOST_ENABLED = true`. Never call an LLM from the workflow, never create the X app or credentials, never flip the kill switch. See `docs/adr/0003-x-development-live.md` and `docs/social/x/README.md`.
