@@ -16,9 +16,13 @@ Build **WildLive**, a text-only asynchronous multiplayer game and a public exper
 4. Never commit directly to `main`.
 5. Add or update automated tests.
 6. Run all relevant tests before proposing a merge.
-7. Open a Pull Request.
-8. Record agent metadata in the PR template.
-9. Do not merge security-sensitive or production-sensitive changes without human approval.
+7. Before opening the PR, add a bilingual (日本語 + English) HTML report
+   under `docs/reports/` covering the task. This applies to any change at
+   task or milestone scale; trivial typo or one-line config fixes are
+   exempt. See `docs/reports/README.md`.
+8. Open a Pull Request.
+9. Record agent metadata in the PR template.
+10. Do not merge security-sensitive or production-sensitive changes without human approval.
 
 ## Branch naming
 
@@ -56,6 +60,9 @@ Examples:
 - Automatically merge security-sensitive changes.
 - Fabricate test results, benchmark results, deployment results, or operational status.
 - Claim a feature exists unless it is present in the repository and verified.
+- Publish a development report (`docs/reports/`) that references a commit,
+  PR, CI run, test count, or feature that has not been verified against
+  Git / GitHub / actual command output.
 
 ## Pull Request metadata
 
@@ -83,5 +90,10 @@ For autonomous-development constraints, use:
 
 - `docs/AUTONOMY.md`
 - `docs/GUARDRAILS.md`
+
+For the public development log, use:
+
+- `docs/reports/README.md`
+- `docs/reports/`
 
 If documentation conflicts, stop and flag the conflict rather than guessing.

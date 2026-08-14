@@ -74,6 +74,21 @@ Only after corresponding safety controls exist.
 - incident-response actions
 - changes that expand autonomous permissions
 
+## Public development log
+
+Every task or milestone landed by an AI agent must ship with a bilingual
+HTML report under `docs/reports/` (`ja/` and `en/`, plus an entry added
+to `docs/reports/index.html`). See `docs/reports/README.md` for the
+required sections, the layout, and the truthfulness rules.
+
+Small typo or one-line config fixes are exempt. Anything worth its own
+PR title in `git log` requires a report.
+
+Reports are AI-generated but count as part of the audit trail: every
+commit SHA, PR number, CI run, test count, and design decision cited in
+a report must be independently verifiable in the repository. Reports may
+not invent state.
+
 ## Principle
 
 Autonomy should reduce repeated manual work.

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 001 — Docker Foundation. AI-authored implementation report.">
+<title>Task 001 — Docker Foundation · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-001-docker-foundation.html">日本語版</a>
+</nav>
+
+<h1>Task 001 — Docker Foundation</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<ul>
+  <li>Human supplied the starter pack (<code>README.md</code>, <code>AGENTS.md</code>, <code>SECURITY.md</code>, <code>docs/</code>, <code>.github/</code>, <code>.ai/tasks/001-docker-foundation.md</code>, <code>.editorconfig</code>, <code>.gitignore</code>) before the AI session began.</li>
+  <li>Human wrote the Task 001 specification and the governance documents (<code>AGENTS.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/AUTONOMY.md</code>).</li>
+  <li>Human approved the merge of PR #1 (by instructing the AI to merge it in a follow-up session). No human hand-edits landed in the PR itself.</li>
+</ul>
+
+<h2>Objective</h2>
+<p>
+  Establish a minimal, reproducible local development environment for
+  WildLive: Laravel 13 on PHP 8.5 with PostgreSQL, orchestrated by Docker
+  Compose, plus a health endpoint, an automated PHPUnit suite exercised
+  against real PostgreSQL, and a matching GitHub Actions CI workflow.
+</p>
+<p>
+  The task deliberately excluded all game features (hunters, zoos,
+  expeditions, discoveries, multiplayer, authentication, deployment).
+  Its scope was pure plumbing.
+</p>
+
+<h2>What the AI did</h2>
+<ol>
+  <li>Read the source-of-truth documents: <code>AGENTS.md</code>, <code>docs/VISION.md</code>, <code>docs/GAME_DESIGN.md</code>, <code>docs/ARCHITECTURE.md</code>, <code>docs/AUTONOMY.md</code>, <code>docs/GUARDRAILS.md</code>, <code>docs/ROADMAP.md</code>, <code>docs/DOMAIN_MODEL.md</code>, <code>docs/API.md</code>, <code>docs/DEPLOYMENT.md</code>, <code>docs/SOCIAL_AUTOMATION.md</code>, <code>docs/DECISIONS_PENDING.md</code>, <code>docs/adr/0001-development-workflow.md</code>, and <code>.ai/tasks/001-docker-foundation.md</code>.</li>
+  <li>Created the branch <code>ai/001-docker-foundation</code> from <code>main</code> while preserving the human-supplied uncommitted starter files.</li>
+  <li>Committed the starter pack as an independent commit so that provenance is clear (<code>docs: establish WildLive project foundation</code>).</li>
+  <li>Bootstrapped a Laravel 13 skeleton inside a temporary <code>composer:2</code> container and copied only the framework files into the working tree (skipping <code>vendor/</code>, <code>package.json</code>, Vite/Tailwind — no frontend tooling was needed).</li>
+  <li>Wrote <code>docker/php/Dockerfile</code>, <code>docker/php/entrypoint.sh</code>, <code>docker-compose.yml</code>, <code>.env.example</code>, and <code>.dockerignore</code>.</li>
+  <li>Configured Laravel for PostgreSQL, added the API router, implemented <code>App\Http\Controllers\HealthController</code>, and wired <code>GET /api/health</code>.</li>
+  <li>Reconfigured <code>phpunit.xml</code> to run tests against a PostgreSQL <code>wildlive_test</code> database rather than SQLite.</li>
+  <li>Wrote <code>tests/Feature/HealthTest.php</code> — three tests covering the healthy case, the degraded case, and a direct connectivity check against the real engine.</li>
+  <li>Added <code>.github/workflows/ci.yml</code> so every PR/push is validated against PHP 8.5 and PostgreSQL 16.</li>
+  <li>Verified the whole stack locally, then pushed the branch and opened PR #1.</li>
+  <li>Fixed a healthcheck bug found during verification (<code>wget</code> → <code>curl</code>) as a follow-up commit.</li>
+  <li>In a subsequent session, re-audited PR #1 and merged it via a merge commit.</li>
+</ol>
+
+<h2>Implementation</h2>
+<table>
+  <thead><tr><th>Component</th><th>Choice</th></tr></thead>
+  <tbody>
+    <tr><td>PHP</td><td>8.5 (image <code>php:8.5-cli-bookworm</code>)</td></tr>
+    <tr><td>Framework</td><td>Laravel 13.25</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 16-alpine</td></tr>
+    <tr><td>Orchestration</td><td>Docker Compose v2 — services: <code>app</code>, <code>postgres</code></td></tr>
+    <tr><td>PHP extensions</td><td><code>pdo_pgsql</code>, <code>pgsql</code>, <code>intl</code>, <code>zip</code>, <code>bcmath</code></td></tr>
+    <tr><td>Composer</td><td>2 (copied from the official <code>composer:2</code> image)</td></tr>
+    <tr><td>HTTP server (dev)</td><td><code>php artisan serve</code> on <code>0.0.0.0:8000</code></td></tr>
+    <tr><td>Application health</td><td><code>GET /api/health</code> — runs <code>select 1</code>; returns HTTP 200 <code>{status:"ok"}</code> or HTTP 503 <code>{status:"degraded"}</code></td></tr>
+    <tr><td>Framework liveness</td><td><code>GET /up</code> (Laravel built-in)</td></tr>
+    <tr><td>Tests</td><td>PHPUnit 12 against a dedicated <code>wildlive_test</code> PostgreSQL database</td></tr>
+    <tr><td>CI</td><td>GitHub Actions workflow <code>.github/workflows/ci.yml</code> — PHP 8.5 + <code>postgres:16-alpine</code> service, on every PR to <code>main</code></td></tr>
+  </tbody>
+</table>
+
+<h2>Architecture / Design Decisions</h2>
+<ul>
+  <li><strong>PostgreSQL 16, not 17</strong> — chosen for alignment with the Sakura Cloud PostgreSQL appliance that WildLive intends to deploy against in production.</li>
+  <li><strong>Tests run against real PostgreSQL, not SQLite</strong> — WildLive's future concurrency semantics (World First, ownership transfer, expedition finalization) depend on PostgreSQL-specific behaviour, so the test engine must match.</li>
+  <li><strong><code>php artisan serve</code> instead of Nginx + PHP-FPM</strong> — the minimum viable dev stack. A production multi-stage image is intentionally deferred to a future task.</li>
+  <li><strong>Dev image installs <code>require-dev</code></strong> — PHPUnit, Pint, and friends must exist inside the container. Production/dev image separation is out of scope for this task.</li>
+  <li><strong>Laravel's default <code>users</code>/<code>cache</code>/<code>jobs</code> migrations are kept</strong> as framework scaffolding, not as game domain. The WildLive <code>User</code> aggregate will be redesigned in a later task and may or may not replace this table.</li>
+  <li><strong><code>composer.lock</code> pre-generated via a Composer container</strong> using <code>--ignore-platform-req</code> for PHP 8.5, so the runtime image build only needs <code>composer install</code>. This keeps the image build deterministic.</li>
+  <li><strong>Only <code>app</code> and <code>postgres</code> services</strong> — no Redis, queues, WebSockets, mail, or object storage. Any addition requires an explicit task justification per <code>docs/ARCHITECTURE.md</code>.</li>
+  <li><strong>PostgreSQL port bound to <code>127.0.0.1</code> only</strong> so it cannot be reached from other hosts on the developer's network.</li>
+</ul>
+
+<h2>Files Changed</h2>
+<p>
+  PR #1 total: <strong>83 files changed, +12278 insertions, −18 deletions</strong> (per <code>gh pr diff 1 --stat</code>).
+</p>
+<h3>Notable new files</h3>
+<ul>
+  <li><code>docker-compose.yml</code>, <code>docker/php/Dockerfile</code>, <code>docker/php/entrypoint.sh</code>, <code>.dockerignore</code></li>
+  <li><code>.env.example</code> (placeholder credentials only; no real secrets)</li>
+  <li><code>.github/workflows/ci.yml</code></li>
+  <li><code>app/Http/Controllers/HealthController.php</code></li>
+  <li><code>routes/api.php</code></li>
+  <li><code>tests/Feature/HealthTest.php</code></li>
+  <li><code>docs/DEVELOPMENT.md</code></li>
+  <li>Laravel 13 skeleton: <code>app/</code>, <code>bootstrap/</code>, <code>config/</code>, <code>database/</code>, <code>public/</code>, <code>resources/</code>, <code>routes/</code>, <code>storage/</code>, <code>tests/</code>, <code>artisan</code>, <code>composer.json</code>, <code>composer.lock</code>, <code>phpunit.xml</code></li>
+</ul>
+<h3>Notable edits</h3>
+<ul>
+  <li><code>.gitignore</code> — reworked to align with Laravel's per-directory <code>.gitignore</code> convention; also ignores <code>STARTER_PACK.md</code> (a ZIP-manifest that is not part of history).</li>
+  <li><code>README.md</code> — added the local development quick-start.</li>
+  <li><code>CLAUDE.md</code> — updated to reflect that the Docker foundation is now in place.</li>
+  <li><code>bootstrap/app.php</code> — enabled API routing at <code>/api</code>.</li>
+</ul>
+
+<h2>Validation</h2>
+<p>
+  All of the following were executed in the same session that produced the report data. Outputs are copied verbatim, not paraphrased.
+</p>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker compose build</code></td><td>Successful (PHP 8.5 image built with the extensions listed above)</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>Both services reached the <code>healthy</code> state</td></tr>
+    <tr><td><code>curl http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>curl http://localhost:8000/up</code></td><td>HTTP 200</td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate --force</code></td><td>Three framework migrations applied</td></tr>
+    <tr><td><code>docker compose exec app vendor/bin/phpunit</code></td><td><strong>5 tests, 9 assertions, all pass</strong> on PHP 8.5.9 + PostgreSQL 16</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li>Total tests: <strong>5</strong> (assertions: <strong>9</strong>). Confirmed by <code>vendor/bin/phpunit</code> both before opening PR #1 and after merging it into <code>main</code>.</li>
+  <li>PHPUnit version: 12.5.33.</li>
+  <li>Runtime: PHP 8.5.9 inside the app container; PostgreSQL 16-alpine as the test database.</li>
+  <li>New coverage from this task: <code>tests/Feature/HealthTest.php</code> (3 tests): health OK, health degraded, real-engine connectivity.</li>
+  <li>Retained scaffolding: <code>tests/Feature/ExampleTest.php</code> and <code>tests/Unit/ExampleTest.php</code> (Laravel defaults, 1 test each).</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<table>
+  <thead><tr><th>SHA</th><th>Subject</th></tr></thead>
+  <tbody>
+    <tr><td class="commit-hash">9c000c8</td><td>docs: establish WildLive project foundation</td></tr>
+    <tr><td class="commit-hash">f9f348a</td><td>build: add Laravel + PostgreSQL Docker foundation</td></tr>
+    <tr><td class="commit-hash">427d37d</td><td>fix(docker): use curl (present in the image) in app healthcheck</td></tr>
+    <tr><td class="commit-hash">a007055</td><td>Merge pull request #1 from sugie/ai/001-docker-foundation</td></tr>
+  </tbody>
+</table>
+<p>
+  A merge commit (not squash) was used deliberately so that the individual
+  AI-authored commits remain visible in <code>git log</code>.
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/1">#1 — build: establish WildLive Docker development foundation</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/001-docker-foundation</code> (deleted after merge).</li>
+  <li>State: <strong>MERGED</strong>. Merge commit: <code>a007055f75541aa42ddc5b8d6433af52b2c38c6b</code>. Merged at: <code>2026-08-14T00:31:06Z</code>.</li>
+  <li>CI runs (all <span class="badge badge-ok">success</span>):
+    <ul>
+      <li>Pull request run <a href="https://github.com/sugie/wildlive/actions/runs/31756966550">31756966550</a> — 36s</li>
+      <li>Pull request run <a href="https://github.com/sugie/wildlive/actions/runs/31757031475">31757031475</a> — 30s</li>
+      <li>Post-merge push to <code>main</code> run <a href="https://github.com/sugie/wildlive/actions/runs/31757617154">31757617154</a> — 40s</li>
+    </ul>
+  </li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>No production-grade multi-stage Dockerfile yet. The current image installs <code>require-dev</code> and is not intended for cloud deployment.</li>
+  <li>The <code>wildlive_test</code> database must be created manually the first time (<code>docker compose exec postgres psql -U wildlive -d wildlive -c "CREATE DATABASE wildlive_test OWNER wildlive;"</code>). No test-DB bootstrap script is provided yet.</li>
+  <li>Migrations are not run automatically by the app container's entrypoint. Whether and how to run them at deploy time will be decided in a future deployment task.</li>
+  <li>No load, security, or resilience testing has been performed. This is a development foundation, not a production readiness certificate.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<p>All of the following were explicitly out of scope for Task 001 and remain unimplemented:</p>
+<ul>
+  <li>Any game domain — no <code>User</code> (WildLive-specific), <code>Zoo</code>, <code>Hunter</code>, <code>Explorer</code>, <code>Region</code>, <code>Species</code>, <code>Animal</code>, <code>Exploration</code>, <code>Discovery</code>, <code>Expedition</code>, or <code>WorldEvent</code>.</li>
+  <li>No authentication or authorization.</li>
+  <li>No frontend framework and no browser UI beyond Laravel's default welcome page.</li>
+  <li>No payment, billing, or purchase flows.</li>
+  <li>No X/Twitter integration or social posting.</li>
+  <li>No cloud deployment. Sakura Cloud AppRun and Sakura Cloud PostgreSQL appliance are named in the roadmap but nothing has been provisioned.</li>
+  <li>No public metrics, no player counts — WildLive has no players.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>ADR-0002 — MVP-0 domain decisions</strong>: resolve the subset of
+  <a href="https://github.com/sugie/wildlive/blob/main/docs/DECISIONS_PENDING.md"><code>docs/DECISIONS_PENDING.md</code></a>
+  needed to draft the very first vertical slice (Hunter vs. Explorer
+  terminology, whether animals are individual instances or species counts,
+  expedition duration model, region unlock model). Only after that ADR is
+  written should any migration or Eloquent model be added. This report does
+  not authorise its implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
