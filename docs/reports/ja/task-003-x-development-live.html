@@ -190,14 +190,26 @@ OAuth 1.0a で署名 → POST /2/tweets → audit marker 追記</code></pre>
 </ul>
 
 <h2>Activation に必要な人間側手順</h2>
+<p>
+  設計上の前提: kill switch <code>X_AUTOPOST_ENABLED</code> は
+  <strong>すべての</strong> live post を gate する。これには
+  <code>workflow_dispatch</code> の <code>dry_run = false</code> による
+  manual live test も含まれる。したがって switch を <code>true</code>
+  にすることは「検証済みだから恒久有効化する」という意味ではなく、
+  最初の controlled live test を含めた「live posting を許可する」状態を
+  ON にすることを意味する。異常が見えたら数秒で OFF に戻せる、
+  という前提で扱う。
+</p>
 <ol>
   <li>X の現在の Automation Rules を確認し、投稿用アカウントを設定 (label、人間アカウントとの link 等)。AI は X profile を触らない。</li>
   <li>X Developer App を作成し、4 つの OAuth 1.0a credentials を生成し、GitHub Actions <em>Secrets</em> に登録: <code>X_API_KEY</code>, <code>X_API_KEY_SECRET</code>, <code>X_ACCESS_TOKEN</code>, <code>X_ACCESS_TOKEN_SECRET</code>。</li>
   <li>audit issue を一度だけ作成: <code>gh issue create --title "[automation] WildLive X Development Live Audit" --body "Automated audit log."</code></li>
-  <li>repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> は未設定 (または <code>false</code>) のままにする。</li>
-  <li>workflow を手動実行: <em>Actions → X Development Live → Run workflow</em>、<code>dry_run = true</code> で。rendered preview を確認する。</li>
-  <li>次に <code>dry_run = false</code> かつ明示的な <code>pr_number</code> で live 1 件送信をテスト。X 上に投稿されること、audit marker が追記されることを確認する。</li>
-  <li>すべて確認できたら <code>X_AUTOPOST_ENABLED = true</code>。この瞬間から、以後の task/milestone merge で自動投稿される。</li>
+  <li>repository <em>Variable</em> <code>X_AUTOPOST_ENABLED</code> が未設定 (または <code>false</code>) であることを確認する。これが実装 PR のデフォルト状態である。</li>
+  <li>switch を OFF のまま、workflow を手動実行: <em>Actions → X Development Live → Run workflow</em>、<code>dry_run = true</code> で。rendered preview を確認する。この状態では設計上 X には何も投稿されない。</li>
+  <li>preview に問題がなければ <code>X_AUTOPOST_ENABLED = true</code> に設定する。これは live posting を「許可」するだけで、自動 event が発火していないためこの操作自体で投稿は起きない。</li>
+  <li>直後に workflow を再度手動実行: <code>pr_number = &lt;N&gt;</code> (既に merge 済の milestone PR) と <strong><code>dry_run = false</code></strong> で。この操作で live post が 1 件だけ送信される。X 上に投稿されたことと、audit issue に新しい marker が追記されたことを確認する。</li>
+  <li>途中でおかしな点があれば直ちに <code>X_AUTOPOST_ENABLED = false</code> に戻す (または variable を削除)。以後の run は kill switch で short-circuit される。credentials は触らない。</li>
+  <li>controlled live test が正常なら <code>X_AUTOPOST_ENABLED = true</code> を維持する。この瞬間以降、task/milestone merge のたびに自動投稿される。</li>
 </ol>
 
 <h2>次に推奨する task (Next Recommended Task)</h2>

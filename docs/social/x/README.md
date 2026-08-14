@@ -214,6 +214,14 @@ merge SHA, so simultaneous invocations for the same SHA serialise.
 
 The AI does **not** perform any of these steps.
 
+The kill switch `X_AUTOPOST_ENABLED` gates **every** live call — including
+manual `workflow_dispatch` runs with `dry_run = false`. That means a live
+manual test also requires the switch to be `true`. Setting it to `true`
+is therefore not a "verified-and-done" flag; it is the authorisation
+that unlocks any live posting, including the very first controlled test.
+Treat `true` as a state that can be toggled off again in seconds if
+anything looks wrong.
+
 1. Read the current [X Automation Rules](https://help.x.com/) and
    confirm the account intended for WildLive dev-live posts meets
    any current requirements (automated-account label, linked human
@@ -223,18 +231,27 @@ The AI does **not** perform any of these steps.
    repository (never commit them).
 3. Create the audit issue with the `gh issue create` command shown
    above.
-4. Confirm `X_AUTOPOST_ENABLED` is unset (or `false`).
-5. Merge the implementation PR. The workflow ships with the switch
-   defaulted to disabled — merging alone will not post.
-6. Run the workflow manually:
-   `Actions → X Development Live → Run workflow`, leaving
+4. Confirm `X_AUTOPOST_ENABLED` is unset (or `false`) — this is the
+   default and it is what merging the implementation PR ships.
+5. Run the workflow manually with the switch still off:
+   *Actions → X Development Live → Run workflow*, leaving
    `dry_run = true`. Confirm the rendered preview looks correct.
-7. Repeat with `dry_run = false` on a specific known-good PR
-   (`pr_number = <N>`) to validate real posting once. Verify the
-   post shows up on X, then verify the audit marker was written.
-8. Only after those manual live tests succeed, set
-   `X_AUTOPOST_ENABLED = true`. From that point, task-scale merges
-   post automatically.
+   Nothing is posted to X in this state, by design.
+6. If the preview is correct, set the repository variable
+   `X_AUTOPOST_ENABLED = true`. This authorises live posting; it does
+   **not** yet post anything on its own — no automatic event has fired.
+7. Immediately run the workflow manually one more time with
+   `pr_number = <N>` (a known merged milestone PR) **and**
+   `dry_run = false`. This sends exactly one live post. Verify the
+   post appears on X, and verify the new marker was appended to the
+   audit issue.
+8. If anything looks wrong at any point, set `X_AUTOPOST_ENABLED` back
+   to `false` (or delete the variable) immediately — subsequent runs
+   will short-circuit at the kill switch. Credentials do not need to
+   be touched.
+9. If the controlled live test looked correct, leave
+   `X_AUTOPOST_ENABLED = true`. From that point, future task/milestone
+   merges post automatically.
 
 ## AI account transparency
 
