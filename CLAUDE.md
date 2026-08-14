@@ -4,9 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-Pre-alpha. The repository currently contains **only documentation and planning** — no application code, no `composer.json`, no Docker files, no tests. There is nothing to build, lint, or run yet.
+Pre-alpha. Task 001 (Docker foundation) is complete: Laravel 13 / PHP 8.5 / PostgreSQL 16 running under Docker Compose, with a `/api/health` endpoint, PHPUnit against PostgreSQL, and a GitHub Actions CI workflow. No game features are implemented yet — hunters, zoos, expeditions, discoveries, and multiplayer are all separate follow-up tasks.
 
-The first implementation task (`.ai/tasks/001-docker-foundation.md`) is to bootstrap a Laravel 13 / PHP 8.5 / PostgreSQL environment via Docker Compose. Do not implement game features (hunters, expeditions, zoo, multiplayer) in that task — those are separate follow-ups.
+## Common commands
+
+```bash
+docker compose up -d                                # start stack
+docker compose exec app php artisan migrate          # run migrations
+docker compose exec app vendor/bin/phpunit           # run test suite
+docker compose exec app php artisan tinker           # REPL
+docker compose logs -f app                           # tail logs
+```
+
+See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for the full command list and one-time test-database setup.
 
 ## Non-negotiable rules
 
@@ -26,12 +36,16 @@ These are enforced by `AGENTS.md` and `docs/GUARDRAILS.md`. Read those before ma
 
 ## Architectural direction
 
-- **Backend:** Laravel 13, PHP 8.5, REST/JSON API
-- **DB:** PostgreSQL (Sakura Cloud PostgreSQL appliance in production)
-- **Local dev:** Docker Compose
+- **Backend:** Laravel 13 (currently 13.25), PHP 8.5, REST/JSON API
+- **DB:** PostgreSQL 16 locally; Sakura Cloud PostgreSQL appliance in production
+- **Local dev:** Docker Compose (`app` + `postgres` services only)
 - **Deploy target:** Sakura Cloud AppRun via GitHub Actions
 
 Long-running expeditions are modeled as timestamps (`started_at` / `ends_at` / `resolved_at`), not as continuously running workers. An expired-but-unresolved expedition is resolved lazily — on player request, scheduled scan, or when another process needs the result.
+
+### Tests must use PostgreSQL
+
+`phpunit.xml` points tests at a `wildlive_test` database on the same PostgreSQL engine — not SQLite. This is intentional: WildLive's concurrency and constraint semantics (World First, ownership transfer, expedition finalization) must be verified against the real engine.
 
 ## Documentation hierarchy
 

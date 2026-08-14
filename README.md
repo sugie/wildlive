@@ -48,6 +48,37 @@ AI agents may implement, test, review, document, and propose changes, but must f
 
 Experimental / pre-alpha.
 
-The first implementation task is to establish a minimal Docker development environment. See:
+The first implementation task — a minimal Docker development environment — is now
+in place. See [`.ai/tasks/001-docker-foundation.md`](.ai/tasks/001-docker-foundation.md)
+for the task spec and [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for day-to-day
+commands.
 
-[`/.ai/tasks/001-docker-foundation.md`](.ai/tasks/001-docker-foundation.md)
+## Local development
+
+Requires Docker Desktop (or another Docker Engine with Compose v2).
+
+```bash
+cp .env.example .env
+docker compose build
+docker compose up -d
+```
+
+Verify the stack:
+
+```bash
+curl http://localhost:8000/api/health
+# {"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql",...}}}
+```
+
+Common commands:
+
+```bash
+docker compose logs -f app                     # tail application logs
+docker compose exec app php artisan migrate    # run migrations
+docker compose exec app vendor/bin/phpunit     # run test suite
+docker compose exec app bash                   # open a shell in the app container
+docker compose down                            # stop stack (preserves volumes)
+docker compose down -v                         # stop and wipe database volume
+```
+
+See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for more.
