@@ -15,12 +15,15 @@ permissions:
 
 jobs:
   test:
-    name: PHPUnit (PHP 8.5 / PostgreSQL 16)
+    name: PHPUnit (PHP 8.5 / PostgreSQL 15)
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:16-alpine
+        # Pinned to PostgreSQL 15 to match the Sakura Cloud PostgreSQL
+        # Appliance used in production. See
+        # docs/adr/0004-postgresql-15-standardization.md.
+        image: postgres:15-alpine
         env:
           POSTGRES_DB: wildlive_test
           POSTGRES_USER: wildlive

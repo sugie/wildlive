@@ -37,7 +37,10 @@ services:
       start_period: 20s
 
   postgres:
-    image: postgres:16-alpine
+    # Pinned to PostgreSQL 15 to match the Sakura Cloud PostgreSQL
+    # Appliance used in production. Bumping the major version requires
+    # a new ADR under docs/adr/ — see docs/adr/0004-postgresql-15-standardization.md.
+    image: postgres:15-alpine
     container_name: wildlive-postgres
     environment:
       POSTGRES_DB: ${DB_DATABASE:-wildlive}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-Pre-alpha. Task 001 (Docker foundation) is complete: Laravel 13 / PHP 8.5 / PostgreSQL 16 running under Docker Compose, with a `/api/health` endpoint, PHPUnit against PostgreSQL, and a GitHub Actions CI workflow. No game features are implemented yet — hunters, zoos, expeditions, discoveries, and multiplayer are all separate follow-up tasks.
+Pre-alpha. Task 001 (Docker foundation) is complete: Laravel 13 / PHP 8.5 / PostgreSQL 15 running under Docker Compose, with a `/api/health` endpoint, PHPUnit against PostgreSQL, and a GitHub Actions CI workflow. No game features are implemented yet — hunters, zoos, expeditions, discoveries, and multiplayer are all separate follow-up tasks.
 
 ## Common commands
 
@@ -37,7 +37,7 @@ These are enforced by `AGENTS.md` and `docs/GUARDRAILS.md`. Read those before ma
 ## Architectural direction
 
 - **Backend:** Laravel 13 (currently 13.25), PHP 8.5, REST/JSON API
-- **DB:** PostgreSQL 16 locally; Sakura Cloud PostgreSQL appliance in production
+- **DB:** PostgreSQL 15 (`postgres:15-alpine`) locally and in CI; Sakura Cloud PostgreSQL Appliance (PostgreSQL 15) in production. Standardisation fixed by [`docs/adr/0004-postgresql-15-standardization.md`](docs/adr/0004-postgresql-15-standardization.md). Bumping the major version requires a new ADR.
 - **Local dev:** Docker Compose (`app` + `postgres` services only)
 - **Deploy target:** Sakura Cloud AppRun via GitHub Actions
 

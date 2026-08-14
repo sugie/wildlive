@@ -1,0 +1,7 @@
+{
+  "schema_version": 2,
+  "task": "Task 006",
+  "slug": "postgres-15-standardization",
+  "post_on_merge": true,
+  "en": "WildLive now runs PostgreSQL 15 in dev and CI, matching the Sakura Cloud PostgreSQL Appliance in production."
+}

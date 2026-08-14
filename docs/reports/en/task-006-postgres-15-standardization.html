@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 006 — standardise the local Docker environment and CI on PostgreSQL 15 to match the Sakura Cloud PostgreSQL Appliance used in production.">
+<title>Task 006 — Standardise on PostgreSQL 15 · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-006-postgres-15-standardization.html">日本語版</a>
+</nav>
+
+<h1>Task 006 — Standardise development and CI on PostgreSQL 15</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-ok">Merged into main</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) confirmed that the Sakura Cloud PostgreSQL Appliance used in production is PostgreSQL 15, and decided to standardise the local development environment and CI on PostgreSQL 15 to match.</strong>
+  The AI (Claude Code) audited the repository, made the minimum edits, verified the running server version, wrote <a href="https://github.com/sugie/wildlive/blob/main/docs/adr/0004-postgresql-15-standardization.md">ADR-0004</a>, and shipped this record.
+</p>
+
+<h2>Correction of an earlier claim</h2>
+<p>
+  Task 001's bilingual report claimed that <code>postgres:16-alpine</code> was "chosen for alignment with the Sakura Cloud PostgreSQL appliance". The human has now confirmed that the appliance's major version is in fact <strong>15</strong>. The Task 001 report is <em>not</em> retroactively edited — it is an audit record of what was believed at the time. ADR-0004 corrects the choice going forward and links back to the historical reports for provenance.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Align development, CI, and production on the same PostgreSQL major version. Do the minimum needed to achieve that: change the two pinned image tags, correct the rationale in the docs that mention the version, capture the decision as an ADR, and actually verify the live server reports 15.x — not just the image tag.
+</p>
+
+<h2>What changed</h2>
+<table>
+  <thead><tr><th>File</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>docker-compose.yml</code></td>
+      <td><code>image: postgres:16-alpine</code> → <code>image: postgres:15-alpine</code>, with an inline comment pointing at ADR-0004.</td>
+    </tr>
+    <tr>
+      <td><code>.github/workflows/ci.yml</code></td>
+      <td><code>services.postgres.image</code> bumped identically. Job name updated from <code>PHPUnit (PHP 8.5 / PostgreSQL 16)</code> to <code>PHPUnit (PHP 8.5 / PostgreSQL 15)</code> so the version is visible in the GitHub Actions UI at a glance.</td>
+    </tr>
+    <tr>
+      <td><code>CLAUDE.md</code></td>
+      <td>Two references to "PostgreSQL 16" updated to "PostgreSQL 15 (<code>postgres:15-alpine</code>)" with a link to ADR-0004.</td>
+    </tr>
+    <tr>
+      <td><code>docs/DEVELOPMENT.md</code></td>
+      <td>Version-choices table row updated from "16-alpine" to "15-alpine". The rationale is replaced with the correct one (Sakura Cloud Appliance = 15) and a link to ADR-0004.</td>
+    </tr>
+    <tr>
+      <td><code>docs/adr/0004-postgresql-15-standardization.md</code></td>
+      <td><strong>New.</strong> Accepted ADR: context, decision, consequences, in/out of scope, compatibility audit, live verification transcript, human-intervention note. Bans <code>postgres:latest</code> everywhere and requires a new ADR for any future major-version bump.</td>
+    </tr>
+    <tr>
+      <td>Historical reports (<code>docs/reports/{ja,en}/task-001…005-…html</code>)</td>
+      <td><strong>Not modified.</strong> Their "PostgreSQL 16" references are accurate snapshots of what was run at the time of each task's PR. Rewriting them would corrupt the audit trail.</td>
+    </tr>
+    <tr>
+      <td><code>docs/ai-sessions/task-006-…/</code> + <code>docs/ai-sessions/index.md</code></td>
+      <td>Public AI session archive record for this task, per the governance that landed in PR #9. Includes <code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>.</td>
+    </tr>
+    <tr>
+      <td><code>docs/social/x/task-006-postgres-15-standardization.json</code></td>
+      <td>X Development Live manifest, schema v2 (English only), body: <em>"WildLive now runs PostgreSQL 15 in dev and CI, matching the Sakura Cloud PostgreSQL Appliance in production."</em></td>
+    </tr>
+    <tr>
+      <td>This report + Japanese counterpart + <code>docs/reports/index.html</code></td>
+      <td>New top entry.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>PostgreSQL 15 compatibility audit</h2>
+<p>Performed as part of this task; no compatibility fixes were required.</p>
+<ul>
+  <li><strong>No pgvector.</strong> Grep for <code>pgvector</code>, <code>CREATE EXTENSION</code>, <code>USING ivfflat</code>, <code>USING hnsw</code>, <code>vector(</code> returned zero hits across the repository. The base <code>postgres:15-alpine</code> image does not bundle pgvector, and no part of WildLive currently requires it.</li>
+  <li><strong>No raw SQL.</strong> All three shipped migrations (<code>0001_01_01_000000_create_users_table</code>, <code>0001_01_01_000001_create_cache_table</code>, <code>0001_01_01_000002_create_jobs_table</code>) use Laravel Blueprint methods that compile to portable PostgreSQL syntax supported by PostgreSQL 15 and earlier.</li>
+  <li><strong>Application code.</strong> The only PostgreSQL-specific call is <code>DB::selectOne('select version() as version')</code> in the health check and one identity assertion in <code>tests/Feature/HealthTest.php</code>. Both work identically on 15.x.</li>
+  <li><strong>Configuration.</strong> <code>.env.example</code> uses <code>DB_CONNECTION=pgsql</code> and the service hostname <code>postgres</code>; nothing pins a major version at the application layer.</li>
+  <li><strong>No PostgreSQL-16-or-newer-only feature</strong> (e.g. <code>MERGE … RETURNING</code>, <code>IS JSON</code>, expanded logical-replication surface, ICU default collations) is used.</li>
+</ul>
+
+<h2>Live verification</h2>
+<p>Performed on a clean <code>postgres-data</code> volume (the previous PG16-initialised volume was removed with <code>docker compose down -v</code> before PG15 was started, because PostgreSQL refuses to open a data directory belonging to a newer major version).</p>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose config</code></td><td>Valid</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>Both services healthy</td></tr>
+    <tr>
+      <td><code>SELECT version();</code></td>
+      <td><code>PostgreSQL 15.19 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit</code></td>
+    </tr>
+    <tr><td><code>SHOW server_version;</code></td><td><code>15.19</code></td></tr>
+    <tr><td><code>SHOW server_version_num;</code></td><td><code>150019</code></td></tr>
+    <tr>
+      <td><code>SELECT name FROM pg_available_extensions WHERE name IN ('vector','pgvector');</code></td>
+      <td>0 rows (pgvector not present; not required by WildLive)</td>
+    </tr>
+    <tr><td><code>curl http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate --force</code></td><td>Three framework migrations applied</td></tr>
+    <tr><td><code>docker compose exec app vendor/bin/phpunit</code></td><td><strong>5 tests, 9 assertions, all pass</strong> on PHP 8.5.9 + PostgreSQL 15.19</td></tr>
+    <tr><td><code>python3 -m unittest scripts.social.tests.test_post_x</code></td><td>55 tests, all pass — unchanged</td></tr>
+    <tr><td><code>python3 -m unittest scripts.ai.tests.test_validate_session</code></td><td>35 tests, all pass — unchanged</td></tr>
+    <tr><td><code>python3 scripts/ai/validate_session.py docs/ai-sessions/task-006-postgres-15-standardization/</code></td><td>OK</td></tr>
+    <tr>
+      <td>X manifest dry-run (<code>--pr-number 10</code>)</td>
+      <td>176 weighted characters (cap 280), no network</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<ul>
+  <li>No new automated tests. The change is a version bump + doc update; existing suites already exercise the paths that matter (PostgreSQL connectivity via <code>HealthTest</code>, migration execution, publisher rendering, session-archive validation).</li>
+  <li>All three test suites — <strong>PHPUnit 5/9</strong>, <strong>publisher 55/55</strong>, <strong>session-archive validator 35/35</strong> — pass unchanged on the new PostgreSQL 15 stack.</li>
+  <li>No test was weakened or skipped.</li>
+</ul>
+
+<h2>Volume migration</h2>
+<p>
+  Any developer with an existing local <code>wildlive_postgres-data</code> volume built by <code>postgres:16-alpine</code> must run <code>docker compose down -v</code> before the new stack will start. PostgreSQL 15 refuses to open a data directory that was initialised by a newer major version. This affects only local disposable data — WildLive stores no production data on developer machines.
+</p>
+
+<h2>Git / Commits</h2>
+<p>Commits on <code>ai/009-postgres-15-standardization</code> plus the merge commit on <code>main</code>. Exact SHAs are visible in <code>git log</code> on <code>main</code> after merge and on the linked PR page.</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/10">#10 — chore(db): standardize development and CI on PostgreSQL 15</a></li>
+  <li>Base: <code>main</code>. Head: <code>ai/009-postgres-15-standardization</code> (deleted after merge).</li>
+  <li>Method: merge commit (not squash).</li>
+  <li>CI: PHPUnit workflow verified <span class="badge badge-ok">success</span> on the PR and on <code>main</code> after merge, running against the new <code>postgres:15-alpine</code> service.</li>
+</ul>
+
+<h2>X Development Live</h2>
+<ul>
+  <li>Manifest: <code>docs/social/x/task-006-postgres-15-standardization.json</code> — schema v2 (English only), 176 weighted chars.</li>
+  <li>Post-merge behaviour of the <em>X Development Live</em> workflow depends on the state of the repository variable <code>X_AUTOPOST_ENABLED</code> at merge time, which is under human control and not touched by this task. If the switch is <code>true</code> (as it was for PR #9), the workflow will publish exactly one live post using the manifest above and append a marker to the audit issue. If the switch is off, the workflow will preview and exit at the kill-switch step.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>The historical bilingual reports for Task 001 through Task 005 still say "PostgreSQL 16" in their validation tables. That is deliberate — they are audit snapshots of what was actually run at the time of each PR. ADR-0004 records the correction going forward.</li>
+  <li>No matrix testing across multiple PostgreSQL major versions is added. The project's stance (ADR-0004) is single-major-version discipline: dev, CI, and production all on PostgreSQL 15.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No upgrade to PostgreSQL 16 or later, no <code>postgres:latest</code>.</li>
+  <li>No change to any application code, migration, controller, route, or dependency.</li>
+  <li>No change to workflow permissions, GitHub Secrets, or X-related governance.</li>
+  <li>No retroactive edit of the historical Task 001 – Task 005 reports.</li>
+  <li>No pgvector addition or removal (there was none to begin with).</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Return to the WildLive main line and resolve the smallest set of open questions needed to write the first MVP-0 migrations</strong> — a starter <code>Species</code> set, one or two <code>Region</code> names, a minimal <code>Hunter</code> attribute schema, and the <code>HunterContract</code>–<code>Expedition</code> cardinality (per <a href="https://github.com/sugie/wildlive/blob/main/docs/DECISIONS_PENDING.md"><code>docs/DECISIONS_PENDING.md</code></a>). Only after the human ratifies those decisions should any migration be written. This report does not authorise that implementation.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
