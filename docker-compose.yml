@@ -1,0 +1,63 @@
+# WildLive local development stack.
+#
+# Two services only — app + postgres.
+# Do not add Redis, queues, WebSocket servers, or other infrastructure
+# unless a task explicitly requires it (see docs/ARCHITECTURE.md).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    image: wildlive-app:dev
+    container_name: wildlive-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Container defaults. Overridden by .env if present.
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-wildlive}
+      DB_USERNAME: ${DB_USERNAME:-wildlive}
+      DB_PASSWORD: ${DB_PASSWORD:-wildlive_local_only}
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mount source so edits are visible without a rebuild.
+      # composer / vendor still live inside the image layer.
+      - ./:/var/www/html
+      - vendor-data:/var/www/html/vendor
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: wildlive-postgres
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-wildlive}
+      POSTGRES_USER: ${DB_USERNAME:-wildlive}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-wildlive_local_only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      # Exposed only on loopback so external hosts cannot reach the
+      # local database.
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${DB_USERNAME:-wildlive} -d ${DB_DATABASE:-wildlive}
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:
+  vendor-data:

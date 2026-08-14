@@ -1,0 +1,47 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# PHP / Laravel
+/vendor/
+/node_modules/
+/public/build/
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/bootstrap/ssr
+
+# Test / tooling
+.phpunit.result.cache
+/.phpunit.cache/
+coverage/
+.php-cs-fixer.cache
+
+# IDEs
+/.idea/
+/.vscode/
+/.nova
+/.zed
+/.cursor/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local containers / temp
+docker-data/
+tmp/
+temp/
+
+# IDE helpers / auth
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+/auth.json
+
+# ZIP-distribution manifest — not part of the repository history.
+/STARTER_PACK.md

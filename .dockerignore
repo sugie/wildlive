@@ -1,0 +1,32 @@
+.git
+.github
+.idea
+.vscode
+.nova
+.zed
+.cursor
+
+# Do NOT copy environment or dependency artefacts into the image.
+.env
+.env.*
+vendor
+node_modules
+
+# Docs / meta not needed inside the runtime container.
+docs
+.ai
+STARTER_PACK.md
+AGENTS.md
+CLAUDE.md
+SECURITY.md
+README.md
+
+# Local storage / caches
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/data/*
+!storage/framework/cache/data/.gitignore
+bootstrap/cache/*.php
+
+.DS_Store
+Thumbs.db
