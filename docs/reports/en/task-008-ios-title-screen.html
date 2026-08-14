@@ -131,14 +131,16 @@
 
 <h2>Git / Commits</h2>
 <p>
-  Two commits on <code>ai/011-ios-title-screen</code> plus the merge commit on <code>main</code>. The first commit (<code>0d19c2c</code>) shipped the SwiftUI app and the pbxproj. The second, small commit shipped the Task 008 governance package (this report, the AI session archive, index rows). Exact SHAs are on the linked PR page.
+  Multiple commits on <code>ai/011-ios-title-screen</code>. The first commit (<code>0d19c2c</code>) shipped the SwiftUI app and the pbxproj. The second commit shipped the initial Task 008 governance package (this report, the AI session archive, index rows). A third commit backfilled <code>pr_number</code> / <code>pr_url</code> once GitHub assigned PR #12. Subsequent commits address PR review feedback. Exact SHAs are on the linked PR page. <strong>The merge commit does not exist yet</strong> and will only appear once the human authorises the merge.
 </p>
 
 <h2>Pull Request</h2>
 <ul>
-  <li>PR: to be linked in <code>metadata.json</code> once GitHub assigns the number. Base <code>main</code>; head <code>ai/011-ios-title-screen</code>.</li>
-  <li>Method: merge commit (repository's consistent policy across every prior PR).</li>
-  <li>CI: verified <span class="badge badge-ok">success</span> on the PR before merge and again on <code>main</code> after merge. The <code>X Development Live</code> workflow will fire on the post-merge push, find zero manifests in the PR diff (Milestone 001 §27), and exit as a documented no-op.</li>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/12">#12 — feat(ios): add SwiftUI title screen (Milestone 001, UI-first)</a>. Base <code>main</code>; head <code>ai/011-ios-title-screen</code>.</li>
+  <li>Method (planned): merge commit (repository's consistent policy across every prior PR). Not yet applied.</li>
+  <li>CI on the PR: <span class="badge badge-ok">success</span> — the <code>PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)</code> workflow inherited from Task 007 has passed on every commit pushed to this branch.</li>
+  <li>Post-merge <code>main</code> CI: <span class="badge badge-warn">pending — merge has not occurred</span>. It will run automatically after merge.</li>
+  <li><code>X Development Live</code> workflow after merge: expected to fire, find zero manifests in the PR diff (Milestone 001 §27), and exit as a documented no-op. Not yet observed, because merge has not occurred.</li>
 </ul>
 
 <h2>Problems / Known Limitations</h2>

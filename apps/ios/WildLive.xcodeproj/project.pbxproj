@@ -10,17 +10,37 @@
 		A100000000000000000000B1 /* WildLiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* WildLiveApp.swift */; };
 		A100000000000000000000B2 /* TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* TitleView.swift */; };
 		A100000000000000000000B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A3 /* Assets.xcassets */; };
+		A100000000000000000000B4 /* WildLiveUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A4 /* WildLiveUITests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A10000000000000000000081 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000020;
+			remoteInfo = WildLive;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A100000000000000000000A1 /* WildLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveApp.swift; sourceTree = "<group>"; };
 		A100000000000000000000A2 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
 		A100000000000000000000A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A100000000000000000000A4 /* WildLiveUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveUITests.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* WildLive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildLive.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000011 /* WildLiveUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A10000000000000000000022 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000072 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -34,6 +54,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000004 /* WildLive */,
+				A10000000000000000000005 /* WildLiveUITests */,
 				A10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -42,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000010 /* WildLive.app */,
+				A10000000000000000000011 /* WildLiveUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -54,6 +76,14 @@
 				A100000000000000000000A3 /* Assets.xcassets */,
 			);
 			path = WildLive;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000005 /* WildLiveUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A100000000000000000000A4 /* WildLiveUITests.swift */,
+			);
+			path = WildLiveUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -78,6 +108,25 @@
 			productReference = A10000000000000000000010 /* WildLive.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A10000000000000000000070 /* WildLiveUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000060 /* Build configuration list for PBXNativeTarget "WildLiveUITests" */;
+			buildPhases = (
+				A10000000000000000000071 /* Sources */,
+				A10000000000000000000072 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000080 /* PBXTargetDependency */,
+			);
+			name = WildLiveUITests;
+			packageProductDependencies = (
+			);
+			productName = WildLiveUITests;
+			productReference = A10000000000000000000011 /* WildLiveUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -90,6 +139,10 @@
 				TargetAttributes = {
 					A10000000000000000000020 = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					A10000000000000000000070 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = A10000000000000000000020;
 					};
 				};
 			};
@@ -109,6 +162,7 @@
 			projectRoot = "";
 			targets = (
 				A10000000000000000000020 /* WildLive */,
+				A10000000000000000000070 /* WildLiveUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -134,7 +188,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000071 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000B4 /* WildLiveUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A10000000000000000000080 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000020 /* WildLive */;
+			targetProxy = A10000000000000000000081 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A10000000000000000000031 /* Debug */ = {
@@ -306,6 +376,42 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000061 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = WildLive;
+			};
+			name = Debug;
+		};
+		A10000000000000000000062 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = WildLive;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -323,6 +429,15 @@
 			buildConfigurations = (
 				A10000000000000000000041 /* Debug */,
 				A10000000000000000000042 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000060 /* Build configuration list for PBXNativeTarget "WildLiveUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000061 /* Debug */,
+				A10000000000000000000062 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

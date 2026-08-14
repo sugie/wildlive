@@ -73,6 +73,7 @@ struct TitleView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Start")
+        .accessibilityIdentifier("startButton")
     }
 }
 

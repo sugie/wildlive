@@ -123,14 +123,16 @@
 
 <h2>Git / Commits</h2>
 <p>
-  <code>ai/011-ios-title-screen</code> 上に 2 commits + <code>main</code> 側の merge commit。最初の commit (<code>0d19c2c</code>) が SwiftUI app と pbxproj を ship、2 番目の小さな commit が Task 008 governance package (本 report、AI session archive、index rows) を ship。正確な SHA は下記 PR ページ参照。
+  <code>ai/011-ios-title-screen</code> 上に複数 commit。最初の commit (<code>0d19c2c</code>) が SwiftUI app と pbxproj を ship、2 番目の commit が Task 008 の初期 governance package (本 report、AI session archive、index rows) を ship、3 番目の commit が GitHub による PR #12 採番後に <code>pr_number</code> / <code>pr_url</code> を backfill。以降の commit は PR review feedback への対応。正確な SHA は下記 PR ページ参照。<strong>merge commit はまだ存在しない</strong> — 人間が merge を authorise した時点で初めて生成される。
 </p>
 
 <h2>Pull Request</h2>
 <ul>
-  <li>PR: GitHub による PR 番号採番後に <code>metadata.json</code> に link を backfill する。Base <code>main</code>、head <code>ai/011-ios-title-screen</code>。</li>
-  <li>Method: merge commit (これまでの全 PR で維持されている repository policy)。</li>
-  <li>CI: PR 上と merge 後の <code>main</code> で <span class="badge badge-ok">success</span> を確認予定。<code>X Development Live</code> workflow は merge 後の push で発火するが、PR diff に manifest が 0 件 (Milestone 001 §27) のため documented no-op で clean exit する。</li>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/12">#12 — feat(ios): add SwiftUI title screen (Milestone 001, UI-first)</a>。Base <code>main</code>、head <code>ai/011-ios-title-screen</code>。</li>
+  <li>Method (予定): merge commit (これまでの全 PR で維持されている repository policy)。まだ実施していない。</li>
+  <li>PR 上の CI: <span class="badge badge-ok">success</span> — Task 007 から引き継いだ <code>PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)</code> workflow が、本 branch にプッシュされた全 commit で pass している。</li>
+  <li>Merge 後の <code>main</code> CI: <span class="badge badge-warn">未実施 — merge がまだ行われていない</span>。merge 後に自動実行される。</li>
+  <li>Merge 後の <code>X Development Live</code> workflow: 発火して PR diff の manifest が 0 件 (Milestone 001 §27) と判定し、documented no-op で clean exit する見込み。まだ observed していない (merge されていないため)。</li>
 </ul>
 
 <h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>

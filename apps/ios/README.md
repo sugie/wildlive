@@ -36,9 +36,12 @@ The final line of successful output is `** BUILD SUCCEEDED **`.
 xcrun simctl boot 'iPhone 17'
 open -a Simulator
 
-# Install and launch the freshly-built app:
+# Install and launch the freshly-built app.
+# NOTE: the path below is relative to `apps/ios/` (where the build
+# block above left us). Use build/... — not apps/ios/build/... —
+# unless you have `cd`-ed back to the repository root.
 xcrun simctl install booted \
-  apps/ios/build/Build/Products/Debug-iphonesimulator/WildLive.app
+  build/Build/Products/Debug-iphonesimulator/WildLive.app
 xcrun simctl launch booted dev.wildlive.WildLive
 ```
 
