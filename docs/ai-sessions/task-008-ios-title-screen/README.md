@@ -6,16 +6,14 @@ The first WildLive milestone under the UI-first development order (`UI → Inter
 
 - [View Prompt](prompt.en.md) — faithful English translation of the Japanese prompt.
 - [View AI Conversation](transcript.en.md) — visible human/AI interaction and tool activity for this session.
-- [View Pull Request](#pull-request-pending) — pending; PR number to be backfilled once the branch is pushed.
+- [View Pull Request](https://github.com/sugie/wildlive/pull/12) — PR #12.
 - [View Development Report (EN)](../../reports/en/task-008-ios-title-screen.html)
 - [View Development Report (JA)](../../reports/ja/task-008-ios-title-screen.html)
 - [View app source](../../../apps/ios/) — `apps/ios/`
 
 ## Pull Request
 
-<a id="pull-request-pending"></a>
-
-The PR number will be backfilled here and in [`metadata.json`](metadata.json) by a small follow-up commit on this branch once GitHub assigns the number.
+**PR:** [#12 — feat(ios): add SwiftUI title screen (Milestone 001, UI-first)](https://github.com/sugie/wildlive/pull/12). The human's `OK Make PR` reply after reviewing the Simulator screenshot authorised push and PR creation; merge is not yet authorised.
 
 ## Metadata
 
