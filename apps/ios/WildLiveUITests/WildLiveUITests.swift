@@ -1,11 +1,18 @@
 // WildLive — UI tests.
 //
-// Since Milestone 002 the START button navigates into a Home dashboard
-// (own Zoo status, Buy G, navigation cards). These tests exercise the
-// title-to-home hand-off and the top-level navigation surfaces of the
-// UI prototype. They do NOT exercise the full contract → dispatch →
-// resolve loop — that flow is deliberately time-based (a few seconds
-// per Region) and belongs in a longer manual playthrough.
+// Since Milestone 002 (Task 010) the app has a real registration gate.
+// UI tests inject state via launch arguments handled by WildLiveApp.init:
+//
+//   --ui-tests-mock-api        → swaps LivePlayerRegistrationService for
+//                                MockPlayerRegistrationService (no HTTP).
+//   --ui-tests-preregistered   → seeds a fake persisted session so the
+//                                app treats the launch as "already
+//                                registered" and START goes straight to
+//                                Home. Used by tests that only care about
+//                                the post-registration UI.
+//   --ui-tests-fresh           → clears any persisted session on launch.
+//                                Used by the registration-flow test so
+//                                each run starts blank.
 
 import XCTest
 
@@ -15,18 +22,25 @@ final class WildLiveUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// Title screen shows the WildLive brand, the subtitle, and a
-    /// tappable START button (Milestone 001 acceptance, retained).
-    func test_titleScreen_showsBrandingAndTappableStartButton() throws {
+    private func launch(_ extraArgs: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments += extraArgs
         app.launch()
+        return app
+    }
+
+    // MARK: - Milestone 001 — title screen
+
+    /// Title screen shows branding + a tappable START button.
+    /// Uses the pre-registered launch arg so we don't depend on the real
+    /// API being running.
+    func test_titleScreen_showsBrandingAndTappableStartButton() throws {
+        let app = launch(["--ui-tests-mock-api", "--ui-tests-preregistered"])
 
         let title = app.staticTexts["WildLive"]
         XCTAssertTrue(title.waitForExistence(timeout: 5),
                       "Title text 'WildLive' should be visible on launch")
 
-        // SwiftUI's .textCase(.uppercase) also transforms the accessibility
-        // string, so XCUITest sees the uppercase form.
         let subtitle = app.staticTexts["AI MADE LIVE MMO"]
         XCTAssertTrue(subtitle.exists,
                       "Subtitle should be visible on launch")
@@ -38,54 +52,114 @@ final class WildLiveUITests: XCTestCase {
                       "START button should be hittable")
     }
 
-    /// Milestone 002: START advances to the Home dashboard.
+    // MARK: - Milestone 002 — post-START (assumes existing session)
+
+    /// With a pre-seeded session, START advances straight to Home.
     func test_startAdvancesToHomeDashboard() throws {
-        let app = XCUIApplication()
-        app.launch()
-
-        let startButton = app.buttons["startButton"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
-        startButton.tap()
-
-        // Home dashboard exposes a Buy G button in the status card and
-        // navigation cards for the main sections.
-        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 3),
-                      "Home should expose the 'Buy G' quick-action button")
-        XCTAssertTrue(app.buttons["navMyZoo"].exists,
-                      "Home should offer the My Zoo navigation card")
-        XCTAssertTrue(app.buttons["navGuild"].exists,
-                      "Home should offer the Guild navigation card")
-        XCTAssertTrue(app.buttons["navExpeditions"].exists,
-                      "Home should offer the Expeditions navigation card")
-        XCTAssertTrue(app.buttons["navStore"].exists,
-                      "Home should offer the Store navigation card")
-    }
-
-    /// Milestone 002: navigation cards push the expected destinations.
-    func test_homeNavigationCards_pushDestinations() throws {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launch(["--ui-tests-mock-api", "--ui-tests-preregistered"])
         app.buttons["startButton"].tap()
 
-        // My Zoo
+        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 3),
+                      "Home should expose the 'Buy G' quick-action button")
+        XCTAssertTrue(app.buttons["navMyZoo"].exists)
+        XCTAssertTrue(app.buttons["navGuild"].exists)
+        XCTAssertTrue(app.buttons["navExpeditions"].exists)
+        XCTAssertTrue(app.buttons["navStore"].exists)
+    }
+
+    /// Navigation cards on Home push the expected destinations.
+    func test_homeNavigationCards_pushDestinations() throws {
+        let app = launch(["--ui-tests-mock-api", "--ui-tests-preregistered"])
+        app.buttons["startButton"].tap()
+
         XCTAssertTrue(app.buttons["navMyZoo"].waitForExistence(timeout: 3))
         app.buttons["navMyZoo"].tap()
-        XCTAssertTrue(app.otherElements["myZooView"].waitForExistence(timeout: 2)
-                      || app.navigationBars["My Zoo"].waitForExistence(timeout: 2),
-                      "Tapping My Zoo should push the My Zoo screen")
+        XCTAssertTrue(app.navigationBars["My Zoo"].waitForExistence(timeout: 2))
         app.navigationBars.buttons.firstMatch.tap()
 
-        // Guild
         XCTAssertTrue(app.buttons["navGuild"].waitForExistence(timeout: 3))
         app.buttons["navGuild"].tap()
-        XCTAssertTrue(app.navigationBars["Guild"].waitForExistence(timeout: 2),
-                      "Tapping Guild should push the Guild screen")
+        XCTAssertTrue(app.navigationBars["Guild"].waitForExistence(timeout: 2))
         app.navigationBars.buttons.firstMatch.tap()
 
-        // Store
         XCTAssertTrue(app.buttons["navStore"].waitForExistence(timeout: 3))
         app.buttons["navStore"].tap()
-        XCTAssertTrue(app.navigationBars["Buy G"].waitForExistence(timeout: 2),
-                      "Tapping Store should push the Buy G screen")
+        XCTAssertTrue(app.navigationBars["Buy G"].waitForExistence(timeout: 2))
+    }
+
+    // MARK: - Milestone 002 — registration flow (Task 010)
+
+    /// Fresh launch (no session): START → Registration form → submit →
+    /// Home. Uses the mock service so the test does not need the real
+    /// Laravel API to be running.
+    func test_firstLaunch_presentsRegistrationThenHome() throws {
+        let app = launch(["--ui-tests-mock-api", "--ui-tests-fresh"])
+
+        app.buttons["startButton"].tap()
+
+        let nameField = app.textFields["displayNameField"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 3),
+                      "Registration form should appear after START on a fresh install")
+
+        nameField.tap()
+        nameField.typeText("Kai")
+
+        let register = app.buttons["registerButton"]
+        XCTAssertTrue(register.waitForExistence(timeout: 2))
+        XCTAssertTrue(register.isEnabled, "Register should be enabled once name is 2+ chars")
+        register.tap()
+
+        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 5),
+                      "Home dashboard should appear after successful registration")
+    }
+
+    // MARK: - Real end-to-end (opt-in)
+
+    /// Real end-to-end: SwiftUI → Laravel → PostgreSQL. Self-gated: if the
+    /// local Laravel API is not reachable at
+    /// `http://localhost:8000/api/health`, the test is skipped rather than
+    /// failed, so this file can stay in the default suite without breaking
+    /// CI or a fresh checkout that has not started Docker.
+    ///
+    /// To run intentionally:
+    ///
+    ///     docker compose up -d
+    ///     docker compose exec app php artisan migrate
+    ///     docker compose exec postgres psql -U wildlive -d wildlive \
+    ///         -c "TRUNCATE zoos, players CASCADE;"
+    ///     xcodebuild test ... \
+    ///         -only-testing:WildLiveUITests/WildLiveUITests/test_realAPI_endToEndRegistration
+    func test_realAPI_endToEndRegistration() throws {
+        guard Self.isLiveAPIReachable() else {
+            throw XCTSkip("Local Laravel API not reachable at http://localhost:8000/api/health — skipping the real end-to-end test.")
+        }
+
+        let app = launch(["--ui-tests-fresh"])
+        app.buttons["startButton"].tap()
+
+        let nameField = app.textFields["displayNameField"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 3))
+        nameField.tap()
+        nameField.typeText("E2ETestFromSimulator")
+
+        app.buttons["registerButton"].tap()
+
+        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 15),
+                      "Home dashboard should appear after real API registration")
+    }
+
+    /// Non-Test helper — synchronous ping so the test can self-gate.
+    private static func isLiveAPIReachable() -> Bool {
+        guard let url = URL(string: "http://localhost:8000/api/health") else { return false }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 2
+        var ok = false
+        let sem = DispatchSemaphore(value: 0)
+        URLSession.shared.dataTask(with: request) { _, response, _ in
+            if let http = response as? HTTPURLResponse, http.statusCode == 200 { ok = true }
+            sem.signal()
+        }.resume()
+        _ = sem.wait(timeout: .now() + 3)
+        return ok
     }
 }

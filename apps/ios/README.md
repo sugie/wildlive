@@ -3,8 +3,16 @@
 Native iOS client for WildLive.
 
 - **Milestone 001 (Task 008, Version 0):** SwiftUI title screen only.
-- **Milestone 002 (Task 009, this branch):** UI-only clickable prototype of the WildLive core loop — home dashboard, own Zoo, other players' Zoos, Guild, Hunter contract, Region dispatch, expedition resolution, capture/name/release, and G store — all backed by in-memory dummy data.
+- **Milestone 002 (Task 009):** UI-only clickable prototype of the WildLive core loop — home dashboard, own Zoo, other players' Zoos, Guild, Hunter contract, Region dispatch, expedition resolution, capture/name/release, and G store — all backed by in-memory dummy data.
   - **Iteration 2 (Apple SwiftUI defaults):** rendered against stock SwiftUI — system background, `List` / `Form` / `Section` / `LabeledContent` / `NavigationLink(value:)`, `.buttonStyle(.borderedProminent)`, system SF Symbols on `Label`, system blue tint. No forced colour scheme, no custom gradients, no custom card modifier. Colour is used only where it carries information (rarity tier, region difficulty).
+- **Milestone 002 (Task 010, this branch): first real vertical slice — player registration.** START on a fresh install now leads to a `RegistrationView` that calls `POST /api/players` on the local Laravel (see `docs/DEVELOPMENT.md`) and persists the returned player identifier in `UserDefaults`. Every other screen still runs against in-memory dummy data — only registration is real.
+
+## Runtime dependencies (Task 010)
+
+- The registration screen needs the local Laravel API up on `http://localhost:8000`. Start it with `docker compose up -d && docker compose exec app php artisan migrate` at the repository root. Without the API the app shows a "Network error" alert and stays on the form.
+- The API base URL is read from `Info.plist → WildLiveAPIBaseURL` (default `http://localhost:8000/api`). Point at a different host by editing that key.
+- ATS: `NSAppTransportSecurity → NSAllowsLocalNetworking` is `true` in `apps/ios/WildLive/Info.plist` so the app can call `http://localhost` from the Simulator without switching to HTTPS.
+- Persistence: `PlayerSession` stores `playerId`, `displayName`, and `zooId` in `UserDefaults`. Reset with `xcrun simctl uninstall booted dev.wildlive.WildLive`.
 
 ## Scope of Milestone 002
 

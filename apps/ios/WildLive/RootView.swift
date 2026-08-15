@@ -1,6 +1,8 @@
-// WildLive — Root: chooses Title vs. Home, hosts the NavigationStack.
+// WildLive — Root: chooses Title / Registration / Home, hosts NavigationStack.
 //
-// No forced colour scheme — follows the system.
+// Post-START behaviour depends on the session:
+//   - no persisted session → RegistrationView (submit calls the real API)
+//   - persisted session    → Home dashboard
 
 import SwiftUI
 
@@ -19,10 +21,16 @@ struct RootView: View {
     private var gameStack: some View {
         @Bindable var bindableStore = store
         NavigationStack(path: $bindableStore.navigationPath) {
-            HomeView()
-                .navigationDestination(for: Route.self) { route in
-                    destination(for: route)
+            Group {
+                if store.isRegistered {
+                    HomeView()
+                } else {
+                    RegistrationView()
                 }
+            }
+            .navigationDestination(for: Route.self) { route in
+                destination(for: route)
+            }
         }
     }
 
