@@ -15,6 +15,7 @@ class PlayerResource extends JsonResource
         return [
             'id' => $this->id,
             'display_name' => $this->display_name,
+            'g_balance' => (int) $this->g_balance,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

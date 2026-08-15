@@ -1,9 +1,13 @@
-// WildLive — Domain types for the UI prototype.
+// WildLive — Domain types for the remaining prototype screens.
 //
-// Client-side dummy models. The real game is server-authoritative (see
-// docs/GAME_DESIGN.md and docs/adr/0002-game-system-foundation.md); nothing
-// here is authoritative. These types mirror the server's *shape* just enough
-// to build screens against.
+// Client-side dummy models, kept for the screens that are still mocked:
+// Other Zoos, Visit Zoo, Animal detail, and the G Store. Nothing here is
+// authoritative.
+//
+// The gameplay types that used to live here — Hunter, Region, Expedition —
+// were removed when the expedition loop went live. Their real, server-backed
+// counterparts are in GameWorld.swift (Hunter, GameMap, Expedition,
+// ZooAnimal), which is now the single definition of each of those concepts.
 
 import Foundation
 
@@ -92,94 +96,6 @@ struct Animal: Identifiable, Hashable, Codable {
     func zooValue(species: Species) -> Int {
         let base = Double(species.rarity.baseZooValue)
         return Int((base * trait.valueMultiplier).rounded())
-    }
-}
-
-// MARK: - Hunter
-
-enum HunterTier: String, CaseIterable, Codable, Hashable {
-    case basic
-    case advanced
-    case elite
-    case legendary
-
-    var label: String {
-        switch self {
-        case .basic:     return "Basic"
-        case .advanced:  return "Advanced"
-        case .elite:     return "Elite"
-        case .legendary: return "Legendary"
-        }
-    }
-}
-
-struct Hunter: Identifiable, Hashable, Codable {
-    let id: String
-    let name: String
-    let tier: HunterTier
-    let skill: Int              // 1..100
-    let contractCostG: Int
-    let bio: String
-    var available: Bool         // false when someone else has contracted them
-}
-
-// MARK: - Region
-
-struct Region: Identifiable, Hashable, Codable {
-    enum Difficulty: String, CaseIterable, Codable, Hashable {
-        case easy, medium, high, extreme
-
-        var label: String {
-            switch self {
-            case .easy:    return "Easy"
-            case .medium:  return "Medium"
-            case .high:    return "High"
-            case .extreme: return "Extreme"
-            }
-        }
-    }
-
-    let id: String
-    let name: String
-    let subtitle: String
-    let difficulty: Difficulty
-    // Real duration on the server would be ~10 min .. 24 h. This client-side
-    // value is the *prototype-scaled* duration so a human can play the whole
-    // loop inside the Simulator in a few seconds. Real timing lives on the
-    // server.
-    let simulatedDurationSeconds: TimeInterval
-    let speciesPool: [String]   // Species.id candidates
-    let flavor: String
-}
-
-// MARK: - Expedition
-
-enum ExpeditionState: String, Codable, Hashable {
-    case inProgress          // started_at set, ends_at in the future
-    case awaitingResolution  // ends_at passed, not yet resolved
-    case captured            // resolved, animal captured (see resultingAnimalId)
-    case noCapture           // resolved, no capture
-    case handled             // captured → user chose to keep or release
-}
-
-struct Expedition: Identifiable, Hashable, Codable {
-    let id: UUID
-    let hunterId: String
-    let regionId: String
-    let startedAt: Date
-    let endsAt: Date
-    var resolvedAt: Date?
-    var state: ExpeditionState
-    var resultingAnimalId: UUID?    // set only if captured
-    var handledDecision: CaptureDecision?
-
-    enum CaptureDecision: String, Codable, Hashable {
-        case keptInZoo
-        case released
-    }
-
-    var isReadyToResolve: Bool {
-        Date() >= endsAt && (state == .inProgress || state == .awaitingResolution)
     }
 }
 

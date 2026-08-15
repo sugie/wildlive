@@ -4,7 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-Pre-alpha. Task 001 (Docker foundation) is complete: Laravel 13 / PHP 8.5 / PostgreSQL 17 (with pgvector) running under Docker Compose, with a `/api/health` endpoint, PHPUnit against PostgreSQL, and a GitHub Actions CI workflow. No game features are implemented yet — hunters, zoos, expeditions, discoveries, and multiplayer are all separate follow-up tasks.
+Pre-alpha, with a playable vertical slice. Laravel 13 / PHP 8.5 /
+PostgreSQL 17 (with pgvector) run under Docker Compose; the first gameplay
+loop works end to end from the iPhone Simulator:
+
+    register → choose an African Map → contract a Hunter → dispatch →
+    resolve → keep (and name) or release → My Zoo
+
+Game Master v0.3 is seeded into PostgreSQL from a generated JSON artifact
+(see `docs/game-design/RUNTIME_MASTER_DATA.md` — the runtime never opens
+the .xlsx). Still not implemented: authentication, multiplayer, World
+First, discoveries, trading, the G economy beyond a starting balance, and
+every region other than Africa.
 
 ## Common commands
 

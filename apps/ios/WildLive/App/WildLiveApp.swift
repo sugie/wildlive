@@ -1,16 +1,22 @@
 // WildLive — iOS client composition root.
 //
-// This is the ONLY place that wires concrete Data-layer implementations
-// to the Domain protocols the Application layer depends on. Every screen
-// / ViewModel / use case downstream receives its dependencies via
+// This is the ONLY place that wires concrete Data-layer implementations to
+// the Domain protocols the Application layer depends on. Every screen,
+// ViewModel and use case downstream receives its dependencies by
 // constructor injection from here.
 //
 // Launch arguments (UI tests only):
-//   --ui-tests-mock-api         → use MockPlayerRepository (no HTTP)
-//   --ui-tests-fresh            → clear any persisted session on launch
-//   --ui-tests-preregistered    → seed a fake persisted session so Home
-//                                  is reachable without going through the
-//                                  form
+//   --ui-tests-mock-api             → in-memory repositories, no HTTP at all
+//   --ui-tests-fresh                → clear any persisted session on launch
+//   --ui-tests-preregistered        → seed a fake session so Home is
+//                                     reachable without the form
+//   --ui-tests-instant-expeditions  → start the dispatch screen's developer
+//                                     toggle switched on, so an E2E test does
+//                                     not have to wait out a real expedition
+//
+// The last one only pre-fills a request. The server independently decides
+// whether instant resolution is allowed and refuses outside local/testing,
+// so no launch argument can turn into a production shortcut.
 
 import SwiftUI
 
@@ -19,6 +25,7 @@ struct WildLiveApp: App {
     @State private var appStore: AppStore
     private let registerPlayer: RegisterPlayer
     private let sessionRepository: PlayerSessionRepository
+    private let game: GameDependencies
 
     init() {
         // -- Parse UI-test launch arguments -----------------------------
@@ -26,6 +33,7 @@ struct WildLiveApp: App {
         let useMock = args.contains("--ui-tests-mock-api")
         let clearFirst = args.contains("--ui-tests-fresh")
         let preregister = args.contains("--ui-tests-preregistered")
+        let instantExpeditions = args.contains("--ui-tests-instant-expeditions")
 
         // -- Data layer -------------------------------------------------
         let sessionRepo: PlayerSessionRepository = UserDefaultsPlayerSessionRepository()
@@ -44,6 +52,10 @@ struct WildLiveApp: App {
             ? MockPlayerRepository()
             : LivePlayerRepository()
 
+        let gameDependencies: GameDependencies = useMock
+            ? .mocked(devInstantResolveDefault: instantExpeditions)
+            : .live(devInstantResolveDefault: instantExpeditions)
+
         // -- Application layer ------------------------------------------
         let useCase = RegisterPlayer(players: playerRepo, sessions: sessionRepo)
 
@@ -53,6 +65,7 @@ struct WildLiveApp: App {
         // Assign
         self.sessionRepository = sessionRepo
         self.registerPlayer = useCase
+        self.game = gameDependencies
         _appStore = State(initialValue: AppStore(restoredSession: restored))
     }
 
@@ -60,7 +73,8 @@ struct WildLiveApp: App {
         WindowGroup {
             RootView(
                 registerPlayer: registerPlayer,
-                sessionRepository: sessionRepository
+                sessionRepository: sessionRepository,
+                game: game
             )
             .environment(appStore)
         }

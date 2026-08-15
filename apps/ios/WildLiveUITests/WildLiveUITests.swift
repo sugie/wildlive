@@ -115,24 +115,24 @@ final class WildLiveUITests: XCTestCase {
 
     // MARK: - Real end-to-end (opt-in)
 
-    /// Real end-to-end: SwiftUI → Laravel → PostgreSQL. Self-gated: if the
-    /// local Laravel API is not reachable at
-    /// `http://localhost:8000/api/health`, the test is skipped rather than
-    /// failed, so this file can stay in the default suite without breaking
-    /// CI or a fresh checkout that has not started Docker.
+    /// Real end-to-end registration: SwiftUI → Laravel → PostgreSQL.
     ///
-    /// To run intentionally:
+    /// Gated on WILDLIVE_E2E rather than on a reachability ping. The ping
+    /// ran in the UI-test runner process, not the app, and answered "no"
+    /// even with the API up — so this test skipped itself on every run and
+    /// silently stopped testing anything. An explicit opt-in cannot do
+    /// that: with the variable set the test runs and fails on a problem,
+    /// and without it, it does not pretend to have run.
     ///
     ///     docker compose up -d
-    ///     docker compose exec app php artisan migrate
-    ///     docker compose exec postgres psql -U wildlive -d wildlive \
-    ///         -c "TRUNCATE zoos, players CASCADE;"
-    ///     xcodebuild test ... \
+    ///     docker compose exec app php artisan migrate --force
+    ///     WILDLIVE_E2E=1 xcodebuild test ... \
     ///         -only-testing:WildLiveUITests/WildLiveUITests/test_realAPI_endToEndRegistration
     func test_realAPI_endToEndRegistration() throws {
-        guard Self.isLiveAPIReachable() else {
-            throw XCTSkip("Local Laravel API not reachable at http://localhost:8000/api/health — skipping the real end-to-end test.")
-        }
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["WILDLIVE_E2E"] == "1",
+            "Set WILDLIVE_E2E=1 (with Laravel + PostgreSQL up) to run the real end-to-end test."
+        )
 
         let app = launch(["--ui-tests-fresh"])
         app.buttons["startButton"].tap()
@@ -144,7 +144,7 @@ final class WildLiveUITests: XCTestCase {
 
         app.buttons["registerButton"].tap()
 
-        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 15),
+        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 20),
                       "Home dashboard should appear after real API registration")
     }
 
@@ -173,18 +173,5 @@ final class WildLiveUITests: XCTestCase {
         add(attachment)
     }
 
-    /// Non-Test helper — synchronous ping so the test can self-gate.
-    private static func isLiveAPIReachable() -> Bool {
-        guard let url = URL(string: "http://localhost:8000/api/health") else { return false }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 2
-        var ok = false
-        let sem = DispatchSemaphore(value: 0)
-        URLSession.shared.dataTask(with: request) { _, response, _ in
-            if let http = response as? HTTPURLResponse, http.statusCode == 200 { ok = true }
-            sem.signal()
-        }.resume()
-        _ = sem.wait(timeout: .now() + 3)
-        return ok
-    }
+
 }

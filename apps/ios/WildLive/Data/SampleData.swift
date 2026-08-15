@@ -1,8 +1,13 @@
-// WildLive — Hand-authored dummy data for the UI prototype.
+// WildLive — Hand-authored dummy data for the remaining prototype screens.
 //
-// Nothing here is authoritative. The list is intentionally small (18 species,
-// 8 hunters, 6 regions) — enough to exercise every screen without pretending
-// to be the real Species master data.
+// Nothing here is authoritative. It backs Other Zoos, Visit Zoo, Animal
+// detail and the G Store; the live expedition loop uses real Game Master
+// v0.3 data from the server instead.
+//
+// The Hunter and Region fixtures that used to live here were removed when
+// those concepts went live: Hunters now come from GET /api/hunters and Maps
+// from GET /api/players/{id}/maps, and keeping a parallel hand-written set
+// would just be a second answer to the same question.
 
 import Foundation
 
@@ -43,78 +48,6 @@ enum SampleData {
     static var speciesById: [String: Species] {
         Dictionary(uniqueKeysWithValues: species.map { ($0.id, $0) })
     }
-
-    // MARK: Hunters
-
-    static let hunters: [Hunter] = [
-        Hunter(id: "hunter_ash",     name: "Ash the Apprentice",   tier: .basic,     skill: 15, contractCostG: 50,   bio: "Guild trainee. Available to anyone, any time.",                              available: true),
-        Hunter(id: "hunter_bea",     name: "Bea Ironfoot",         tier: .basic,     skill: 22, contractCostG: 80,   bio: "Steady, reliable, unremarkable.",                                            available: true),
-        Hunter(id: "hunter_cy",      name: "Cy Longstride",        tier: .advanced,  skill: 42, contractCostG: 260,  bio: "Ten seasons in the northern forests.",                                       available: true),
-        Hunter(id: "hunter_dara",    name: "Dara of the Marsh",    tier: .advanced,  skill: 48, contractCostG: 320,  bio: "Specialises in wetlands. Prefers dawn dispatches.",                          available: true),
-        Hunter(id: "hunter_eiji",    name: "Eiji Silvermoon",      tier: .elite,     skill: 68, contractCostG: 900,  bio: "Elite tracker. Contracts limited by Guild rotation.",                         available: true),
-        Hunter(id: "hunter_fen",     name: "Fen the Quiet",        tier: .elite,     skill: 74, contractCostG: 1_100, bio: "Rare-region specialist. Currently working for another player.",             available: false),
-        Hunter(id: "hunter_gwen",    name: "Gwendolyn Ashenwild",  tier: .legendary, skill: 92, contractCostG: 3_800, bio: "Legendary. One contract at a time across the entire Guild.",                available: true),
-        Hunter(id: "hunter_hoshi",   name: "Hoshi of the High Passes", tier: .legendary, skill: 96, contractCostG: 4_500, bio: "Legendary. Rumoured to have found a Saola.",                          available: false)
-    ]
-
-    // MARK: Regions
-
-    static let regions: [Region] = [
-        Region(
-            id: "outskirts",
-            name: "Village Outskirts",
-            subtitle: "Farmland edges, low forest",
-            difficulty: .easy,
-            simulatedDurationSeconds: 8,
-            speciesPool: ["red_fox", "raccoon", "wild_boar", "roe_deer"],
-            flavor: "Where anyone can begin. Common animals, quick returns."
-        ),
-        Region(
-            id: "northern_taiga",
-            name: "Northern Taiga",
-            subtitle: "Boreal forest, cold rivers",
-            difficulty: .medium,
-            simulatedDurationSeconds: 20,
-            speciesPool: ["grey_wolf", "moose", "eurasian_lynx", "red_fox"],
-            flavor: "Vast, quiet, unforgiving. Hunters return with stories."
-        ),
-        Region(
-            id: "japanese_alps",
-            name: "Japanese Alps",
-            subtitle: "Steep mountains, dense broadleaf",
-            difficulty: .medium,
-            simulatedDurationSeconds: 24,
-            speciesPool: ["japanese_serow", "roe_deer", "eurasian_lynx"],
-            flavor: "The Serow watches from the ridgeline."
-        ),
-        Region(
-            id: "himalayan_range",
-            name: "Himalayan Range",
-            subtitle: "Alpine slopes above 4000m",
-            difficulty: .high,
-            simulatedDurationSeconds: 40,
-            speciesPool: ["snow_leopard", "asian_elephant", "giant_panda"],
-            flavor: "Thin air. Rare eyes in the snow."
-        ),
-        Region(
-            id: "sumatran_rainforest",
-            name: "Sumatran Rainforest",
-            subtitle: "Equatorial rainforest",
-            difficulty: .extreme,
-            simulatedDurationSeconds: 55,
-            speciesPool: ["sumatran_tiger", "asian_elephant", "javan_rhinoceros"],
-            flavor: "Few Hunters return the way they left."
-        ),
-        Region(
-            id: "annamite_range",
-            name: "Annamite Range",
-            subtitle: "Legendary. Whispers only.",
-            difficulty: .extreme,
-            simulatedDurationSeconds: 60,
-            speciesPool: ["saola", "amur_leopard", "kakapo", "vaquita"],
-            flavor: "Even a Legendary Hunter may return empty-handed."
-        )
-    ]
 
     // MARK: G Bundles (RevenueCat-shaped mock products)
 

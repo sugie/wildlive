@@ -1,76 +1,91 @@
-// WildLive — The player's own Zoo. Apple defaults: List + Sections + rows.
+// WildLive — The player's Zoo.
+//
+// Every animal on this screen is a row in PostgreSQL, fetched from the
+// server. Nothing is held locally, so what is shown here is what actually
+// persisted.
 
 import SwiftUI
 
 struct MyZooView: View {
     @Environment(AppStore.self) private var store
+    @State var viewModel: MyZooViewModel
 
     var body: some View {
         List {
             Section {
-                LabeledContent("Zoo Value", value: "\(store.myZooValue)")
-                LabeledContent("Animals",   value: "\(store.currentPlayer.animals.count)")
+                LabeledContent("Zoo Value") {
+                    Text("\(viewModel.zooValue)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("zooValueValue")
+                }
+                LabeledContent("Animals") {
+                    Text("\(viewModel.animalCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("zooAnimalCountValue")
+                }
             }
-            if store.currentPlayer.animals.isEmpty {
+
+            if let error = viewModel.errorMessage {
+                Section {
+                    Label(error, systemImage: "wifi.exclamationmark")
+                        .foregroundStyle(.orange)
+                        .font(.footnote)
+                }
+            }
+
+            if viewModel.isEmpty {
                 Section {
                     Text("Your Zoo is empty.")
                         .foregroundStyle(.secondary)
-                    Button {
-                        store.popToHome()
-                        store.push(.guild)
-                    } label: {
-                        Label("Go to Guild", systemImage: "figure.walk")
+                    NavigationLink(value: Route.maps) {
+                        Label("Send an Expedition", systemImage: "map.fill")
                     }
                 }
             } else {
                 Section("Your Animals") {
-                    ForEach(store.currentPlayer.animals) { animal in
-                        NavigationLink(value: Route.animalDetail(animalId: animal.id)) {
-                            AnimalRow(animal: animal)
-                        }
-                        .accessibilityIdentifier("animalRow_\(animal.id.uuidString.prefix(8))")
+                    ForEach(viewModel.animals) { animal in
+                        ZooAnimalRow(animal: animal)
                     }
                 }
             }
         }
         .navigationTitle("My Zoo")
+        .refreshable { await viewModel.load() }
+        .task { await viewModel.load() }
         .accessibilityIdentifier("myZooView")
     }
 }
 
-// MARK: - Reusable row
+// MARK: - Row
 
-struct AnimalRow: View {
-    @Environment(AppStore.self) private var store
-    let animal: Animal
+struct ZooAnimalRow: View {
+    let animal: ZooAnimal
 
     var body: some View {
-        let species = store.speciesById[animal.speciesId]
         HStack(spacing: 12) {
             Circle()
-                .fill(species?.rarity.systemColor ?? .gray)
+                .fill(animal.species.rarity.systemColor)
                 .frame(width: 10, height: 10)
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(animal.nickname ?? "(unnamed)")
-                Text(species?.commonName ?? animal.speciesId)
+                // The identifier goes on the name itself, not on the row:
+                // an identifier on the enclosing HStack overrides the ones
+                // its children carry, and the name is what a test — or a
+                // person using VoiceOver — is actually looking for.
+                Text(animal.name)
+                    .accessibilityIdentifier("zooAnimalName_\(animal.name)")
+                Text("\(animal.species.nameEN) · \(animal.species.rarity.nameEN)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
             Spacer()
-            if animal.trait != .none {
-                Text(animal.trait.label)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(
-                        Capsule().strokeBorder(.secondary.opacity(0.5))
-                    )
-            }
-            if let sp = species {
-                Text("\(animal.zooValue(species: sp))")
-                    .font(.callout.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+
+            Text("\(animal.species.baseZooValue)")
+                .font(.callout.monospacedDigit())
+                .foregroundStyle(.secondary)
         }
     }
 }

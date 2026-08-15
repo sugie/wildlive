@@ -49,6 +49,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The runtime master data must never drift from the canonical Game
+      # Master source. --check regenerates it in memory and fails if the
+      # committed JSON differs, so a workbook edit that was not exported
+      # cannot reach main.
+      - name: Verify Game Master runtime data matches its canonical source
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check openpyxl
+          python3 docs/game-design/export_master_json.py --check
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:

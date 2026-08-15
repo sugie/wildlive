@@ -24,11 +24,33 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
 
-        <!-- Tests run against the same PostgreSQL engine used in production. -->
+        <!--
+            Tests run against the same PostgreSQL engine used in production,
+            on a separate `wildlive_test` database.
+
+            DB_DATABASE is forced through BOTH <server> and <env>, and that
+            is not belt-and-braces — it is the only combination that works.
+            docker-compose.yml exports DB_DATABASE=wildlive into the app
+            container; PHP's CLI copies container environment variables into
+            $_SERVER; and Laravel's env() reads $_SERVER before $_ENV and
+            putenv(). PHPUnit's <env> writes only the latter two, so an
+            <env>-only override silently lost: the whole suite ran against
+            the DEVELOPMENT database and RefreshDatabase wiped it — game
+            master data included — on every run.
+
+            ONLY the database name is forced. Host, port, credentials and
+            connection differ legitimately between environments (Docker uses
+            the `postgres` service name; CI uses 127.0.0.1 with its own
+            password), and forcing those here overrides the correct values
+            the runner supplies — which is exactly what the first attempt at
+            this fix did, and CI caught it.
+        -->
+        <server name="DB_DATABASE" value="wildlive_test" force="true"/>
+        <env name="DB_DATABASE" value="wildlive_test" force="true"/>
+
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="postgres"/>
         <env name="DB_PORT" value="5432"/>
-        <env name="DB_DATABASE" value="wildlive_test"/>
         <env name="DB_USERNAME" value="wildlive"/>
         <env name="DB_PASSWORD" value="wildlive_local_only"/>
         <env name="DB_URL" value=""/>

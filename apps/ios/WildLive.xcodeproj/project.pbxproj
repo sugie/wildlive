@@ -16,7 +16,6 @@
 		A2000000000000000000BB03 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF03 /* RootView.swift */; };
 		A2000000000000000000BB04 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Game.swift */; };
 		A2000000000000000000BB05 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF05 /* SampleData.swift */; };
-		A2000000000000000000BB06 /* MockGameService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF06 /* MockGameService.swift */; };
 		A2000000000000000000BB07 /* MockGStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF07 /* MockGStoreService.swift */; };
 		A2000000000000000000BB08 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF08 /* Theme.swift */; };
 		A2000000000000000000BB09 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF09 /* HomeView.swift */; };
@@ -25,10 +24,8 @@
 		A2000000000000000000BB0C /* VisitZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0C /* VisitZooView.swift */; };
 		A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0D /* AnimalDetailView.swift */; };
 		A2000000000000000000BB0E /* GuildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0E /* GuildView.swift */; };
-		A2000000000000000000BB0F /* RegionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0F /* RegionPickerView.swift */; };
 		A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF10 /* DispatchConfirmView.swift */; };
 		A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF11 /* ExpeditionsView.swift */; };
-		A2000000000000000000BB12 /* ExpeditionResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF12 /* ExpeditionResultView.swift */; };
 		A2000000000000000000BB13 /* CaptureNameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF13 /* CaptureNameView.swift */; };
 		A2000000000000000000BB14 /* GStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF14 /* GStoreView.swift */; };
 		A3000000000000000000BB01 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF01 /* APIClient.swift */; };
@@ -49,6 +46,31 @@
 		A4000000000000000000BB03 /* LivePlayerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */; };
 		A4000000000000000000BB04 /* UserDefaultsPlayerSessionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */; };
 		A4000000000000000000BB05 /* ArchitectureBoundaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */; };
+		A60000000000000000BB01 /* GameWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF01 /* GameWorld.swift */; };
+		A60000000000000000BB02 /* GameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF02 /* GameRepositories.swift */; };
+		A60000000000000000BB03 /* StartExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF03 /* StartExpedition.swift */; };
+		A60000000000000000BB04 /* ResolveExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF04 /* ResolveExpedition.swift */; };
+		A60000000000000000BB05 /* DecideCapturedAnimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF05 /* DecideCapturedAnimal.swift */; };
+		A60000000000000000BB06 /* GameAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF06 /* GameAPIDTO.swift */; };
+		A60000000000000000BB07 /* LiveGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF07 /* LiveGameRepositories.swift */; };
+		A60000000000000000BB08 /* MockGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF08 /* MockGameRepositories.swift */; };
+		A60000000000000000BB09 /* GameDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF09 /* GameDependencies.swift */; };
+		A60000000000000000BB0A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0A /* HomeViewModel.swift */; };
+		A60000000000000000BB0B /* MapListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0B /* MapListViewModel.swift */; };
+		A60000000000000000BB0C /* MapListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0C /* MapListView.swift */; };
+		A60000000000000000BB0D /* MapDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0D /* MapDetailViewModel.swift */; };
+		A60000000000000000BB0E /* MapDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0E /* MapDetailView.swift */; };
+		A60000000000000000BB0F /* HunterListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0F /* HunterListViewModel.swift */; };
+		A60000000000000000BB10 /* HunterPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF10 /* HunterPickerView.swift */; };
+		A60000000000000000BB11 /* DispatchConfirmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF11 /* DispatchConfirmViewModel.swift */; };
+		A60000000000000000BB12 /* ExpeditionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF12 /* ExpeditionsViewModel.swift */; };
+		A60000000000000000BB13 /* ExpeditionDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */; };
+		A60000000000000000BB14 /* ExpeditionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF14 /* ExpeditionDetailView.swift */; };
+		A60000000000000000BB15 /* CaptureNameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF15 /* CaptureNameViewModel.swift */; };
+		A60000000000000000BB16 /* MyZooViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF16 /* MyZooViewModel.swift */; };
+		A70000000000000000BB01 /* GameAPIMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF01 /* GameAPIMappingTests.swift */; };
+		A70000000000000000BB02 /* ExpeditionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF02 /* ExpeditionViewModelTests.swift */; };
+		A80000000000000000BB01 /* ExpeditionFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000FF01 /* ExpeditionFlowUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +103,6 @@
 		A2000000000000000000FF03 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RootView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF04 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Game.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF05 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/SampleData.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF06 /* MockGameService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGameService.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF07 /* MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGStoreService.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/Theme.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF09 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeView.swift; sourceTree = "<group>"; };
@@ -90,10 +111,8 @@
 		A2000000000000000000FF0C /* VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/VisitZooView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF0D /* AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/AnimalDetailView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF0E /* GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GuildView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0F /* RegionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegionPickerView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF10 /* DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF11 /* ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF12 /* ExpeditionResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionResultView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF13 /* CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameView.swift; sourceTree = "<group>"; };
 		A2000000000000000000FF14 /* GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GStoreView.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
@@ -115,6 +134,31 @@
 		A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePlayerRepositoryTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPlayerSessionRepositoryTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureBoundaryTests.swift; sourceTree = "<group>"; };
+		A60000000000000000FF01 /* GameWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameWorld.swift; sourceTree = "<group>"; };
+		A60000000000000000FF02 /* GameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF03 /* StartExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/StartExpedition.swift; sourceTree = "<group>"; };
+		A60000000000000000FF04 /* ResolveExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/ResolveExpedition.swift; sourceTree = "<group>"; };
+		A60000000000000000FF05 /* DecideCapturedAnimal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/DecideCapturedAnimal.swift; sourceTree = "<group>"; };
+		A60000000000000000FF06 /* GameAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/GameAPIDTO.swift; sourceTree = "<group>"; };
+		A60000000000000000FF07 /* LiveGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LiveGameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF08 /* MockGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF09 /* GameDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/GameDependencies.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0B /* MapListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0C /* MapListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0D /* MapDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0E /* MapDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0F /* HunterListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterListViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF10 /* HunterPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterPickerView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF11 /* DispatchConfirmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF12 /* ExpeditionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF14 /* ExpeditionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF15 /* CaptureNameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF16 /* MyZooViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooViewModel.swift; sourceTree = "<group>"; };
+		A70000000000000000FF01 /* GameAPIMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAPIMappingTests.swift; sourceTree = "<group>"; };
+		A70000000000000000FF02 /* ExpeditionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionViewModelTests.swift; sourceTree = "<group>"; };
+		A80000000000000000FF01 /* ExpeditionFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionFlowUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +209,28 @@
 		A10000000000000000000004 /* WildLive */ = {
 			isa = PBXGroup;
 			children = (
+				A60000000000000000FF16 /* MyZooViewModel.swift */,
+				A60000000000000000FF15 /* CaptureNameViewModel.swift */,
+				A60000000000000000FF14 /* ExpeditionDetailView.swift */,
+				A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */,
+				A60000000000000000FF12 /* ExpeditionsViewModel.swift */,
+				A60000000000000000FF11 /* DispatchConfirmViewModel.swift */,
+				A60000000000000000FF10 /* HunterPickerView.swift */,
+				A60000000000000000FF0F /* HunterListViewModel.swift */,
+				A60000000000000000FF0E /* MapDetailView.swift */,
+				A60000000000000000FF0D /* MapDetailViewModel.swift */,
+				A60000000000000000FF0C /* MapListView.swift */,
+				A60000000000000000FF0B /* MapListViewModel.swift */,
+				A60000000000000000FF0A /* HomeViewModel.swift */,
+				A60000000000000000FF09 /* GameDependencies.swift */,
+				A60000000000000000FF08 /* MockGameRepositories.swift */,
+				A60000000000000000FF07 /* LiveGameRepositories.swift */,
+				A60000000000000000FF06 /* GameAPIDTO.swift */,
+				A60000000000000000FF05 /* DecideCapturedAnimal.swift */,
+				A60000000000000000FF04 /* ResolveExpedition.swift */,
+				A60000000000000000FF03 /* StartExpedition.swift */,
+				A60000000000000000FF02 /* GameRepositories.swift */,
+				A60000000000000000FF01 /* GameWorld.swift */,
 				A100000000000000000000A1 /* WildLiveApp.swift */,
 				A2000000000000000000FF01 /* AppStore.swift */,
 				A2000000000000000000FF02 /* Route.swift */,
@@ -179,10 +245,8 @@
 				A2000000000000000000FF0C /* VisitZooView.swift */,
 				A2000000000000000000FF0D /* AnimalDetailView.swift */,
 				A2000000000000000000FF0E /* GuildView.swift */,
-				A2000000000000000000FF0F /* RegionPickerView.swift */,
 				A2000000000000000000FF10 /* DispatchConfirmView.swift */,
 				A2000000000000000000FF11 /* ExpeditionsView.swift */,
-				A2000000000000000000FF12 /* ExpeditionResultView.swift */,
 				A2000000000000000000FF13 /* CaptureNameView.swift */,
 				A2000000000000000000FF14 /* GStoreView.swift */,
 				A5000000000000000000FF06 /* RegisterPlayer.swift */,
@@ -198,7 +262,6 @@
 				A5000000000000000000FF09 /* MockPlayerRepository.swift */,
 				A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */,
 				A2000000000000000000FF05 /* SampleData.swift */,
-				A2000000000000000000FF06 /* MockGameService.swift */,
 				A2000000000000000000FF07 /* MockGStoreService.swift */,
 				A3000000000000000000FF05 /* Info.plist */,
 				A100000000000000000000A3 /* Assets.xcassets */,
@@ -209,6 +272,7 @@
 		A10000000000000000000005 /* WildLiveUITests */ = {
 			isa = PBXGroup;
 			children = (
+				A80000000000000000FF01 /* ExpeditionFlowUITests.swift */,
 				A100000000000000000000A4 /* WildLiveUITests.swift */,
 			);
 			path = WildLiveUITests;
@@ -217,6 +281,8 @@
 		A10000000000000000000006 /* WildLiveTests */ = {
 			isa = PBXGroup;
 			children = (
+				A70000000000000000FF02 /* ExpeditionViewModelTests.swift */,
+				A70000000000000000FF01 /* GameAPIMappingTests.swift */,
 				A4000000000000000000FF01 /* RegisterPlayerTests.swift */,
 				A4000000000000000000FF02 /* RegistrationViewModelTests.swift */,
 				A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */,
@@ -347,6 +413,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A60000000000000000BB16 /* MyZooViewModel.swift in Sources */,
+				A60000000000000000BB15 /* CaptureNameViewModel.swift in Sources */,
+				A60000000000000000BB14 /* ExpeditionDetailView.swift in Sources */,
+				A60000000000000000BB13 /* ExpeditionDetailViewModel.swift in Sources */,
+				A60000000000000000BB12 /* ExpeditionsViewModel.swift in Sources */,
+				A60000000000000000BB11 /* DispatchConfirmViewModel.swift in Sources */,
+				A60000000000000000BB10 /* HunterPickerView.swift in Sources */,
+				A60000000000000000BB0F /* HunterListViewModel.swift in Sources */,
+				A60000000000000000BB0E /* MapDetailView.swift in Sources */,
+				A60000000000000000BB0D /* MapDetailViewModel.swift in Sources */,
+				A60000000000000000BB0C /* MapListView.swift in Sources */,
+				A60000000000000000BB0B /* MapListViewModel.swift in Sources */,
+				A60000000000000000BB0A /* HomeViewModel.swift in Sources */,
+				A60000000000000000BB09 /* GameDependencies.swift in Sources */,
+				A60000000000000000BB08 /* MockGameRepositories.swift in Sources */,
+				A60000000000000000BB07 /* LiveGameRepositories.swift in Sources */,
+				A60000000000000000BB06 /* GameAPIDTO.swift in Sources */,
+				A60000000000000000BB05 /* DecideCapturedAnimal.swift in Sources */,
+				A60000000000000000BB04 /* ResolveExpedition.swift in Sources */,
+				A60000000000000000BB03 /* StartExpedition.swift in Sources */,
+				A60000000000000000BB02 /* GameRepositories.swift in Sources */,
+				A60000000000000000BB01 /* GameWorld.swift in Sources */,
 				A100000000000000000000B1 /* WildLiveApp.swift in Sources */,
 				A100000000000000000000B2 /* TitleView.swift in Sources */,
 				A2000000000000000000BB03 /* RootView.swift in Sources */,
@@ -355,7 +443,6 @@
 				A2000000000000000000BB08 /* Theme.swift in Sources */,
 				A2000000000000000000BB04 /* Game.swift in Sources */,
 				A2000000000000000000BB05 /* SampleData.swift in Sources */,
-				A2000000000000000000BB06 /* MockGameService.swift in Sources */,
 				A2000000000000000000BB07 /* MockGStoreService.swift in Sources */,
 				A2000000000000000000BB09 /* HomeView.swift in Sources */,
 				A2000000000000000000BB0A /* MyZooView.swift in Sources */,
@@ -363,10 +450,8 @@
 				A2000000000000000000BB0C /* VisitZooView.swift in Sources */,
 				A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */,
 				A2000000000000000000BB0E /* GuildView.swift in Sources */,
-				A2000000000000000000BB0F /* RegionPickerView.swift in Sources */,
 				A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */,
 				A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */,
-				A2000000000000000000BB12 /* ExpeditionResultView.swift in Sources */,
 				A2000000000000000000BB13 /* CaptureNameView.swift in Sources */,
 				A2000000000000000000BB14 /* GStoreView.swift in Sources */,
 				A3000000000000000000BB01 /* APIClient.swift in Sources */,
@@ -389,6 +474,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A80000000000000000BB01 /* ExpeditionFlowUITests.swift in Sources */,
 				A100000000000000000000B4 /* WildLiveUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -397,6 +483,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A70000000000000000BB02 /* ExpeditionViewModelTests.swift in Sources */,
+				A70000000000000000BB01 /* GameAPIMappingTests.swift in Sources */,
 				A4000000000000000000BB01 /* RegisterPlayerTests.swift in Sources */,
 				A4000000000000000000BB02 /* RegistrationViewModelTests.swift in Sources */,
 				A4000000000000000000BB03 /* LivePlayerRepositoryTests.swift in Sources */,
