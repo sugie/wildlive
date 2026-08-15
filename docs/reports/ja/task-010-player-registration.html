@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 010 — Milestone 002 最初の実データ縦串。iPhone Simulator → SwiftUI → Laravel API → PostgreSQL で Player + Zoo を 1 トランザクションで生成、JSON を返し、SwiftUI 側で受信 + 端末保存。">
+<title>Task 010 — 初回プレイヤー登録の縦串（Milestone 002）· WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AI が作るライブ MMO — 自律的 AI ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← すべてのレポート</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-010-player-registration.html">English</a>
+</nav>
+
+<h1>Task 010 — 初回プレイヤー登録エンドツーエンド（Milestone 002）</h1>
+<p class="meta">
+  プロジェクト: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-15
+  &nbsp;·&nbsp; AI エージェント: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; 状態: <span class="badge badge-warn">ローカルレビュー中 — PR 未作成</span>
+</p>
+
+<h2>人による指示</h2>
+<p>
+  <strong>リポジトリオーナー（人間）が「最初の実データ縦串」を要求した。</strong>iPhone Simulator から SwiftUI UI モックを操作し、Docker 上のローカル Laravel API を叩き、ローカル PostgreSQL 17 に Player 行を書き、JSON レスポンスを SwiftUI に戻し、DB に実際にレコードがあることを確認する — この最小 End-to-End をローカル環境だけで一周させる。範囲外として明示: ギルド、ランキング、マッチング、チャット、通貨、Push、AI 機能、pgvector、本番デプロイ、複雑な認証、管理画面、「後で必要になるから」の抽象化。AI が計画（ID 方式、Player フィールド、API パス、ブランチ）を提示し、人間が「OK GO」と応じ、AI が実装＋検証を行った。
+</p>
+
+<h2>目的</h2>
+<p>
+  今後のすべてのゲーム機能が乗る「最小の実データ経路」を敷く。具体的に:
+</p>
+<blockquote>
+  iPhone Simulator → SwiftUI → ローカル Laravel API（Docker）→ ローカル PostgreSQL → 登録 → API レスポンス → SwiftUI が識別子を受信 → 端末保存 → 次回起動以降は登録画面をスキップ。
+</blockquote>
+
+<h2>出荷物</h2>
+
+<h3>Laravel（新規 9 / 変更 1）</h3>
+<ul>
+  <li><code>database/migrations/2026_08_15_000001_create_players_table.php</code> — UUID PK、<code>display_name</code>、timestamps。</li>
+  <li><code>database/migrations/2026_08_15_000002_create_zoos_table.php</code> — UUID PK、<code>player_id (UUID, UNIQUE, NOT NULL, FK → players ON DELETE CASCADE)</code>、timestamps。UNIQUE + コントローラの <code>DB::transaction(&hellip;)</code> の 2 段構えで <code>docs/ER_MODEL.md §C1</code>（Player 1..1 Zoo, 同一 tx 生成）を満たす。</li>
+  <li><code>app/Models/Player.php</code>、<code>app/Models/Zoo.php</code> — <code>HasUuids</code>。<code>newUniqueId()</code> を <code>(string) Str::orderedUuid()</code> にオーバーライドして時系列順 UUID にする（インデックス局所性を保ちつつクライアントに露出しても enumerable にしない）。</li>
+  <li><code>app/Http/Controllers/PlayerController.php</code> — <code>store()</code> は <code>DB::transaction</code> で <code>Player::create + Zoo::create</code> をラップし <code>201 Created</code> を返す。</li>
+  <li><code>app/Http/Requests/RegisterPlayerRequest.php</code> — <code>display_name</code> を <code>required|string|min:2|max:32</code> で検証。</li>
+  <li><code>app/Http/Resources/PlayerResource.php</code>、<code>app/Http/Resources/ZooResource.php</code> — JSON 形状。</li>
+  <li><code>tests/Feature/RegisterPlayerTest.php</code> — テスト 7 本、アサーション 33。</li>
+  <li><code>routes/api.php</code> — <code>Route::post('/players', [PlayerController::class, 'store'])->name('api.players.store')</code> を追加。</li>
+</ul>
+
+<h3>iOS（新規 5 + 変更 5 + Info.plist 新規 1）</h3>
+<ul>
+  <li><code>apps/ios/WildLive/APIClient.swift</code> — <code>URLSession</code> + <code>async/await</code> + <code>Codable</code> の薄いラッパー。base URL は Info.plist キー <code>WildLiveAPIBaseURL</code> から取得。</li>
+  <li><code>apps/ios/WildLive/PlayerRegistrationService.swift</code> — <code>PlayerRegistrationServiceProtocol</code> + <code>LivePlayerRegistrationService</code>（実 HTTP）+ <code>MockPlayerRegistrationService</code>（UI テスト用）。</li>
+  <li><code>apps/ios/WildLive/PlayerSession.swift</code> — <code>UserDefaults</code> ベースで <code>playerId</code> / <code>displayName</code> / <code>zooId</code> を保存。</li>
+  <li><code>apps/ios/WildLive/RegistrationView.swift</code> — Apple デフォルトの <code>Form</code>。<code>TextField("Display name")</code>、<code>.borderedProminent</code> の <code>Register</code>、送信中は <code>ProgressView</code>、エラーは標準 <code>.alert</code>。</li>
+  <li><code>apps/ios/WildLive/Info.plist</code> — 手書き。<code>NSAppTransportSecurity → NSAllowsLocalNetworking = true</code> と <code>WildLiveAPIBaseURL = "http://localhost:8000/api"</code>。従来自動生成されていた launch/scene/orientation キーも同梱（手書き Info.plist の上には自動生成が乗らないため）。</li>
+  <li><code>apps/ios/WildLive/AppStore.swift</code> — <code>registeredSession</code>、<code>isRegistered</code>、<code>register(displayName:)</code> を追加。init で <code>PlayerSession</code> から復元し、<code>currentPlayer</code> をそのセッション（無登録時はサンプル）でシードする。</li>
+  <li><code>apps/ios/WildLive/RootView.swift</code> — START 後: <code>if store.isRegistered { HomeView() } else { RegistrationView() }</code>。</li>
+  <li><code>apps/ios/WildLive/WildLiveApp.swift</code> — 3 つの launch arg（<code>--ui-tests-mock-api</code>、<code>--ui-tests-fresh</code>、<code>--ui-tests-preregistered</code>）を読み取り、テストがセッション／サービスを制御できる。</li>
+  <li><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code> — 新規 Swift 4 本を登録、<code>GENERATE_INFOPLIST_FILE = YES</code> を <code>INFOPLIST_FILE = WildLive/Info.plist</code> に切り替え。</li>
+  <li><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code> — テスト 5 本: 既存 3 本（<code>--ui-tests-preregistered</code> でセッションを事前投入）+ mock ベースの <code>test_firstLaunch_presentsRegistrationThenHome</code> + 自己ゲート版の <code>test_realAPI_endToEndRegistration</code>（<code>/api/health</code> が到達不能なら <code>XCTSkip</code>）。</li>
+</ul>
+
+<h3>ドキュメント</h3>
+<ul>
+  <li><code>docs/DEVELOPMENT.md</code> — 新セクション「First-time player registration (end-to-end)」に完全な再現手順を追加。</li>
+  <li><code>apps/ios/README.md</code> — Task 010 のスコープ + ランタイム依存（API URL、ATS、UserDefaults リセット手順）。</li>
+  <li>この日英対訳レポート 2 本 + <code>docs/reports/index.html</code> の先頭行追加。</li>
+  <li>Task 010 AI セッションアーカイブ <code>docs/ai-sessions/task-010-player-registration/</code> + <code>docs/ai-sessions/index.md</code> の先頭行追加。</li>
+</ul>
+
+<h2>設計判断</h2>
+<table>
+  <thead><tr><th>判断</th><th>選択</th><th>理由</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Player・Zoo の主キー</td>
+      <td>UUID（Laravel <code>Str::orderedUuid()</code>）</td>
+      <td>Player.id は他プレイヤー訪問など URL に露出する。整数連番だと登録数が漏れ enumeration の的にもなる。時系列順 UUID なら B-tree 局所性を保ちつつその漏れを避けられる。</td>
+    </tr>
+    <tr>
+      <td>MVP 時点の Player フィールド</td>
+      <td><code>id</code>, <code>display_name (2..32)</code>, timestamps</td>
+      <td><code>docs/ER_MODEL.md</code> が固定するミニマムに一致。認証方式・email・handle・公開識別子はすべて TBD で別タスク、追加マイグレーションで乗せる。</td>
+    </tr>
+    <tr>
+      <td>Player + Zoo の原子性</td>
+      <td><code>DB::transaction</code> + <code>UNIQUE(zoos.player_id) NOT NULL</code></td>
+      <td>ER_MODEL C1 は原子生成を要求。tx は部分書き込みを、UNIQUE は将来の呼び出し元を守る。両方必要。</td>
+    </tr>
+    <tr>
+      <td>iOS ネットワーク層</td>
+      <td><code>URLSession.shared</code> + <code>async/await</code> + <code>Codable</code></td>
+      <td>Apple デフォルト。サードパーティ HTTP ライブラリは不採用。</td>
+    </tr>
+    <tr>
+      <td>iOS 側セッション永続化</td>
+      <td><code>UserDefaults</code></td>
+      <td>現時点で保護すべき認証トークンがない。将来 Keychain / OAuth に切替える時は <code>PlayerSession</code> 一箇所を差し替えれば済む。</td>
+    </tr>
+    <tr>
+      <td>Info.plist</td>
+      <td>手書きに切替（<code>GENERATE_INFOPLIST_FILE = YES</code> を廃止）</td>
+      <td><code>NSAppTransportSecurity</code> の入れ子キーは <code>INFOPLIST_KEY_*</code> 経由で設定できない。手書きに切り替えるが、従来自動生成されていた launch/scene/orientation キーは同梱して挙動を保つ。</td>
+    </tr>
+    <tr>
+      <td>ATS の範囲</td>
+      <td><code>NSAllowsLocalNetworking = true</code></td>
+      <td>シミュレータが <code>http://localhost:8000</code> に届く必要がある。<code>NSAllowsArbitraryLoads</code> より狭く、<code>localhost</code>／<code>*.local</code>／unqualified hostname に限定される。</td>
+    </tr>
+    <tr>
+      <td>POST の冪等性</td>
+      <td>今回は <code>Idempotency-Key</code> は入れない</td>
+      <td>登録は自然に冪等でない（毎回別 Player を作るのが正しい）。冪等キーは Expedition や金銭移動が入ってから重要になり、そのタスクで扱う。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>実測</h2>
+<p>以下はすべて実際のコマンド出力に基づく。</p>
+
+<h3>Laravel 側</h3>
+<table>
+  <thead><tr><th>チェック</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose up -d</code></td><td>network + postgres + app が healthy で起動</td></tr>
+    <tr><td><code>curl -s http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate</code></td><td><code>2026_08_15_000001_create_players_table ..... DONE</code><br><code>2026_08_15_000002_create_zoos_table ....... DONE</code></td></tr>
+    <tr>
+      <td><code>docker compose exec app vendor/bin/phpunit --testdox</code></td>
+      <td>
+        <strong>OK (12 tests, 46 assertions)</strong>。新規:
+        <ul>
+          <li><code>Registration creates player and zoo and returns 201</code></li>
+          <li><code>Registration trims whitespace in display name</code></li>
+          <li><code>Missing display name returns 422</code></li>
+          <li><code>Short display name returns 422</code></li>
+          <li><code>Long display name returns 422</code></li>
+          <li><code>Player id is a uuid</code></li>
+          <li><code>Two registrations produce two distinct players each with own zoo</code></li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><code>curl -sSi -X POST /api/players -d '{"display_name":"CurlTest"}'</code></td>
+      <td>
+        <code>HTTP/1.1 201 Created</code><br>
+        <code>{"player":{"id":"a281c451-64a7-4be0-9a71-71d9792337dd","display_name":"CurlTest","created_at":"2026-08-15T08:24:41.000000Z"},"zoo":{"id":"a281c451-669f-41a0-935c-b96af8883b84","created_at":"2026-08-15T08:24:41.000000Z"}}</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>SELECT id, display_name, created_at FROM players;</code></td>
+      <td><code>a281c451-64a7-4be0-9a71-71d9792337dd | CurlTest | 2026-08-15 08:24:41</code></td>
+    </tr>
+    <tr>
+      <td><code>SELECT id, player_id, created_at FROM zoos;</code></td>
+      <td><code>a281c451-669f-41a0-935c-b96af8883b84 | a281c451-64a7-4be0-9a71-71d9792337dd | 2026-08-15 08:24:41</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>iOS 側</h3>
+<table>
+  <thead><tr><th>チェック</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild &hellip; build</code></td><td><strong><code>** BUILD SUCCEEDED **</code></strong></td></tr>
+    <tr>
+      <td><code>xcodebuild &hellip; test</code>（UI スイート全体）</td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>。5/5 成功:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — 5.529 秒</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — 5.136 秒</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — 15.428 秒</li>
+          <li><code>test_firstLaunch_presentsRegistrationThenHome</code> — 9.395 秒（モック）</li>
+          <li><code>test_realAPI_endToEndRegistration</code> — 8.558 秒（<strong>実 Laravel + 実 PostgreSQL</strong>）</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_realAPI_endToEndRegistration</code> がシミュレータ経由で作成した実 DB 行</td>
+      <td>
+        <code>player_id = a281c79c-e381-4a1b-9c12-c11eef33ae9b</code>、
+        <code>display_name = E2ETestFromSimulator</code>、
+        <code>zoo_id = a281c79c-e446-4fa6-85d9-a577f3c850e5</code>、
+        <code>zoo.player_id = a281c79c-e381-4a1b-9c12-c11eef33ae9b</code>（player_id と一致 → C1 不変が保たれている）。
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>追加 / 変更ファイル</h2>
+<table>
+  <thead><tr><th>パス</th><th>変更</th></tr></thead>
+  <tbody>
+    <tr><td><code>database/migrations/2026_08_15_000001_create_players_table.php</code></td><td>追加</td></tr>
+    <tr><td><code>database/migrations/2026_08_15_000002_create_zoos_table.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Models/Player.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Models/Zoo.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Http/Controllers/PlayerController.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Http/Requests/RegisterPlayerRequest.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Http/Resources/PlayerResource.php</code></td><td>追加</td></tr>
+    <tr><td><code>app/Http/Resources/ZooResource.php</code></td><td>追加</td></tr>
+    <tr><td><code>tests/Feature/RegisterPlayerTest.php</code></td><td>追加</td></tr>
+    <tr><td><code>routes/api.php</code></td><td>変更 — ルート 1 本追加</td></tr>
+    <tr><td><code>apps/ios/WildLive/APIClient.swift</code></td><td>追加</td></tr>
+    <tr><td><code>apps/ios/WildLive/PlayerRegistrationService.swift</code></td><td>追加</td></tr>
+    <tr><td><code>apps/ios/WildLive/PlayerSession.swift</code></td><td>追加</td></tr>
+    <tr><td><code>apps/ios/WildLive/RegistrationView.swift</code></td><td>追加</td></tr>
+    <tr><td><code>apps/ios/WildLive/Info.plist</code></td><td>追加（手書き。自動生成を置換）</td></tr>
+    <tr><td><code>apps/ios/WildLive/AppStore.swift</code></td><td>変更 — セッション復元、register()</td></tr>
+    <tr><td><code>apps/ios/WildLive/RootView.swift</code></td><td>変更 — START 後の登録ゲート</td></tr>
+    <tr><td><code>apps/ios/WildLive/WildLiveApp.swift</code></td><td>変更 — launch arg でサービス切替</td></tr>
+    <tr><td><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code></td><td>変更 — ソース 4 本追加 + INFOPLIST_FILE 切替 + GENERATE_INFOPLIST_FILE 撤去 + INFOPLIST_KEY_* 撤去</td></tr>
+    <tr><td><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code></td><td>変更 — テスト 5 本（従来 3）、自己ゲート付き実 API E2E を含む</td></tr>
+    <tr><td><code>apps/ios/README.md</code></td><td>変更 — Task 010 スコープ + ランタイム依存</td></tr>
+    <tr><td><code>docs/DEVELOPMENT.md</code></td><td>変更 — First-time player registration (end-to-end) 節を追加</td></tr>
+  </tbody>
+</table>
+
+<h2>意図的な非目標（引き続き有効）</h2>
+<ul>
+  <li>認証は一切入れない。password / email verification / OAuth / JWT / session cookie 無し。<code>display_name</code> の unique も外す（認証もリカバリ UI もない状態で unique を敷くと衝突が救えなくなる）。</li>
+  <li>Hunter・Species・Region・Expedition・Animal・HunterContract・SeasonalEvent の他ドメインテーブル、および通貨は今回無し。以外のアプリ動作は Task 009 のインメモリ・ダミーのまま。</li>
+  <li>pgvector は不使用。</li>
+  <li>本番デプロイ・本番 PostgreSQL 接続・iOS 用 CI の追加、いずれも無し。ローカル Mac 内で完結。</li>
+  <li><code>Idempotency-Key</code> のプランビングも無し（設計表参照）。</li>
+  <li>RevenueCat SDK、プッシュ通知、アナリティクス、いずれも無し。</li>
+</ul>
+
+<h2>Git / コミット</h2>
+<ul>
+  <li>ブランチ: <code>ai/014-player-registration</code>。<code>ai/013-ios-ui-prototype</code> から派生。Task 008 <a href="https://github.com/sugie/wildlive/pull/12">PR #12</a>（open）と Task 009（未 PR）にスタック。PR #12 がマージ、Task 009 が PR + マージされた時点で自動的に <code>main</code> にリターゲットされる。</li>
+  <li>Base commit: <code>c20e8bd</code>（派生時の <code>ai/013-ios-ui-prototype</code> HEAD）。</li>
+</ul>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <strong>未作成</strong>。次のステップは人間によるシミュレータ + <code>psql</code> の一巡確認。push / PR / merge は認可されていない。</li>
+</ul>
+
+<h2>問題 / 既知の限界</h2>
+<ul>
+  <li><code>test_realAPI_endToEndRegistration</code> はローカル <code>wildlive</code> データベースに実行のたび行を追加し自動クリーンアップしない。開発者が実行間に <code>TRUNCATE zoos, players CASCADE;</code> することを前提とする。既存 PHPUnit は <code>wildlive_test</code> で <code>RefreshDatabase</code> 済み、影響なし。</li>
+  <li><code>POST</code> 失敗時のエラー表示に生レスポンス先頭 200 文字が混ざる。現時点は許容。API エラー形状が確定したら <code>errors.display_name[0]</code> を復号してフォームインラインで見せる方向。</li>
+  <li>登録済みセッションから起動した場合、シードされる <code>Player</code> はプレースホルダの <code>gBalance = 1_200</code> と空 Zoo。サーバ側ドメイン API が来るまでの意図的な暫定挙動。Task 010 のスコープは登録のみ。</li>
+</ul>
+
+<h2>やっていないこと</h2>
+<ul>
+  <li>人間のレビュー前に push / PR / merge は一切していない。</li>
+  <li>X マニフェスト無し — 従来の UI-only イテレーションと同じ運用。</li>
+  <li>本番インフラ変更、無し。</li>
+  <li>サードパーティ依存の新規追加、無し（Composer パッケージ・Swift Package いずれも）。</li>
+  <li>secret / credential / token / cookie / <code>.env</code> 値、いずれもこの記録に含めていない。</li>
+</ul>
+
+<h2>次に推奨するタスク</h2>
+<p>
+  <strong>人間が縦串を一巡プレイして次の実 API を決める。</strong>候補: (a) <code>GET /api/players/{id}</code> で 2 回目以降の起動時に Home をサーバから hydrate する; (b) Hunter/Region/Expedition モックの実 API 置き換えを開始; (c) 認証スキームを入れて <code>display_name</code> の unique とアカウント復旧を実現。いずれも独断で進めない — 本レポートはそれを認可しない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-15 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

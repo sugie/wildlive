@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 010 — Milestone 002 first real vertical slice. iPhone Simulator → SwiftUI → Laravel API → PostgreSQL creates the first Player + Zoo in one transaction, returns JSON, and the SwiftUI app persists the returned identifier.">
+<title>Task 010 — Player registration end-to-end (Milestone 002) · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-010-player-registration.html">日本語版</a>
+</nav>
+
+<h1>Task 010 — First-time Player registration end-to-end (Milestone 002)</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-15
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-warn">In local review — PR not yet opened</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) asked for the first real vertical slice</strong>: from the iOS Simulator, drive the SwiftUI UI mock, call the local Laravel API in Docker, write a Player row to the local PostgreSQL 17, receive the JSON response back in SwiftUI, and confirm the row exists in the database. Explicitly out of scope: Guild, ranking, matching, chat, currency, push, AI features, pgvector, production deployment, complex auth, admin console, or any "we'll need this later" abstractions. The AI produced a plan (ID scheme choice, Player fields, API path, branch), the human replied <em>OK GO</em>, and the AI implemented and verified the slice.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Establish the smallest possible end-to-end path so every later game feature can rest on it. Specifically:
+</p>
+<blockquote>
+  iPhone Simulator → SwiftUI → local Laravel API (Docker) → local PostgreSQL → registration → API response → SwiftUI receives the registered identifier → the app persists the identifier so subsequent launches skip registration.
+</blockquote>
+
+<h2>What ships</h2>
+
+<h3>Laravel (9 new + 1 changed)</h3>
+<ul>
+  <li><code>database/migrations/2026_08_15_000001_create_players_table.php</code> — <code>players</code> with a UUID PK, <code>display_name</code>, timestamps.</li>
+  <li><code>database/migrations/2026_08_15_000002_create_zoos_table.php</code> — <code>zoos</code> with a UUID PK, <code>player_id (UUID, UNIQUE, NOT NULL, FK → players ON DELETE CASCADE)</code>, timestamps. The UNIQUE + the controller's <code>DB::transaction(&hellip;)</code> together satisfy <code>docs/ER_MODEL.md §C1</code> (Player 1..1 Zoo, atomic creation).</li>
+  <li><code>app/Models/Player.php</code>, <code>app/Models/Zoo.php</code> — Eloquent with <code>HasUuids</code>; <code>newUniqueId()</code> is overridden to return <code>(string) Str::orderedUuid()</code> so IDs are time-ordered (index-friendly) while remaining non-enumerable when exposed to clients.</li>
+  <li><code>app/Http/Controllers/PlayerController.php</code> — <code>store()</code> wraps <code>Player::create + Zoo::create</code> in <code>DB::transaction</code> and returns <code>201 Created</code>.</li>
+  <li><code>app/Http/Requests/RegisterPlayerRequest.php</code> — validates <code>display_name</code> as <code>required|string|min:2|max:32</code>.</li>
+  <li><code>app/Http/Resources/PlayerResource.php</code>, <code>app/Http/Resources/ZooResource.php</code> — JSON shape.</li>
+  <li><code>tests/Feature/RegisterPlayerTest.php</code> — 7 tests, 33 assertions.</li>
+  <li><code>routes/api.php</code> — adds <code>Route::post('/players', [PlayerController::class, 'store'])->name('api.players.store')</code>.</li>
+</ul>
+
+<h3>iOS (5 new + 5 changed + 1 new plist)</h3>
+<ul>
+  <li><code>apps/ios/WildLive/APIClient.swift</code> — thin <code>URLSession</code> + <code>async/await</code> + <code>Codable</code> wrapper. Base URL from Info.plist key <code>WildLiveAPIBaseURL</code>.</li>
+  <li><code>apps/ios/WildLive/PlayerRegistrationService.swift</code> — <code>PlayerRegistrationServiceProtocol</code> + <code>LivePlayerRegistrationService</code> (real HTTP) + <code>MockPlayerRegistrationService</code> (UI tests).</li>
+  <li><code>apps/ios/WildLive/PlayerSession.swift</code> — <code>UserDefaults</code>-backed store for <code>playerId</code>, <code>displayName</code>, <code>zooId</code>.</li>
+  <li><code>apps/ios/WildLive/RegistrationView.swift</code> — Apple-defaults <code>Form</code> with a <code>TextField("Display name")</code>, a bordered-prominent <code>Register</code> button, a <code>ProgressView</code> while submitting, and a native <code>.alert(...)</code> for errors.</li>
+  <li><code>apps/ios/WildLive/Info.plist</code> — hand-authored: <code>NSAppTransportSecurity → NSAllowsLocalNetworking = true</code> plus <code>WildLiveAPIBaseURL = "http://localhost:8000/api"</code>. Also carries the previously auto-generated launch/scene/orientation keys because those cannot be layered on top of a manual Info.plist.</li>
+  <li><code>apps/ios/WildLive/AppStore.swift</code> — adds <code>registeredSession</code>, <code>isRegistered</code>, <code>register(displayName:)</code>. On init: restores any session from <code>PlayerSession</code>, seeds <code>currentPlayer</code> from that session (empty Zoo for fresh registrations, or the sample seed if there is no session yet).</li>
+  <li><code>apps/ios/WildLive/RootView.swift</code> — post-START gate: <code>if store.isRegistered { HomeView() } else { RegistrationView() }</code>.</li>
+  <li><code>apps/ios/WildLive/WildLiveApp.swift</code> — reads three launch args (<code>--ui-tests-mock-api</code>, <code>--ui-tests-fresh</code>, <code>--ui-tests-preregistered</code>) so tests can control the session and the service without touching the API.</li>
+  <li><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code> — registers the 4 new Swift files and switches the WildLive target from <code>GENERATE_INFOPLIST_FILE = YES</code> to <code>INFOPLIST_FILE = WildLive/Info.plist</code>.</li>
+  <li><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code> — 5 tests: existing 3 keep passing (now via <code>--ui-tests-preregistered</code>), plus a mocked <code>test_firstLaunch_presentsRegistrationThenHome</code>, plus a self-gating <code>test_realAPI_endToEndRegistration</code> that pings <code>/api/health</code> and <code>XCTSkip</code>s if the Laravel API is unreachable.</li>
+</ul>
+
+<h3>Documentation</h3>
+<ul>
+  <li><code>docs/DEVELOPMENT.md</code> — new <em>First-time player registration (end-to-end)</em> section with the exact reproduction steps.</li>
+  <li><code>apps/ios/README.md</code> — Task 010 scope note + runtime dependency block (API base URL, ATS setting, <code>UserDefaults</code> reset).</li>
+  <li>This bilingual report + JA counterpart + a new row at the top of <code>docs/reports/index.html</code>.</li>
+  <li>Task 010 AI session archive at <code>docs/ai-sessions/task-010-player-registration/</code> + a new row at the top of <code>docs/ai-sessions/index.md</code>.</li>
+</ul>
+
+<h2>Design decisions</h2>
+<table>
+  <thead><tr><th>Decision</th><th>Choice</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Player &amp; Zoo primary key</td>
+      <td>UUID (Laravel <code>Str::orderedUuid()</code>)</td>
+      <td>Player IDs will appear in URLs (visit another player's Zoo). Sequential integers leak "how many players joined" and enable enumeration. Time-ordered UUIDs give good B-tree locality without that leak.</td>
+    </tr>
+    <tr>
+      <td>Player fields at MVP</td>
+      <td><code>id</code>, <code>display_name (2..32)</code>, timestamps</td>
+      <td>Matches the minimum required by <code>docs/ER_MODEL.md</code>. Authentication method, email, handle, and public identity are still <em>TBD</em> — those are separate future tasks and additive migrations.</td>
+    </tr>
+    <tr>
+      <td>Player + Zoo atomicity</td>
+      <td><code>DB::transaction</code> + <code>UNIQUE(zoos.player_id) NOT NULL</code></td>
+      <td>ER_MODEL C1 requires atomic creation. Both the tx and the unique constraint are needed — the tx protects against partial writes, the constraint protects against future callers.</td>
+    </tr>
+    <tr>
+      <td>iOS network stack</td>
+      <td><code>URLSession.shared</code> + <code>async/await</code> + <code>Codable</code></td>
+      <td>Apple defaults. No third-party HTTP library.</td>
+    </tr>
+    <tr>
+      <td>iOS persistence of the session</td>
+      <td><code>UserDefaults</code></td>
+      <td>There is no auth token to protect yet. <code>PlayerSession</code> is the single class to swap when Keychain / OAuth arrives.</td>
+    </tr>
+    <tr>
+      <td>Info.plist</td>
+      <td>Hand-authored file, replaces <code>GENERATE_INFOPLIST_FILE = YES</code></td>
+      <td>Nested keys under <code>NSAppTransportSecurity</code> can't be set through <code>INFOPLIST_KEY_*</code> build settings. The hand-authored plist keeps every previously auto-generated key so behaviour is unchanged, plus adds ATS and the API base URL.</td>
+    </tr>
+    <tr>
+      <td>ATS scope</td>
+      <td><code>NSAllowsLocalNetworking = true</code></td>
+      <td>Simulator needs to reach <code>http://localhost:8000</code>. This key is strictly narrower than <code>NSAllowsArbitraryLoads</code> — only <code>localhost</code>, <code>*.local</code>, and unqualified hostnames are permitted.</td>
+    </tr>
+    <tr>
+      <td>Idempotency on POST</td>
+      <td>Not adding an <code>Idempotency-Key</code> header for now</td>
+      <td>The scope is registration only, which is not naturally idempotent (each call is meant to create a new player). Idempotency keys become important once we start creating Expeditions and financial motion, and belong to that task.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Live verification</h2>
+<p>All results below are from actual commands, not inferred from configuration.</p>
+
+<h3>Laravel side</h3>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker compose up -d</code></td><td>network + postgres + app came up healthy</td></tr>
+    <tr><td><code>curl -s http://localhost:8000/api/health</code></td><td><code>{"status":"ok","checks":{"app":"ok","database":{"ok":true,"connection":"pgsql","error":null}}}</code></td></tr>
+    <tr><td><code>docker compose exec app php artisan migrate</code></td><td><code>2026_08_15_000001_create_players_table ..... DONE</code><br><code>2026_08_15_000002_create_zoos_table ....... DONE</code></td></tr>
+    <tr>
+      <td><code>docker compose exec app vendor/bin/phpunit --testdox</code></td>
+      <td>
+        <strong>OK (12 tests, 46 assertions)</strong>. New tests:
+        <ul>
+          <li><code>Registration creates player and zoo and returns 201</code></li>
+          <li><code>Registration trims whitespace in display name</code></li>
+          <li><code>Missing display name returns 422</code></li>
+          <li><code>Short display name returns 422</code></li>
+          <li><code>Long display name returns 422</code></li>
+          <li><code>Player id is a uuid</code></li>
+          <li><code>Two registrations produce two distinct players each with own zoo</code></li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><code>curl -sSi -X POST /api/players -d '{"display_name":"CurlTest"}'</code></td>
+      <td>
+        <code>HTTP/1.1 201 Created</code><br>
+        <code>{"player":{"id":"a281c451-64a7-4be0-9a71-71d9792337dd","display_name":"CurlTest","created_at":"2026-08-15T08:24:41.000000Z"},"zoo":{"id":"a281c451-669f-41a0-935c-b96af8883b84","created_at":"2026-08-15T08:24:41.000000Z"}}</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>SELECT id, display_name, created_at FROM players;</code></td>
+      <td><code>a281c451-64a7-4be0-9a71-71d9792337dd | CurlTest | 2026-08-15 08:24:41</code></td>
+    </tr>
+    <tr>
+      <td><code>SELECT id, player_id, created_at FROM zoos;</code></td>
+      <td><code>a281c451-669f-41a0-935c-b96af8883b84 | a281c451-64a7-4be0-9a71-71d9792337dd | 2026-08-15 08:24:41</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>iOS side</h3>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild &hellip; build</code></td><td><strong><code>** BUILD SUCCEEDED **</code></strong></td></tr>
+    <tr>
+      <td><code>xcodebuild &hellip; test</code> (full UI suite)</td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>. 5/5 pass:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — 5.529 s</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — 5.136 s</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — 15.428 s</li>
+          <li><code>test_firstLaunch_presentsRegistrationThenHome</code> — 9.395 s (mocked service)</li>
+          <li><code>test_realAPI_endToEndRegistration</code> — 8.558 s (<strong>real Laravel + real PostgreSQL</strong>)</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>DB row created by the Simulator during <code>test_realAPI_endToEndRegistration</code></td>
+      <td>
+        <code>player_id = a281c79c-e381-4a1b-9c12-c11eef33ae9b</code>,
+        <code>display_name = E2ETestFromSimulator</code>,
+        <code>zoo_id = a281c79c-e446-4fa6-85d9-a577f3c850e5</code>,
+        <code>zoo.player_id = a281c79c-e381-4a1b-9c12-c11eef33ae9b</code> — matches player, C1 invariant holds.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Files added / changed</h2>
+<table>
+  <thead><tr><th>Path</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td><code>database/migrations/2026_08_15_000001_create_players_table.php</code></td><td>added</td></tr>
+    <tr><td><code>database/migrations/2026_08_15_000002_create_zoos_table.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Models/Player.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Models/Zoo.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Http/Controllers/PlayerController.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Http/Requests/RegisterPlayerRequest.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Http/Resources/PlayerResource.php</code></td><td>added</td></tr>
+    <tr><td><code>app/Http/Resources/ZooResource.php</code></td><td>added</td></tr>
+    <tr><td><code>tests/Feature/RegisterPlayerTest.php</code></td><td>added</td></tr>
+    <tr><td><code>routes/api.php</code></td><td>modified — 1 new route</td></tr>
+    <tr><td><code>apps/ios/WildLive/APIClient.swift</code></td><td>added</td></tr>
+    <tr><td><code>apps/ios/WildLive/PlayerRegistrationService.swift</code></td><td>added</td></tr>
+    <tr><td><code>apps/ios/WildLive/PlayerSession.swift</code></td><td>added</td></tr>
+    <tr><td><code>apps/ios/WildLive/RegistrationView.swift</code></td><td>added</td></tr>
+    <tr><td><code>apps/ios/WildLive/Info.plist</code></td><td>added (hand-authored, replaces auto-generation)</td></tr>
+    <tr><td><code>apps/ios/WildLive/AppStore.swift</code></td><td>modified — session restore, register()</td></tr>
+    <tr><td><code>apps/ios/WildLive/RootView.swift</code></td><td>modified — post-START registration gate</td></tr>
+    <tr><td><code>apps/ios/WildLive/WildLiveApp.swift</code></td><td>modified — launch-arg-driven service selection</td></tr>
+    <tr><td><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code></td><td>modified — 4 sources + INFOPLIST_FILE + drop GENERATE_INFOPLIST_FILE + drop INFOPLIST_KEY_* keys</td></tr>
+    <tr><td><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code></td><td>modified — 5 tests (was 3), incl. self-gating real-API E2E</td></tr>
+    <tr><td><code>apps/ios/README.md</code></td><td>modified — Task 010 scope + runtime deps</td></tr>
+    <tr><td><code>docs/DEVELOPMENT.md</code></td><td>modified — First-time player registration (end-to-end) section</td></tr>
+  </tbody>
+</table>
+
+<h2>Deliberate non-goals (still in force)</h2>
+<ul>
+  <li>No authentication of any kind. No password, no email verification, no OAuth, no JWT, no session cookie. <code>display_name</code> is not unique — enforcing uniqueness before auth would just push the collision problem into a place with no recovery UI.</li>
+  <li>No other domain tables (Hunter, Species, Region, Expedition, Animal, HunterContract, SeasonalEvent) and no currency. The rest of the app still runs against the same in-memory dummy data as Task 009.</li>
+  <li>No pgvector usage.</li>
+  <li>No production deployment, no touch of the production PostgreSQL, no CI change for iOS. This task ran entirely on the local Mac.</li>
+  <li>No <code>Idempotency-Key</code> plumbing — see the design table.</li>
+  <li>No RevenueCat SDK, no push notifications, no analytics.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<ul>
+  <li>Branch: <code>ai/014-player-registration</code>. Forked from <code>ai/013-ios-ui-prototype</code>. This stacks on Task 008's <a href="https://github.com/sugie/wildlive/pull/12">PR #12</a> (still open) and Task 009 (this repository's Iteration 2 of the UI prototype, not yet PRed). Once PR #12 lands and Task 009 is PRed and merged, this branch will re-target <code>main</code> automatically.</li>
+  <li>Base commit: <code>c20e8bd</code> (head of <code>ai/013-ios-ui-prototype</code> at fork time).</li>
+</ul>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <strong>not yet opened.</strong> The next step is a human walk-through of the Simulator + `psql`. Push / PR / merge is not authorised yet.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>The <code>test_realAPI_endToEndRegistration</code> test writes real rows to the local <code>wildlive</code> database and does not clean up after itself. The developer is expected to <code>TRUNCATE zoos, players CASCADE;</code> between runs. The pre-existing PHPUnit suite uses <code>RefreshDatabase</code> against <code>wildlive_test</code> and is unaffected.</li>
+  <li>Error messages surfaced from a failed <code>POST</code> currently include the raw response body prefix (up to 200 chars). Fine for now; when we add real API error shapes we should decode <code>errors.display_name[0]</code> and surface that inline on the form.</li>
+  <li>The app currently ignores <code>server_created_at</code> once the session exists — the seeded <code>Player</code> also carries a placeholder <code>gBalance = 1_200</code> and no animals until server-side domain endpoints arrive. This is deliberate; Task 010's scope was registration only.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No push, no PR, no merge before the human's review.</li>
+  <li>No X manifest — same policy the earlier UI-only iterations followed while under active human UI review.</li>
+  <li>No production infrastructure change of any kind.</li>
+  <li>No new third-party dependency (no Composer package added, no Swift Package).</li>
+  <li>No secret, credential, token, cookie, or <code>.env</code> value appears in this record.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Human plays the vertical slice end-to-end and decides the next real endpoint.</strong> Natural follow-ups: (a) <code>GET /api/players/{id}</code> to hydrate the Home dashboard from the server on subsequent launches; (b) start replacing the Hunter/Region/Expedition mocks with real endpoints; (c) add an authentication scheme so <code>display_name</code> can be unique and account recovery exists. Do not adopt any of those on your own — this report does not authorise that.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-15 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

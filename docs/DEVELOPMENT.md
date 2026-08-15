@@ -65,6 +65,75 @@ The suite intentionally avoids SQLite so that PostgreSQL-specific
 behaviour (types, transactions, constraints used by World First
 and expedition resolution) is exercised in tests.
 
+## First-time player registration (end-to-end)
+
+Milestone 002 (Task 010) added the first real vertical slice: the iOS
+Simulator hits the local Laravel API which writes a row to the local
+PostgreSQL. To reproduce the flow from a fresh checkout:
+
+```bash
+# 1. Start the local stack and run migrations.
+docker compose up -d
+docker compose exec app php artisan migrate
+
+# 2. Confirm the API is healthy and the table exists.
+curl -s http://localhost:8000/api/health
+docker compose exec postgres psql -U wildlive -d wildlive \
+  -c "\dt players; \dt zoos;"
+
+# 3. Smoke-test the endpoint from your Mac (bypassing the app).
+curl -sSi -X POST http://localhost:8000/api/players \
+  -H 'Content-Type: application/json' \
+  -d '{"display_name":"CurlTest"}'
+# → HTTP/1.1 201 Created + {"player": {...}, "zoo": {...}}
+
+# 4. Confirm the row landed.
+docker compose exec postgres psql -U wildlive -d wildlive \
+  -c "SELECT id, display_name, created_at FROM players ORDER BY created_at DESC LIMIT 5;"
+
+# 5. Run the Laravel Feature suite (12 tests / 46 assertions).
+docker compose exec app vendor/bin/phpunit --testdox
+
+# 6. Reset before driving the app so the DB starts clean.
+docker compose exec postgres psql -U wildlive -d wildlive \
+  -c "TRUNCATE zoos, players CASCADE;"
+
+# 7. Build + install the iOS app (see apps/ios/README.md for the full
+#    xcodebuild command). Then launch on a fresh install:
+xcrun simctl boot 'iPhone 17' ; open -a Simulator
+xcrun simctl uninstall booted dev.wildlive.WildLive   # wipe UserDefaults
+xcrun simctl install booted \
+  apps/ios/build/Build/Products/Debug-iphonesimulator/WildLive.app
+xcrun simctl launch booted dev.wildlive.WildLive
+
+# 8. In the Simulator: tap Start → type a display name → tap Register.
+#    The app shows the Home dashboard.
+
+# 9. Confirm the row the Simulator just created.
+docker compose exec postgres psql -U wildlive -d wildlive \
+  -c "SELECT id, display_name, created_at FROM players ORDER BY created_at DESC LIMIT 1;"
+```
+
+To automate step 8+9 with the shipped UI test:
+
+```bash
+cd apps/ios
+xcodebuild -project WildLive.xcodeproj -scheme WildLive \
+  -configuration Debug -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' \
+  -derivedDataPath build \
+  -only-testing:'WildLiveUITests/WildLiveUITests/test_realAPI_endToEndRegistration' \
+  test
+# The test self-gates: it will XCTSkip if http://localhost:8000/api/health
+# is not reachable, so it never fails a fresh CI checkout.
+```
+
+`http://localhost` from the Simulator works because the iOS app's
+`Info.plist` sets `NSAppTransportSecurity.NSAllowsLocalNetworking = true`.
+The API base URL is read from the Info.plist key `WildLiveAPIBaseURL`
+(default `http://localhost:8000/api`), so a tester can point the app at
+a different host without a rebuild.
+
 ## Common tasks
 
 ```bash
