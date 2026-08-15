@@ -189,6 +189,49 @@
   <li>Swift Package を含むサードパーティ依存の新規追加、無し。</li>
 </ul>
 
+<h2>反復 2 — Apple SwiftUI デフォルトへ（初回レビュー後）</h2>
+<p>
+  反復 1 を見た人間から、アプリ全体を Apple の素の SwiftUI 見た目 — 「SwiftUI デフォルトの青っぽいやつ」 — に書き直すよう指示があった。理由は Apple が実際に出している SwiftUI への敬意: 「AppleがSwiftUIを命懸けでこのUI作ってるわけじゃない　それに敬意を払ってAppleのSwiftUIでこのワイルドライブを再現してみたい」。反復 2 はコミット <code>4b7df48</code> として着地。
+</p>
+<h3>ビジュアル言語の切り替え</h3>
+<ul>
+  <li>全画面を <code>List</code> / <code>Form</code> / <code>Section</code> / <code>LabeledContent</code> / <code>NavigationLink(value:)</code> / <code>Label(_, systemImage:)</code> で組み直し。</li>
+  <li>主要アクションは <code>.buttonStyle(.borderedProminent)</code> + <code>.controlSize(.large)</code>、副次ボタンは <code>.bordered</code>、破壊的操作は <code>role: .destructive</code>。</li>
+  <li>購入確認は SwiftUI 標準の <code>.alert(&hellip;, presenting:)</code>、カウントダウンと遠征ステートバッジは SF Symbol とシステム意味色（<code>.tint</code>、<code>.secondary</code>、<code>.red</code>）に統一。</li>
+  <li>ダークグラデーション背景、独自の <code>.card()</code> モディファイア、<code>.preferredColorScheme(.dark)</code>、<code>.toolbarBackground</code> のオーバーライド、独自 hex 色をすべて削除。</li>
+  <li><code>Theme.swift</code> は <code>SpeciesRarity.systemColor</code> と <code>Region.Difficulty.systemColor</code> だけ残した — ここでの色は情報（レア度／難度）を運んでおり装飾ではないため。</li>
+  <li><code>TitleView</code>: 白背景 + システムタイポグラフィ + システムブルーの <code>.borderedProminent</code> <strong>Start</strong> ボタン。<code>RootView</code> はカラースキームを強制しない — アプリはシステム設定に追従。</li>
+</ul>
+<h3>テスト／ビルド再検証</h3>
+<table>
+  <thead><tr><th>チェック</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild &hellip; build</code></td><td><strong><code>** BUILD SUCCEEDED **</code></strong></td></tr>
+    <tr>
+      <td><code>xcodebuild &hellip; test</code></td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>。UI テスト 3/3 成功:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — 6.154 秒</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — 6.576 秒</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — 17.484 秒</li>
+        </ul>
+      </td>
+    </tr>
+    <tr><td>再構築後のシミュレーター起動</td><td>PID <strong>12681</strong>、起動直後クラッシュなし。タイトルスクリーンショットを <code>/tmp/wl_apple_title.png</code> に保存し人間がインラインで確認（白背景、黒のシステムフォント「WildLive」、グレーの大文字化「AI MADE LIVE MMO」サブタイトル、下部にフル幅ブルー「Start」ボタン）。</td></tr>
+  </tbody>
+</table>
+<h3>アクセシビリティ ID は温存</h3>
+<p>
+  UI テストが参照する識別子は意図的にすべて維持した — <code>startButton</code>、<code>buyGButton</code>、<code>navMyZoo</code>、<code>navOtherZoos</code>、<code>navGuild</code>、<code>navExpeditions</code>、<code>navStore</code>、<code>myZooView</code>、<code>guildView</code>、<code>expeditionsView</code>、<code>regionPickerView</code>、<code>gStoreView</code>、<code>contractButton_&lt;id&gt;</code>、<code>chooseRegionButton</code>、<code>regionRow_&lt;id&gt;</code>、<code>dispatchButton</code>、<code>goToExpeditionsButton</code>、<code>addToZooButton</code>、<code>releaseButton</code>、<code>nicknameField</code>、<code>confirmAddToZooButton</code>、<code>buyButton_&lt;bundle-id&gt;</code>、<code>expeditionRow_&lt;prefix&gt;</code>、<code>zooRow_&lt;player-id&gt;</code> — およびナビゲーションタイトル（<code>WildLive</code>、<code>My Zoo</code>、<code>Guild</code>、<code>Buy G</code>、<code>Expeditions</code>、<code>Other Zoos</code>、<code>Region</code>、<code>Dispatch</code>、<code>Expedition</code>、<code>Name your Animal</code>、<code>Visiting</code>、<code>Animal</code>）も同じ。既存スイートはそのまま通る。
+</p>
+<h3>反復 2 の差分</h3>
+<ul>
+  <li>変更ファイル: 16 本（View 15 + <code>apps/ios/README.md</code>）。+718 / −1,132 — Apple デフォルトの書き直しは、置き換えた独自スタイル版より実際に <em>小さい</em>。</li>
+  <li>コミット: <code>4b7df48</code> — <em>refactor(ios): redraw UI prototype against Apple SwiftUI defaults</em>。</li>
+  <li><code>AppStore</code>、<code>Route</code>、<code>Domain</code>、<code>SampleData</code>、<code>MockGameService</code>、<code>MockGStoreService</code>、<code>project.pbxproj</code> は無変更。サービス／データ層は触っておらず、プレゼンテーション層だけを差し替えた。</li>
+</ul>
+
 <h2>次に推奨するタスク</h2>
 <p>
   <strong>人間がシミュレーターでプロトタイプを実際にプレイし、進める前に何を変えるかを判定する</strong> — 画面構成、情報密度、文言、足りない画面（設定、イベント、ランキング詳細）、雰囲気など。人間がこのビルドを一巡するまでは、サーバー側実装への着手やモックサービスの本物化に進んではならない。本レポートはそれを認可しない。

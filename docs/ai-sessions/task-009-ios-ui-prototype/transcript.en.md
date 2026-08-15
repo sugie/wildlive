@@ -190,9 +190,79 @@ Result: `OK`.
 - No new third-party dependency (Swift Package or otherwise).
 - No secret, credential, token, cookie, `.env` value, or GitHub Secret value appears in this record.
 
+## Turn — Human (follow-up)
+
+After Iteration 1 landed, the human replied (Japanese):
+
+> よく言えば、このブラック基調のUI できればSwiftUIのデフォルトの青っぽいやつに変えて欲しい なぜかというとAppleがSwiftUIを命懸けでこのUI作ってるわけじゃない それに敬意を払ってAppleのSwiftUIでこのワイルドライブを再現してみたいちょっと作り変えてもらえるかな
+
+Faithful English translation:
+
+> Nicely put — this black-based UI, if possible, I'd like changed to the SwiftUI-default blue-ish one. Reason being: it's not that Apple built this SwiftUI UI casually — out of respect for that, I want to recreate this WildLive in Apple's SwiftUI. Could you rework it a bit?
+
+## Turn — AI (Iteration 2 — Apple SwiftUI defaults)
+
+The AI announced the plan: redraw every view against Apple's stock SwiftUI (`List` / `Form` / `Section` / `LabeledContent` / `NavigationLink(value:)` / `Label(_, systemImage:)`, `.buttonStyle(.borderedProminent)`, `.tint`), drop the bespoke dark theme and card modifier, keep only rarity + difficulty colours because they carry real information, and preserve every accessibility identifier so the existing UI test suite keeps running.
+
+### Files rewritten
+
+- `TitleView.swift` — white background + system typography + full-width `.borderedProminent` blue **Start** button. No gradient, no forced colour scheme.
+- `RootView.swift` — drops `.preferredColorScheme(.dark)`; follows the system.
+- `HomeView.swift` — one `List` with four sections (`Zookeeper`, `Expeditions`, top-level navigation, sign-out). `LabeledContent` for scalar stats. `NavigationLink(value:)` + `Label(_, systemImage:)` for the navigation rows.
+- `MyZooView.swift` — `List` with a stats section and an "Your Animals" section of `AnimalRow`s. `AnimalRow` is a lightweight leading-rarity-dot + name + species + trait chip + value.
+- `OtherZoosView.swift` — `List` with a "Ranking" section; each row is a `NavigationLink(value: .visitZoo(&hellip;))` containing rank, display name, count, and Zoo Value.
+- `VisitZooView.swift` — read-only List rendering of another player's Zoo (`AnimalRow` re-used, no NavigationLink).
+- `AnimalDetailView.swift` — `Form` with `Identity`, `Rarity & Traits`, `About the species`, `Provenance` sections, all `LabeledContent`.
+- `GuildView.swift` — `List` with intro footer, contracted-hunter action section, and hunter rows. Contract button uses `.buttonStyle(.borderedProminent)`; release uses `role: .destructive`.
+- `RegionPickerView.swift` — `List` with a "Dispatching" section and a "Regions" section of `NavigationLink` rows. Difficulty label coloured by `Region.Difficulty.systemColor`.
+- `DispatchConfirmView.swift` — `Form` with `Hunter`, `Region`, `Possible species`, action sections. Dispatch uses `.borderedProminent`; after dispatch, a `Go to Expeditions` link.
+- `ExpeditionsView.swift` — `List` with `Ongoing`, `Awaiting your decision`, `Resolved` sections. Auto-resolve in `onAppear`; each row is a `NavigationLink` and shows a state badge + trailing text (countdown / label / status).
+- `ExpeditionResultView.swift` — `Form` with summary and per-state sections. `.captured` branches into a species-and-trait section plus an `Add to Zoo` / `Release` action section.
+- `CaptureNameView.swift` — `Form` with captured summary section, a `TextField("Nickname (optional)")` with an initial-focus, and action buttons (`.borderedProminent` primary, destructive Release).
+- `GStoreView.swift` — `List` with `Balance`, `Buy G`, and a disclaimer section. Per-bundle purchase uses `.buttonStyle(.bordered)`; the confirmation modal is replaced by a native `.alert("Thanks!", isPresented:, presenting:) { … } message: { … }`.
+- `Theme.swift` — reduced to two extensions: `SpeciesRarity.systemColor` and `Region.Difficulty.systemColor`. All other tokens deleted.
+- `apps/ios/README.md` — noted the Iteration 2 visual language shift.
+
+### Command — build
+
+    xcodebuild -project WildLive.xcodeproj -scheme WildLive \
+      -configuration Debug -sdk iphonesimulator \
+      -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' \
+      -derivedDataPath build build
+    # → ** BUILD SUCCEEDED **
+
+### Command — test
+
+    xcodebuild -project WildLive.xcodeproj -scheme WildLive \
+      -configuration Debug -sdk iphonesimulator \
+      -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' \
+      -derivedDataPath build test
+    # Test case 'WildLiveUITests.test_homeNavigationCards_pushDestinations()' passed  (17.484 seconds)
+    # Test case 'WildLiveUITests.test_startAdvancesToHomeDashboard()' passed          (6.576 seconds)
+    # Test case 'WildLiveUITests.test_titleScreen_showsBrandingAndTappableStartButton()' passed (6.154 seconds)
+    # ** TEST SUCCEEDED **
+
+3/3 tests pass unchanged. Accessibility identifiers and navigation titles were preserved so the same suite still applied.
+
+### Command — screenshot
+
+    xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/WildLive.app
+    xcrun simctl launch booted dev.wildlive.WildLive
+    # → dev.wildlive.WildLive: 12681
+    xcrun simctl io booted screenshot /tmp/wl_apple_title.png
+    # Wrote screenshot to: /tmp/wl_apple_title.png
+
+The AI displayed the title screenshot inline: white background, black system-serif-free `WildLive` heading, muted grey uppercased `AI MADE LIVE MMO` subtitle, and a full-width system-blue `Start` button at the bottom. Not committed to the repository.
+
+### Command — commit
+
+    git add apps/ios/WildLive/ apps/ios/README.md
+    git commit -m "refactor(ios): redraw UI prototype against Apple SwiftUI defaults ..."
+    # → [ai/013-ios-ui-prototype 4b7df48] 16 files changed, +718 / -1,132
+
 ## End state
 
-- Branch `ai/013-ios-ui-prototype` at commit `73f0a28` (code) + one follow-up commit for this governance package.
-- Working tree clean after those commits.
-- Simulator holds a running Task 009 build with a title screen; PID and Simulator state as recorded above.
-- Awaiting the human's manual playthrough and next instruction.
+- Branch `ai/013-ios-ui-prototype` at commit `4b7df48` (Iteration 2, Apple SwiftUI defaults), on top of `73f0a28` (Iteration 1 code) and `a535d94` (governance for Iteration 1), on top of `17bfb8b` (Task 008 head).
+- Working tree clean after that commit + one docs commit appending this Iteration 2 record to the report and this transcript.
+- Simulator holds a running Task 009 build in the new Apple-default look; PID and Simulator state as recorded above.
+- Awaiting the human's manual playthrough of Iteration 2 and next instruction.

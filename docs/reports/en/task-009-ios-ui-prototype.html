@@ -189,6 +189,49 @@
   <li>No new third-party dependency of any kind (Swift Package or otherwise).</li>
 </ul>
 
+<h2>Iteration 2 — Apple SwiftUI defaults (post-first-review)</h2>
+<p>
+  After looking at Iteration 1, the human asked for the whole app to be re-rendered against Apple's stock SwiftUI look — the "SwiftUI-default blue-ish" appearance — as a form of respect for the framework Apple actually shipped: <em>「AppleがSwiftUIを命懸けでこのUI作ってるわけじゃない　それに敬意を払ってAppleのSwiftUIでこのワイルドライブを再現してみたい」</em>. Iteration 2 lands as commit <code>4b7df48</code>.
+</p>
+<h3>Visual language shift</h3>
+<ul>
+  <li>Every screen is now built from <code>List</code> / <code>Form</code> / <code>Section</code> / <code>LabeledContent</code> / <code>NavigationLink(value:)</code> / <code>Label(_, systemImage:)</code>.</li>
+  <li>Primary calls-to-action use <code>.buttonStyle(.borderedProminent)</code> with <code>.controlSize(.large)</code>; secondary buttons use <code>.bordered</code>; destructive actions use <code>role: .destructive</code>.</li>
+  <li>Purchase confirmation is now a native <code>.alert(&hellip;, presenting:)</code>; countdown and expedition-state badges use SF Symbols and system semantic colours (<code>.tint</code>, <code>.secondary</code>, <code>.red</code>).</li>
+  <li>Removed the dark-gradient background, the bespoke <code>.card()</code> view modifier, <code>.preferredColorScheme(.dark)</code>, <code>.toolbarBackground</code> overrides, and every custom hex colour.</li>
+  <li><code>Theme.swift</code> keeps only <code>SpeciesRarity.systemColor</code> and <code>Region.Difficulty.systemColor</code> — colour there carries real information (tier / difficulty), not decoration.</li>
+  <li><code>TitleView</code>: white background + system typography + a system-blue <code>.borderedProminent</code> <strong>Start</strong> button. <code>RootView</code> no longer forces a colour scheme — the app follows the system.</li>
+</ul>
+<h3>Test / build re-verification</h3>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild &hellip; build</code></td><td><strong><code>** BUILD SUCCEEDED **</code></strong></td></tr>
+    <tr>
+      <td><code>xcodebuild &hellip; test</code></td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>. 3/3 UI tests pass:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — 6.154 s</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — 6.576 s</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — 17.484 s</li>
+        </ul>
+      </td>
+    </tr>
+    <tr><td>Simulator launch after refactor</td><td>PID <strong>12681</strong>, no launch crash. Title screenshot saved to <code>/tmp/wl_apple_title.png</code>; human reviewed inline (white background, black system serif-free "WildLive", muted grey uppercased "AI MADE LIVE MMO" subtitle, full-width blue "Start" button).</td></tr>
+  </tbody>
+</table>
+<h3>Accessibility identifiers preserved</h3>
+<p>
+  The refactor deliberately kept every accessibility identifier the UI test suite queries — <code>startButton</code>, <code>buyGButton</code>, <code>navMyZoo</code>, <code>navOtherZoos</code>, <code>navGuild</code>, <code>navExpeditions</code>, <code>navStore</code>, <code>myZooView</code>, <code>guildView</code>, <code>expeditionsView</code>, <code>regionPickerView</code>, <code>gStoreView</code>, <code>contractButton_&lt;id&gt;</code>, <code>chooseRegionButton</code>, <code>regionRow_&lt;id&gt;</code>, <code>dispatchButton</code>, <code>goToExpeditionsButton</code>, <code>addToZooButton</code>, <code>releaseButton</code>, <code>nicknameField</code>, <code>confirmAddToZooButton</code>, <code>buyButton_&lt;bundle-id&gt;</code>, <code>expeditionRow_&lt;prefix&gt;</code>, <code>zooRow_&lt;player-id&gt;</code> — plus navigation titles (<code>WildLive</code>, <code>My Zoo</code>, <code>Guild</code>, <code>Buy G</code>, <code>Expeditions</code>, <code>Other Zoos</code>, <code>Region</code>, <code>Dispatch</code>, <code>Expedition</code>, <code>Name your Animal</code>, <code>Visiting</code>, <code>Animal</code>) so the same suite runs unchanged.
+</p>
+<h3>Iteration 2 delta</h3>
+<ul>
+  <li>Files changed: 16 (15 views + <code>apps/ios/README.md</code>). Insertions +718, deletions −1,132 — the Apple-default rewrite is materially <em>smaller</em> than the bespoke-styled version it replaces.</li>
+  <li>Commit: <code>4b7df48</code> — <em>refactor(ios): redraw UI prototype against Apple SwiftUI defaults</em>.</li>
+  <li>No changes to <code>AppStore</code>, <code>Route</code>, <code>Domain</code>, <code>SampleData</code>, <code>MockGameService</code>, <code>MockGStoreService</code>, or <code>project.pbxproj</code>. The service and data layers were untouched; only the presentation layer changed.</li>
+</ul>
+
 <h2>Next Recommended Task</h2>
 <p>
   <strong>Human plays the prototype in the Simulator</strong> and decides what should change before we go any further — screen composition, information density, wording, missing screens (settings, event, ranking detail), tone. Do not implement server-side pieces or replace the mock services until the human has walked through this build. This report does not authorise that.
