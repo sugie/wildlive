@@ -203,6 +203,33 @@ final class InMemoryPlayerRepository implements PlayerRepository
         $player = new Player();
         $player->id = 'test-player-' . count($this->createdDisplayNames);
         $player->display_name = $displayName;
+        $this->players[$player->id] = $player;
+        return $player;
+    }
+
+    // -- Added with the expedition slice ------------------------------------
+    //
+    // RegisterPlayer never calls these; they exist so this double still
+    // satisfies the PlayerRepository contract, which grew lookup and
+    // balance methods for StartExpedition.
+
+    /** @var array<string, Player> */
+    private array $players = [];
+
+    public function find(string $playerId): ?Player
+    {
+        return $this->players[$playerId] ?? null;
+    }
+
+    public function findForUpdate(string $playerId): ?Player
+    {
+        return $this->find($playerId);
+    }
+
+    public function adjustBalance(Player $player, int $deltaG): Player
+    {
+        $player->g_balance = (int) $player->g_balance + $deltaG;
+
         return $player;
     }
 }

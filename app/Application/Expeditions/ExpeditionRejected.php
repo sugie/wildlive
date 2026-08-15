@@ -30,20 +30,25 @@ final class ExpeditionRejected extends RuntimeException
     public const EMPTY_SPAWN_TABLE = 'empty_spawn_table';
     public const DEV_RESOLVE_NOT_ALLOWED = 'dev_instant_resolve_not_allowed';
 
+    /**
+     * Named `errorCode`, not `code`: \Exception already declares a
+     * non-readonly int $code, and redeclaring it as a readonly string is a
+     * fatal error. The accessor below is what callers use.
+     */
     private function __construct(
-        private readonly string $code,
+        private readonly string $errorCode,
         string $message,
     ) {
         parent::__construct($message);
     }
 
-    public static function because(string $code, string $message): self
+    public static function because(string $errorCode, string $message): self
     {
-        return new self($code, $message);
+        return new self($errorCode, $message);
     }
 
     public function code(): string
     {
-        return $this->code;
+        return $this->errorCode;
     }
 }
