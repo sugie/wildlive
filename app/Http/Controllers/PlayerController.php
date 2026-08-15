@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Application\Players\RegisterPlayer;
 use App\Application\Players\RegisterPlayerInput;
+use App\Application\Players\ViewPlayerProfile;
 use App\Http\Requests\RegisterPlayerRequest;
+use App\Http\Resources\PlayerOverviewResource;
 use App\Http\Resources\PlayerResource;
 use App\Http\Resources\ZooResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Presentation Layer entry point for player registration.
@@ -26,6 +29,7 @@ final class PlayerController extends Controller
 {
     public function __construct(
         private readonly RegisterPlayer $registerPlayer,
+        private readonly ViewPlayerProfile $profile,
     ) {
     }
 
@@ -41,5 +45,22 @@ final class PlayerController extends Controller
             'player' => (new PlayerResource($result->player))->toArray($request),
             'zoo' => (new ZooResource($result->zoo))->toArray($request),
         ], 201);
+    }
+
+    /**
+     * The signed-in player's own snapshot: balance, Zoo size and value,
+     * and how many expeditions need attention.
+     *
+     * Added for the expedition vertical slice. POST /api/players is
+     * unchanged — its response only gained a `g_balance` field, which
+     * existing clients ignore.
+     */
+    public function show(Request $request, string $playerId): JsonResponse
+    {
+        $overview = $this->profile->overview($playerId);
+
+        return response()->json(
+            (new PlayerOverviewResource($overview))->toArray($request)
+        );
     }
 }
