@@ -17,7 +17,20 @@ docs/game-design/
 └── build_master_v0_3.py                             (v0.3 builder)
 ```
 
-Each builder is the source of truth for its version. When a human edits the xlsx, the edit lives only in the xlsx until an AI (on human instruction) mirrors it back into the Python source. Regenerating the xlsx from the builder always reproduces the same bytes given the same inputs.
+Each builder is the source of truth for its version. When a human edits the xlsx, the edit lives only in the xlsx until an AI (on human instruction) mirrors it back into the Python source.
+
+### Reproducibility
+
+Regenerating an xlsx from its builder produces **byte-identical output** across runs and across machines (same Python + openpyxl + source). The builders normalise the two run-varying pieces openpyxl adds by default:
+
+- `docProps/core.xml` — `dcterms:created` / `dcterms:modified` are rewritten to a fixed canonical timestamp (`2000-01-01T00:00:00Z`).
+- ZIP entry `date_time` — every part is re-packed with the same canonical timestamp, in alphabetically-sorted entry order.
+
+Cell values, formulas, IDs, FK relations — the actual game data — are not touched by that normalisation. Only the OOXML packaging metadata is canonicalised.
+
+`sha256sum` of a freshly regenerated file will match `sha256sum` of the committed file on the same commit. If it does not, either (a) the builder source was edited, (b) the xlsx was edited in Excel and not mirrored back, or (c) the environment (openpyxl version) drifted.
+
+The v0.1 / v0.2 / v0.3 workbooks that were originally committed at [`748ff99`, `59d6d66`, `3e35974`] used openpyxl's default (non-deterministic) save path and therefore had wall-clock timestamps baked in. The subsequent maintenance commit ("`chore(game): make master workbook generation byte-deterministic`") re-emitted all three from the same design source under the new deterministic save — game data unchanged, only packaging metadata normalised. The pre-normalisation bytes are still recoverable from git history for anyone auditing the paper trail.
 
 ## Regenerate
 
@@ -32,7 +45,7 @@ python3 docs/game-design/build_master_v0_2.py
 python3 docs/game-design/build_master_v0_1.py
 ```
 
-Prerequisite: `pip install openpyxl`. All scripts run validation before writing and refuse to write if anything is broken.
+Prerequisite: `pip install openpyxl` (tested against openpyxl 3.1.5). All scripts run validation before writing and refuse to write if anything is broken.
 
 ---
 
@@ -109,7 +122,7 @@ Human + ChatGPT reviewed v0.2 and asked for a focused set of refinements to the 
 
 ## v0.2 — Historical baseline
 
-**Kept unchanged for the paper trail.** v0.2 was the first Africa-first draft (see design pivots below). v0.3 refines fauna and Hunter roster on top; the design pivots recorded here still hold.
+**Game data kept unchanged for the paper trail.** v0.2 was the first Africa-first draft (see design pivots below). v0.3 refines fauna and Hunter roster on top; the design pivots recorded here still hold. (The packaging metadata was normalised once by the deterministic-build maintenance commit — see *Reproducibility* — but no cell values, IDs, or FK links moved.)
 
 Human + ChatGPT reviewed v0.1 and asked for the following changes. v0.2 applied them all.
 
@@ -240,6 +253,6 @@ Nothing between the workbook and Laravel is authorised by this task; each next s
 
 ## v0.1 — Historical baseline
 
-**Kept unchanged for the paper trail.** The v0.1 file and its builder are still in this directory; do not modify them. If a decision recorded in v0.2's Review sheet ever needs to be re-argued, v0.1 is the record of what the argument was against.
+**Game data kept unchanged for the paper trail.** The v0.1 file and its builder are still in this directory; do not modify the design. (The packaging metadata was normalised once by the deterministic-build maintenance commit — see the *Reproducibility* section above — but no cell values, IDs, or FK links moved.) If a decision recorded in v0.2's Review sheet ever needs to be re-argued, v0.1 is the record of what the argument was against.
 
 Original v0.1 scope: 12 maps (7 African + 5 global) / 50 animals / 18 hunters. It placed several out-of-range species on convenient Maps as "game abstractions" (Kakapo on Borneo, Saola on Borneo, Mountain Gorilla on Kilimanjaro, etc.). Human review rejected that approach — v0.2 encodes the fix.

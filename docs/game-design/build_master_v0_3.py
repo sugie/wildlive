@@ -58,13 +58,74 @@ Output:
 
 from __future__ import annotations
 
+import io
+import re
 import sys
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+
+
+# ---------------------------------------------------------------------------
+# Byte-deterministic XLSX save.
+#
+# openpyxl stamps the current wall-clock into docProps/core.xml and into the
+# ZIP entry timestamps at save time. That means the same source produces
+# different bytes on every run and `git diff` is never clean.
+#
+# _deterministic_save() normalises the three run-varying pieces:
+#   - dcterms:created / dcterms:modified in docProps/core.xml
+#   - ZIP entry date_time on every part
+#   - ZIP entry order (sorted alphabetically)
+#
+# Game data (cell values, formulas, IDs, FK links) is not touched — only the
+# packaging metadata is canonicalised.
+# ---------------------------------------------------------------------------
+
+_CANONICAL_ISO = "2000-01-01T00:00:00Z"
+_CANONICAL_ZIP_TUPLE = (2000, 1, 1, 0, 0, 0)
+_CANONICAL_CREATOR = "wildlive-master-builder"
+
+
+def _deterministic_save(wb: Workbook, out_path: Path) -> None:
+    wb.properties.creator = _CANONICAL_CREATOR
+    wb.properties.lastModifiedBy = _CANONICAL_CREATOR
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    with zipfile.ZipFile(buf, "r") as src:
+        entries = sorted(src.namelist())
+        payloads: List[Tuple[str, bytes]] = []
+        for name in entries:
+            data = src.read(name)
+            if name == "docProps/core.xml":
+                text = data.decode("utf-8")
+                text = re.sub(
+                    r"(<dcterms:created[^>]*>)[^<]*(</dcterms:created>)",
+                    lambda m: m.group(1) + _CANONICAL_ISO + m.group(2),
+                    text,
+                )
+                text = re.sub(
+                    r"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)",
+                    lambda m: m.group(1) + _CANONICAL_ISO + m.group(2),
+                    text,
+                )
+                data = text.encode("utf-8")
+            payloads.append((name, data))
+
+    with open(out_path, "wb") as f:
+        with zipfile.ZipFile(f, "w", zipfile.ZIP_DEFLATED) as dst:
+            for name, data in payloads:
+                zi = zipfile.ZipInfo(filename=name, date_time=_CANONICAL_ZIP_TUPLE)
+                zi.compress_type = zipfile.ZIP_DEFLATED
+                zi.external_attr = 0o644 << 16
+                dst.writestr(zi, data)
 
 
 # =============================================================================
@@ -1544,7 +1605,7 @@ def main() -> int:
                          "priority": 10, "decision": 45, "notes": 30})
 
     out = Path(__file__).parent / "WildLive-Game-Master-Draft-v0.3.xlsx"
-    wb.save(out)
+    _deterministic_save(wb, out)
 
     initial_maps = [m for m in MAPS if m["availability_phase"] == "initial_africa"]
     future_maps  = [m for m in MAPS if m["availability_phase"] == "future_expansion"]
