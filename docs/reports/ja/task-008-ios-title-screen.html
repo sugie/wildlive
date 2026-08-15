@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 008 — 最初の UI-First milestone。iOS Simulator 上で動く最小 SwiftUI タイトル画面を先に出し、人間が「iPhone 上の WildLive」を見てから game loop / API / persistence を作る。">
+<title>Task 008 — iOS タイトル画面 (Milestone 001) · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIが作る Live MMO — AIによる自律ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-008-ios-title-screen.html">English version</a>
+</nav>
+
+<h1>Task 008 — iOS タイトル画面 (Milestone 001, UI-first)</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-14
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-warn">レビュー中 — <a href="https://github.com/sugie/wildlive/pull/12">PR #12</a></span>
+</p>
+
+<h2>人間による介入 (Human intervention)</h2>
+<p>
+  <strong>WildLive を今後 UI-first の順序 (<code>UI → Interaction → Game Experience → Domain/API → Infrastructure</code>) で開発する方針変更を人間 (repository owner) が宣言し、Xcode + Swift + SwiftUI で iOS Simulator 上に WildLive の最初のタイトル画面を表示することを AI に指示した。</strong>
+  backend / API / DB / production infrastructure は一切触れない条件。AI が Version 0 を local commit として作成し、Simulator screenshot をチャットに inline 表示、人間がそれを見て <em>"OK Make PR"</em> と応答 — push と PR 作成を許可 (merge は許可していない)。本レポートは PR レビュー用の write-up。
+</p>
+
+<h2>目的 (Objective)</h2>
+<p>
+  まず「見えるもの」を先に ship する: iOS Simulator で本当にブートする WildLive のタイトル画面。それだけ。game loop なし、タイトル画面から先の遷移なし、network なし、persistence なし、auth なし、backend なし、data model なし、third-party framework なし。
+</p>
+
+<h2>今回 ship したもの</h2>
+
+<h3>App</h3>
+<ul>
+  <li><a href="https://github.com/sugie/wildlive/blob/main/apps/ios/"><code>apps/ios/</code></a> — WildLive iOS client の新規 root。</li>
+  <li><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code> — 手書き (XcodeGen / Tuist / CocoaPods を新規導入していない)。</li>
+  <li><code>apps/ios/WildLive/WildLiveApp.swift</code> — <code>@main App</code>、<code>WindowGroup { TitleView() }</code>。</li>
+  <li><code>apps/ios/WildLive/TitleView.swift</code> — SwiftUI タイトル画面。dark 3-stop <code>LinearGradient</code> background + <code>.ignoresSafeArea()</code>; 中央の大きな serif <code>WildLive</code>; tracked uppercase <code>AI MADE LIVE MMO</code> の subtitle; 画面下部の full-width 白 rounded <code>START</code> ボタンで、action は <code>#if DEBUG</code> の中で <code>"START tapped"</code> を print。portrait only、<code>.preferredColorScheme(.dark)</code>。</li>
+  <li><code>apps/ios/WildLive/Assets.xcassets/</code> — <code>AppIcon</code> / <code>AccentColor</code> の最小 stub。asset-catalog compiler が cleanly 解決するためだけ。placeholder art は生成していない。</li>
+  <li><code>apps/ios/README.md</code> — build / run / layout の短いガイド + 意図的な非目的リスト (次に来る開発者や agent が Version 0 に scope を追加しないため)。</li>
+</ul>
+
+<h3>Governance</h3>
+<ul>
+  <li>本 bilingual report と英語版、および <code>docs/reports/index.html</code> の top への行追加。</li>
+  <li>Task 008 AI session archive を <code>docs/ai-sessions/task-008-ios-title-screen/</code> 配下に配置 (<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>)、および <code>docs/ai-sessions/index.md</code> の top への行追加。</li>
+  <li><strong>X manifest は追加していない。</strong> Milestone 001 §27 が Version-0 の UI-only milestone を auto-post-on-merge target から明示的に除外している。<code>X Development Live</code> workflow は本 PR の diff に manifest が 0 件であることを確認し、documented no-op として clean exit する。</li>
+  <li><code>.gitignore</code> — <code>apps/ios/build/</code>, <code>xcuserdata/</code>, <code>DerivedData/</code> を追加し、開発者ごとの Xcode 状態と build artefact が Git に混ざらないようにした。</li>
+</ul>
+
+<h2>実環境検証 (本 PR を open する前)</h2>
+<p>以下はすべて実コマンドの出力から。設定ファイルからの推測ではない。</p>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild -version</code></td><td>Xcode 26.6, Build 17F113</td></tr>
+    <tr><td><code>xcrun swift --version</code></td><td>Swift 6.3.3</td></tr>
+    <tr><td><code>xcrun simctl list runtimes</code></td><td>iOS 26.5 (23F77) available</td></tr>
+    <tr><td><code>xcrun simctl list devices available</code></td><td>iPhone 17 Pro / Pro Max / 17e / Air / 17 が利用可能、<strong>iPhone 17</strong> を選択</td></tr>
+    <tr><td><code>xcodebuild -project WildLive.xcodeproj -list</code></td><td>Target <code>WildLive</code>、scheme <code>WildLive</code>、configurations <code>Debug</code>/<code>Release</code> — pbxproj は cleanly parse される</td></tr>
+    <tr>
+      <td><code>xcodebuild -project WildLive.xcodeproj -scheme WildLive -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' -derivedDataPath build build</code></td>
+      <td><strong><code>** BUILD SUCCEEDED **</code></strong></td>
+    </tr>
+    <tr><td><code>xcrun simctl boot 35521BBB-0C38-47C8-8692-6F08A5E205E2</code></td><td>State: <code>Booted</code></td></tr>
+    <tr><td><code>xcrun simctl install &lt;UDID&gt; WildLive.app</code></td><td>OK</td></tr>
+    <tr><td><code>xcrun simctl launch &lt;UDID&gt; dev.wildlive.WildLive</code></td><td>PID <strong>13087</strong> (launch 成功)</td></tr>
+    <tr><td><code>xcrun simctl io &lt;UDID&gt; screenshot /tmp/…png</code></td><td>411 KB PNG を書き出し、人間が inline で確認して approve</td></tr>
+  </tbody>
+</table>
+
+<h2>Xcode project 設定</h2>
+<table>
+  <thead><tr><th>設定</th><th>値</th></tr></thead>
+  <tbody>
+    <tr><td>Bundle identifier</td><td><code>dev.wildlive.WildLive</code> (local dev 用の placeholder)</td></tr>
+    <tr><td>Deployment target</td><td>iOS <strong>17.0</strong></td></tr>
+    <tr><td>Swift language mode</td><td>5.0 (toolchain Swift 6.3.3)</td></tr>
+    <tr><td>Orientation</td><td>Portrait only (<code>INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait</code>)</td></tr>
+    <tr><td>Device family</td><td>iPhone (<code>TARGETED_DEVICE_FAMILY = 1</code>)</td></tr>
+    <tr><td>Info.plist</td><td>Auto-generated (<code>GENERATE_INFOPLIST_FILE = YES</code>)</td></tr>
+    <tr><td>Launch screen</td><td>Auto-generated (<code>INFOPLIST_KEY_UILaunchScreen_Generation = YES</code>)</td></tr>
+    <tr><td>Scene manifest</td><td>Auto-generated (<code>INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES</code>)</td></tr>
+    <tr><td>Code signing</td><td>Automatic — "Sign to Run Locally" (team identity 未指定)</td></tr>
+    <tr><td><code>objectVersion</code> / compatibility</td><td>77 / Xcode 15.0</td></tr>
+  </tbody>
+</table>
+
+<h2>意図的な非目的</h2>
+<ul>
+  <li>network、HTTP client、REST/GraphQL/WebSocket、auth、user model いずれも無し。</li>
+  <li>PostgreSQL 接続、pgvector、DB migration、server health check いずれも無し。Task 007 で ship した WildLive PostgreSQL 17 + pgvector stack は本 milestone では <strong>起動していない</strong>。</li>
+  <li>本番インフラへのアクセス無し — 本番 server / cluster / PgBouncer / DNS / firewall / AppRun / Sakura Cloud のいずれにも何も送っていない。本 task は完全に Mac ローカルで完結。</li>
+  <li>third-party UI framework、dependency-injection framework、MVVM / Redux、analytics、push notification、persistence、game engine いずれも導入せず。</li>
+  <li>タイトル画面から先の navigation 無し。<code>START</code> tap は log 出力のみ。</li>
+  <li>data model、OpenAPI、JSON schema いずれも作成せず。</li>
+  <li>新しい project-generation tool 無し (XcodeGen / Tuist / CocoaPods / Bazel いずれも導入していない)。</li>
+  <li>本 milestone の X manifest 無し (Milestone 001 §27 に従う)。</li>
+</ul>
+
+<h2>テスト (Tests)</h2>
+<ul>
+  <li>新規の自動テストは追加していない。Milestone 001 §24 は build / install / launch の verify を要求しており、新規 unit test target までは求めていない。上記 4 種はすべて pass。</li>
+  <li>既存 suite — <strong>PHPUnit 5/9</strong>、<strong>publisher 55/55</strong>、<strong>session-archive validator 35/35</strong> — は不変。本 branch は Laravel / Python コードを一切変更していない。</li>
+  <li>テストの弱体化・skip・削除は無し。</li>
+</ul>
+
+<h2>Screenshot</h2>
+<p>
+  <code>/tmp/wildlive-title-screen-milestone001.png</code> に 411 KB で保存。<strong>repository には commit していない</strong> — Milestone 001 §18 は「専用の保存場所がある場合のみ commit」と指示しており、現状そのような場所は存在しない。Screenshot はチャット上に inline 表示し、人間が確認、次のレスポンスが <em>"OK Make PR"</em> だった。
+</p>
+
+<h2>Git / Commits</h2>
+<p>
+  <code>ai/011-ios-title-screen</code> 上に複数 commit。最初の commit (<code>0d19c2c</code>) が SwiftUI app と pbxproj を ship、2 番目の commit が Task 008 の初期 governance package (本 report、AI session archive、index rows) を ship、3 番目の commit が GitHub による PR #12 採番後に <code>pr_number</code> / <code>pr_url</code> を backfill。以降の commit は PR review feedback への対応。正確な SHA は下記 PR ページ参照。<strong>merge commit はまだ存在しない</strong> — 人間が merge を authorise した時点で初めて生成される。
+</p>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/12">#12 — feat(ios): add SwiftUI title screen (Milestone 001, UI-first)</a>。Base <code>main</code>、head <code>ai/011-ios-title-screen</code>。</li>
+  <li>Method (予定): merge commit (これまでの全 PR で維持されている repository policy)。まだ実施していない。</li>
+  <li>PR 上の CI: <span class="badge badge-ok">success</span> — Task 007 から引き継いだ <code>PHPUnit (PHP 8.5 / PostgreSQL 17 + pgvector)</code> workflow が、本 branch にプッシュされた全 commit で pass している。</li>
+  <li>Merge 後の <code>main</code> CI: <span class="badge badge-warn">未実施 — merge がまだ行われていない</span>。merge 後に自動実行される。</li>
+  <li>Merge 後の <code>X Development Live</code> workflow: 発火して PR diff の manifest が 0 件 (Milestone 001 §27) と判定し、documented no-op で clean exit する見込み。まだ observed していない (merge されていないため)。</li>
+</ul>
+
+<h2>既知の課題 / 未解決事項 (Problems / Known Limitations)</h2>
+<ul>
+  <li><code>START</code> tap は programmatic には検証していない — 本 Xcode の <code>xcrun simctl io</code> に <code>tap</code> subcommand が存在しないため。ボタン自体は本物の SwiftUI <code>Button</code> で action が wired。人間が review 中に tap すれば Console に <code>"START tapped"</code> が出る。</li>
+  <li><code>AppIcon</code> と <code>AccentColor</code> は空の placeholder asset set。実 art は次 milestone で扱う。build は警告なしで通る。</li>
+  <li>PR 用の test target は追加していない。必要になった時点でその milestone が追加すればよい。</li>
+</ul>
+
+<h2>今回実装していないこと (What was NOT done)</h2>
+<ul>
+  <li>人間の UI review 前の push / PR / merge は行っていない (Milestone 001 §28)。</li>
+  <li>X manifest は追加していない (Milestone 001 §27)。</li>
+  <li>API 実装、auth、backend、database、game logic、タイトル画面から先の navigation いずれも実装していない。</li>
+  <li>production infrastructure への変更 一切無し。</li>
+  <li>third-party UI framework、新規 project-generation tool、新規 dependency manager、game engine いずれも導入していない。</li>
+</ul>
+
+<h2>次に推奨する task (Next Recommended Task)</h2>
+<p>
+  <strong>このタイトル画面についての人間の UI feedback を待つ。</strong> Milestone 001 の要点は、人間が画面を見て次の iteration を駆動すること — タイトル位置、フォント、背景、START ボタン、雰囲気。次のゲーム画面や API / DB / server 作業には勝手に進まない。本 report は実装の許可を与えない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-14 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

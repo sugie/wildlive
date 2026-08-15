@@ -45,3 +45,10 @@ _ide_helper_models.php
 
 # ZIP-distribution manifest — not part of the repository history.
 /STARTER_PACK.md
+
+# iOS build artefacts / Xcode user-specific state (apps/ios/)
+/apps/ios/build/
+/apps/ios/**/*.xcodeproj/xcuserdata/
+/apps/ios/**/*.xcodeproj/project.xcworkspace/xcuserdata/
+/apps/ios/**/*.xcworkspace/xcuserdata/
+/apps/ios/**/DerivedData/
