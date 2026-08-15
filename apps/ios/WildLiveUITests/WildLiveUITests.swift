@@ -148,6 +148,31 @@ final class WildLiveUITests: XCTestCase {
                       "Home dashboard should appear after real API registration")
     }
 
+    // MARK: - Screenshot capture (for social manifest)
+
+    /// Captures a screenshot of the Home dashboard immediately after START.
+    /// Uses the pre-seeded session so no API is called. Screenshot lands as
+    /// an XCTAttachment in the .xcresult bundle; extract with `xcrun
+    /// xcresulttool` after running the test to a known bundle path:
+    ///
+    ///     xcodebuild test ... \
+    ///         -resultBundlePath /tmp/wl-shot.xcresult \
+    ///         -only-testing:'WildLiveUITests/WildLiveUITests/test_captureHomeScreenshotForDocs'
+    ///     xcrun xcresulttool export attachments \
+    ///         --path /tmp/wl-shot.xcresult --output-path /tmp/wl-shots
+    func test_captureHomeScreenshotForDocs() throws {
+        let app = launch(["--ui-tests-mock-api", "--ui-tests-preregistered"])
+        app.buttons["startButton"].tap()
+        XCTAssertTrue(app.buttons["buyGButton"].waitForExistence(timeout: 5))
+        // Small settle so any nav-bar animation completes before capture.
+        _ = XCUIApplication().wait(for: .runningForeground, timeout: 1)
+        let screenshot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.name = "wildlive-home-post-registration"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     /// Non-Test helper — synchronous ping so the test can self-gate.
     private static func isLiveAPIReachable() -> Bool {
         guard let url = URL(string: "http://localhost:8000/api/health") else { return false }
