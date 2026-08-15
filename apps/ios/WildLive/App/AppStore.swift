@@ -1,9 +1,17 @@
-// WildLive — Single shared state container for the UI prototype.
+// WildLive — Central @Observable state container for the mocked screens.
 //
-// Everything the UI needs lives on one @Observable object. This is
-// deliberate: while the server is not built yet, we keep the client's
-// mental model small and inspectable. When the real API arrives, screens
-// still bind to the same store — only the service layer changes.
+// AppStore is deliberately narrow: it holds UI-facing state (navigation,
+// current-player snapshot, mock game state) and knows nothing about how
+// the real player was registered or where the session is persisted. Those
+// live in the Application / Data layers and are wired in from the
+// composition root (WildLiveApp).
+//
+// Kept as a single class because every mocked screen still reads from it
+// and the alternative — per-screen @Observable stores plus a coordinator —
+// would be excessive for the current mock-heavy phase. The moment more
+// screens go real (Guild, Zoo, …), each real feature will grow its own
+// use case + ViewModel and only push the resulting snapshot into
+// AppStore via a narrow apply-method.
 
 import Foundation
 import Observation
@@ -11,13 +19,10 @@ import Observation
 @Observable
 final class AppStore {
 
-    // MARK: Session
+    // MARK: UI / navigation state
 
     var hasStarted: Bool = false
     var navigationPath: [Route] = []
-    /// Non-nil when the current player has been registered with the server
-    /// (persisted via `PlayerSession`). Nil on first launch — the UI shows
-    /// the registration screen after START in that case.
     var registeredSession: PersistedSession?
 
     // MARK: Master data (immutable during a session)
@@ -27,7 +32,7 @@ final class AppStore {
     let regions: [Region]
     let gBundles: [GBundle]
 
-    // MARK: Mutable game state (client-side dummy)
+    // MARK: Mocked game state
 
     var currentPlayer: Player
     var otherPlayers: [Player]
@@ -35,19 +40,17 @@ final class AppStore {
     var expeditions: [Expedition] = []
     var contractedHunterId: String?
 
-    // MARK: Services
+    // MARK: Mock services (game loop stays UI-only in this milestone)
 
     let gameService: MockGameService
     let storeService: MockGStoreService
-    let session: PlayerSession
-    let registrationService: PlayerRegistrationServiceProtocol
 
     // MARK: Init
 
-    init(
-        session: PlayerSession = PlayerSession(),
-        registrationService: PlayerRegistrationServiceProtocol? = nil
-    ) {
+    /// The composition root (WildLiveApp) is responsible for loading any
+    /// persisted session ahead of time and passing it here. AppStore does
+    /// not know a PlayerSessionRepository exists.
+    init(restoredSession: PersistedSession? = nil) {
         let sp = SampleData.species
         self.species = sp
         self.speciesById = Dictionary(uniqueKeysWithValues: sp.map { ($0.id, $0) })
@@ -56,12 +59,8 @@ final class AppStore {
         self.otherPlayers = SampleData.makeOtherPlayers()
         self.hunters = SampleData.hunters
 
-        self.session = session
-        self.registrationService = registrationService ?? LivePlayerRegistrationService()
-
-        let restored = session.restore()
-        self.registeredSession = restored
-        self.currentPlayer = Self.makeCurrentPlayer(from: restored)
+        self.registeredSession = restoredSession
+        self.currentPlayer = Self.makeCurrentPlayer(from: restoredSession)
 
         let game = MockGameService()
         let store = MockGStoreService()
@@ -71,10 +70,6 @@ final class AppStore {
         store.bind(store: self)
     }
 
-    /// Seed the in-memory current player. When a real registration exists we
-    /// keep the id + display name from the server and layer the sample
-    /// starter animals + starter G balance on top (those are still dummy
-    /// until server-side domain endpoints land in a later milestone).
     private static func makeCurrentPlayer(from restored: PersistedSession?) -> Player {
         var seed = SampleData.makeCurrentPlayer()
         if let restored {
@@ -82,7 +77,7 @@ final class AppStore {
                 id: restored.playerId,
                 displayName: restored.displayName,
                 gBalance: seed.gBalance,
-                animals: [] // fresh registrations start with an empty Zoo
+                animals: []
             )
         }
         return seed
@@ -107,6 +102,26 @@ final class AppStore {
         expeditions.filter { $0.state == .captured }
     }
 
+    // MARK: Session helpers (thin — called after use cases succeed)
+
+    /// Adopt the outcome of the RegisterPlayer use case. Called by the
+    /// RegistrationViewModel after the use case returns successfully;
+    /// AppStore does not perform the registration itself.
+    func adoptRegistration(_ registered: RegisteredPlayer) {
+        let session = PersistedSession(
+            playerId: registered.playerId,
+            displayName: registered.displayName,
+            zooId: registered.zooId
+        )
+        registeredSession = session
+        currentPlayer = Player(
+            id: registered.playerId,
+            displayName: registered.displayName,
+            gBalance: currentPlayer.gBalance,
+            animals: []
+        )
+    }
+
     // MARK: Session actions
 
     func start() {
@@ -119,8 +134,9 @@ final class AppStore {
         navigationPath = []
     }
 
-    func signOutAndForgetPlayer() {
-        session.clear()
+    /// Wipes in-memory session state only. Removing the persisted session
+    /// itself is the composition root / caller's job.
+    func forgetRegistrationInMemory() {
         registeredSession = nil
         currentPlayer = Self.makeCurrentPlayer(from: nil)
         expeditions = []
@@ -132,33 +148,7 @@ final class AppStore {
     func push(_ route: Route) { navigationPath.append(route) }
     func popToHome() { navigationPath.removeAll() }
 
-    // MARK: Registration
-
-    /// First-time registration. Persists the returned identifier on success
-    /// and transitions to Home; the caller (RegistrationView) surfaces
-    /// errors.
-    func register(displayName: String) async -> Result<RegisteredPlayer, APIError> {
-        let result = await registrationService.register(displayName: displayName)
-        if case .success(let registered) = result {
-            await MainActor.run {
-                session.persist(registered)
-                registeredSession = PersistedSession(
-                    playerId: registered.playerId,
-                    displayName: registered.displayName,
-                    zooId: registered.zooId
-                )
-                currentPlayer = Player(
-                    id: registered.playerId,
-                    displayName: registered.displayName,
-                    gBalance: currentPlayer.gBalance,
-                    animals: []
-                )
-            }
-        }
-        return result
-    }
-
-    // MARK: Convenience lookups
+    // MARK: Lookups
 
     func hunter(_ id: String) -> Hunter? { hunters.first { $0.id == id } }
     func region(_ id: String) -> Region? { regions.first { $0.id == id } }

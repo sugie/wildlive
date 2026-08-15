@@ -14,7 +14,7 @@
 		A2000000000000000000BB01 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF01 /* AppStore.swift */; };
 		A2000000000000000000BB02 /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF02 /* Route.swift */; };
 		A2000000000000000000BB03 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF03 /* RootView.swift */; };
-		A2000000000000000000BB04 /* Domain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Domain.swift */; };
+		A2000000000000000000BB04 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Game.swift */; };
 		A2000000000000000000BB05 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF05 /* SampleData.swift */; };
 		A2000000000000000000BB06 /* MockGameService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF06 /* MockGameService.swift */; };
 		A2000000000000000000BB07 /* MockGStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF07 /* MockGStoreService.swift */; };
@@ -32,9 +32,23 @@
 		A2000000000000000000BB13 /* CaptureNameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF13 /* CaptureNameView.swift */; };
 		A2000000000000000000BB14 /* GStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF14 /* GStoreView.swift */; };
 		A3000000000000000000BB01 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF01 /* APIClient.swift */; };
-		A3000000000000000000BB02 /* PlayerRegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF02 /* PlayerRegistrationService.swift */; };
-		A3000000000000000000BB03 /* PlayerSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF03 /* PlayerSession.swift */; };
 		A3000000000000000000BB04 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF04 /* RegistrationView.swift */; };
+		A5000000000000000000BB01 /* RegisteredPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF01 /* RegisteredPlayer.swift */; };
+		A5000000000000000000BB02 /* PersistedSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF02 /* PersistedSession.swift */; };
+		A5000000000000000000BB03 /* PlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF03 /* PlayerRepository.swift */; };
+		A5000000000000000000BB04 /* PlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF04 /* PlayerSessionRepository.swift */; };
+		A5000000000000000000BB05 /* RegisterPlayerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF05 /* RegisterPlayerInput.swift */; };
+		A5000000000000000000BB06 /* RegisterPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF06 /* RegisterPlayer.swift */; };
+		A5000000000000000000BB07 /* PlayerAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF07 /* PlayerAPIDTO.swift */; };
+		A5000000000000000000BB08 /* LivePlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF08 /* LivePlayerRepository.swift */; };
+		A5000000000000000000BB09 /* MockPlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF09 /* MockPlayerRepository.swift */; };
+		A5000000000000000000BB0A /* UserDefaultsPlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */; };
+		A5000000000000000000BB0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0B /* RegistrationViewModel.swift */; };
+		A4000000000000000000BB01 /* RegisterPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF01 /* RegisterPlayerTests.swift */; };
+		A4000000000000000000BB02 /* RegistrationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF02 /* RegistrationViewModelTests.swift */; };
+		A4000000000000000000BB03 /* LivePlayerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */; };
+		A4000000000000000000BB04 /* UserDefaultsPlayerSessionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */; };
+		A4000000000000000000BB05 /* ArchitectureBoundaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,40 +59,62 @@
 			remoteGlobalIDString = A10000000000000000000020;
 			remoteInfo = WildLive;
 		};
+		A40000000000000000000081 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000020;
+			remoteInfo = WildLive;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A100000000000000000000A1 /* WildLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveApp.swift; sourceTree = "<group>"; };
-		A100000000000000000000A2 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
+		A100000000000000000000A1 /* WildLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WildLiveApp.swift; sourceTree = "<group>"; };
+		A100000000000000000000A2 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/TitleView.swift; sourceTree = "<group>"; };
 		A100000000000000000000A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A100000000000000000000A4 /* WildLiveUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveUITests.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* WildLive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildLive.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000011 /* WildLiveUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A2000000000000000000FF01 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF02 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Route.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF03 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF04 /* Domain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF05 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF06 /* MockGameService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockGameService.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF07 /* MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockGStoreService.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF09 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0A /* MyZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyZooView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0B /* OtherZoosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtherZoosView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0C /* VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitZooView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0D /* AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalDetailView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0E /* GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuildView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0F /* RegionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionPickerView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF10 /* DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchConfirmView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF11 /* ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionsView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF12 /* ExpeditionResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionResultView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF13 /* CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureNameView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF14 /* GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GStoreView.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF02 /* PlayerRegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRegistrationService.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF03 /* PlayerSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSession.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF04 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* WildLiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000000000000000000FF01 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppStore.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF02 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/Route.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF03 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RootView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF04 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Game.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF05 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/SampleData.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF06 /* MockGameService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGameService.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF07 /* MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGStoreService.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/Theme.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF09 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0A /* MyZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0B /* OtherZoosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/OtherZoosView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0C /* VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/VisitZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0D /* AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/AnimalDetailView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0E /* GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GuildView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0F /* RegionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegionPickerView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF10 /* DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF11 /* ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF12 /* ExpeditionResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionResultView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF13 /* CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF14 /* GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GStoreView.swift; sourceTree = "<group>"; };
+		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
+		A3000000000000000000FF04 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationView.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A5000000000000000000FF01 /* RegisteredPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/RegisteredPlayer.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF02 /* PersistedSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PersistedSession.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF03 /* PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF04 /* PlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerSessionRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF05 /* RegisterPlayerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayerInput.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF06 /* RegisterPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayer.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF07 /* PlayerAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/PlayerAPIDTO.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF08 /* LivePlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LivePlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF09 /* MockPlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockPlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/UserDefaultsPlayerSessionRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF0B /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationViewModel.swift; sourceTree = "<group>"; };
+		A4000000000000000000FF01 /* RegisterPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterPlayerTests.swift; sourceTree = "<group>"; };
+		A4000000000000000000FF02 /* RegistrationViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModelTests.swift; sourceTree = "<group>"; };
+		A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePlayerRepositoryTests.swift; sourceTree = "<group>"; };
+		A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPlayerSessionRepositoryTests.swift; sourceTree = "<group>"; };
+		A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureBoundaryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +132,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A40000000000000000000022 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -104,6 +147,7 @@
 			children = (
 				A10000000000000000000004 /* WildLive */,
 				A10000000000000000000005 /* WildLiveUITests */,
+				A10000000000000000000006 /* WildLiveTests */,
 				A10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,6 +157,7 @@
 			children = (
 				A10000000000000000000010 /* WildLive.app */,
 				A10000000000000000000011 /* WildLiveUITests.xctest */,
+				A10000000000000000000012 /* WildLiveTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -121,16 +166,14 @@
 			isa = PBXGroup;
 			children = (
 				A100000000000000000000A1 /* WildLiveApp.swift */,
-				A100000000000000000000A2 /* TitleView.swift */,
-				A2000000000000000000FF03 /* RootView.swift */,
 				A2000000000000000000FF01 /* AppStore.swift */,
 				A2000000000000000000FF02 /* Route.swift */,
+				A2000000000000000000FF03 /* RootView.swift */,
+				A100000000000000000000A2 /* TitleView.swift */,
 				A2000000000000000000FF08 /* Theme.swift */,
-				A2000000000000000000FF04 /* Domain.swift */,
-				A2000000000000000000FF05 /* SampleData.swift */,
-				A2000000000000000000FF06 /* MockGameService.swift */,
-				A2000000000000000000FF07 /* MockGStoreService.swift */,
 				A2000000000000000000FF09 /* HomeView.swift */,
+				A3000000000000000000FF04 /* RegistrationView.swift */,
+				A5000000000000000000FF0B /* RegistrationViewModel.swift */,
 				A2000000000000000000FF0A /* MyZooView.swift */,
 				A2000000000000000000FF0B /* OtherZoosView.swift */,
 				A2000000000000000000FF0C /* VisitZooView.swift */,
@@ -142,10 +185,21 @@
 				A2000000000000000000FF12 /* ExpeditionResultView.swift */,
 				A2000000000000000000FF13 /* CaptureNameView.swift */,
 				A2000000000000000000FF14 /* GStoreView.swift */,
+				A5000000000000000000FF06 /* RegisterPlayer.swift */,
+				A5000000000000000000FF05 /* RegisterPlayerInput.swift */,
+				A2000000000000000000FF04 /* Game.swift */,
+				A5000000000000000000FF01 /* RegisteredPlayer.swift */,
+				A5000000000000000000FF02 /* PersistedSession.swift */,
+				A5000000000000000000FF03 /* PlayerRepository.swift */,
+				A5000000000000000000FF04 /* PlayerSessionRepository.swift */,
 				A3000000000000000000FF01 /* APIClient.swift */,
-				A3000000000000000000FF02 /* PlayerRegistrationService.swift */,
-				A3000000000000000000FF03 /* PlayerSession.swift */,
-				A3000000000000000000FF04 /* RegistrationView.swift */,
+				A5000000000000000000FF07 /* PlayerAPIDTO.swift */,
+				A5000000000000000000FF08 /* LivePlayerRepository.swift */,
+				A5000000000000000000FF09 /* MockPlayerRepository.swift */,
+				A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */,
+				A2000000000000000000FF05 /* SampleData.swift */,
+				A2000000000000000000FF06 /* MockGameService.swift */,
+				A2000000000000000000FF07 /* MockGStoreService.swift */,
 				A3000000000000000000FF05 /* Info.plist */,
 				A100000000000000000000A3 /* Assets.xcassets */,
 			);
@@ -158,6 +212,18 @@
 				A100000000000000000000A4 /* WildLiveUITests.swift */,
 			);
 			path = WildLiveUITests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000006 /* WildLiveTests */ = {
+			isa = PBXGroup;
+			children = (
+				A4000000000000000000FF01 /* RegisterPlayerTests.swift */,
+				A4000000000000000000FF02 /* RegistrationViewModelTests.swift */,
+				A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */,
+				A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */,
+				A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */,
+			);
+			path = WildLiveTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -201,6 +267,25 @@
 			productReference = A10000000000000000000011 /* WildLiveUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		A40000000000000000000020 /* WildLiveTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A40000000000000000000040 /* Build configuration list for PBXNativeTarget "WildLiveTests" */;
+			buildPhases = (
+				A40000000000000000000021 /* Sources */,
+				A40000000000000000000022 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A40000000000000000000080 /* PBXTargetDependency */,
+			);
+			name = WildLiveTests;
+			packageProductDependencies = (
+			);
+			productName = WildLiveTests;
+			productReference = A10000000000000000000012 /* WildLiveTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -215,6 +300,10 @@
 						CreatedOnToolsVersion = 26.6;
 					};
 					A10000000000000000000070 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = A10000000000000000000020;
+					};
+					A40000000000000000000020 = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = A10000000000000000000020;
 					};
@@ -237,6 +326,7 @@
 			targets = (
 				A10000000000000000000020 /* WildLive */,
 				A10000000000000000000070 /* WildLiveUITests */,
+				A40000000000000000000020 /* WildLiveTests */,
 			);
 		};
 /* End PBXProject section */
@@ -263,7 +353,7 @@
 				A2000000000000000000BB01 /* AppStore.swift in Sources */,
 				A2000000000000000000BB02 /* Route.swift in Sources */,
 				A2000000000000000000BB08 /* Theme.swift in Sources */,
-				A2000000000000000000BB04 /* Domain.swift in Sources */,
+				A2000000000000000000BB04 /* Game.swift in Sources */,
 				A2000000000000000000BB05 /* SampleData.swift in Sources */,
 				A2000000000000000000BB06 /* MockGameService.swift in Sources */,
 				A2000000000000000000BB07 /* MockGStoreService.swift in Sources */,
@@ -280,9 +370,18 @@
 				A2000000000000000000BB13 /* CaptureNameView.swift in Sources */,
 				A2000000000000000000BB14 /* GStoreView.swift in Sources */,
 				A3000000000000000000BB01 /* APIClient.swift in Sources */,
-				A3000000000000000000BB02 /* PlayerRegistrationService.swift in Sources */,
-				A3000000000000000000BB03 /* PlayerSession.swift in Sources */,
 				A3000000000000000000BB04 /* RegistrationView.swift in Sources */,
+				A5000000000000000000BB01 /* RegisteredPlayer.swift in Sources */,
+				A5000000000000000000BB02 /* PersistedSession.swift in Sources */,
+				A5000000000000000000BB03 /* PlayerRepository.swift in Sources */,
+				A5000000000000000000BB04 /* PlayerSessionRepository.swift in Sources */,
+				A5000000000000000000BB05 /* RegisterPlayerInput.swift in Sources */,
+				A5000000000000000000BB06 /* RegisterPlayer.swift in Sources */,
+				A5000000000000000000BB07 /* PlayerAPIDTO.swift in Sources */,
+				A5000000000000000000BB08 /* LivePlayerRepository.swift in Sources */,
+				A5000000000000000000BB09 /* MockPlayerRepository.swift in Sources */,
+				A5000000000000000000BB0A /* UserDefaultsPlayerSessionRepository.swift in Sources */,
+				A5000000000000000000BB0B /* RegistrationViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,6 +393,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A40000000000000000000021 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4000000000000000000BB01 /* RegisterPlayerTests.swift in Sources */,
+				A4000000000000000000BB02 /* RegistrationViewModelTests.swift in Sources */,
+				A4000000000000000000BB03 /* LivePlayerRepositoryTests.swift in Sources */,
+				A4000000000000000000BB04 /* UserDefaultsPlayerSessionRepositoryTests.swift in Sources */,
+				A4000000000000000000BB05 /* ArchitectureBoundaryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -301,6 +412,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000020 /* WildLive */;
 			targetProxy = A10000000000000000000081 /* PBXContainerItemProxy */;
+		};
+		A40000000000000000000080 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000020 /* WildLive */;
+			targetProxy = A40000000000000000000081 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -504,6 +620,44 @@
 			};
 			name = Release;
 		};
+		A40000000000000000000041 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WildLive.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WildLive";
+			};
+			name = Debug;
+		};
+		A40000000000000000000042 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WildLive.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WildLive";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -530,6 +684,15 @@
 			buildConfigurations = (
 				A10000000000000000000061 /* Debug */,
 				A10000000000000000000062 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A40000000000000000000040 /* Build configuration list for PBXNativeTarget "WildLiveTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A40000000000000000000041 /* Debug */,
+				A40000000000000000000042 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

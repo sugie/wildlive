@@ -1,18 +1,11 @@
-// WildLive — Persistent record of the registered player.
+// WildLive — UserDefaults-backed PlayerSessionRepository.
 //
-// Milestone 002 uses UserDefaults because there is no auth token to protect
-// and the only real state is the server-issued player identifier. When auth
-// arrives, this class is the single place to swap for Keychain.
+// The suite is injectable so tests can use `UserDefaults(suiteName:)` and
+// leave the real `standard` defaults untouched.
 
 import Foundation
 
-struct PersistedSession: Equatable {
-    let playerId: String
-    let displayName: String
-    let zooId: String
-}
-
-final class PlayerSession {
+final class UserDefaultsPlayerSessionRepository: PlayerSessionRepository {
     private enum Keys {
         static let playerId    = "wildlive.playerId"
         static let displayName = "wildlive.displayName"
@@ -21,11 +14,11 @@ final class PlayerSession {
 
     private let defaults: UserDefaults
 
-    init(userDefaults: UserDefaults = .standard) {
-        self.defaults = userDefaults
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
     }
 
-    func restore() -> PersistedSession? {
+    func load() -> PersistedSession? {
         guard
             let playerId = defaults.string(forKey: Keys.playerId), !playerId.isEmpty,
             let displayName = defaults.string(forKey: Keys.displayName),
@@ -34,7 +27,7 @@ final class PlayerSession {
         return PersistedSession(playerId: playerId, displayName: displayName, zooId: zooId)
     }
 
-    func persist(_ registered: RegisteredPlayer) {
+    func save(_ registered: RegisteredPlayer) {
         defaults.set(registered.playerId,    forKey: Keys.playerId)
         defaults.set(registered.displayName, forKey: Keys.displayName)
         defaults.set(registered.zooId,       forKey: Keys.zooId)
