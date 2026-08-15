@@ -11,6 +11,26 @@
 		A100000000000000000000B2 /* TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* TitleView.swift */; };
 		A100000000000000000000B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A3 /* Assets.xcassets */; };
 		A100000000000000000000B4 /* WildLiveUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A4 /* WildLiveUITests.swift */; };
+		A2000000000000000000BB01 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF01 /* AppStore.swift */; };
+		A2000000000000000000BB02 /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF02 /* Route.swift */; };
+		A2000000000000000000BB03 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF03 /* RootView.swift */; };
+		A2000000000000000000BB04 /* Domain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Domain.swift */; };
+		A2000000000000000000BB05 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF05 /* SampleData.swift */; };
+		A2000000000000000000BB06 /* MockGameService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF06 /* MockGameService.swift */; };
+		A2000000000000000000BB07 /* MockGStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF07 /* MockGStoreService.swift */; };
+		A2000000000000000000BB08 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF08 /* Theme.swift */; };
+		A2000000000000000000BB09 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF09 /* HomeView.swift */; };
+		A2000000000000000000BB0A /* MyZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0A /* MyZooView.swift */; };
+		A2000000000000000000BB0B /* OtherZoosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0B /* OtherZoosView.swift */; };
+		A2000000000000000000BB0C /* VisitZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0C /* VisitZooView.swift */; };
+		A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0D /* AnimalDetailView.swift */; };
+		A2000000000000000000BB0E /* GuildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0E /* GuildView.swift */; };
+		A2000000000000000000BB0F /* RegionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0F /* RegionPickerView.swift */; };
+		A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF10 /* DispatchConfirmView.swift */; };
+		A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF11 /* ExpeditionsView.swift */; };
+		A2000000000000000000BB12 /* ExpeditionResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF12 /* ExpeditionResultView.swift */; };
+		A2000000000000000000BB13 /* CaptureNameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF13 /* CaptureNameView.swift */; };
+		A2000000000000000000BB14 /* GStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF14 /* GStoreView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +50,26 @@
 		A100000000000000000000A4 /* WildLiveUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveUITests.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* WildLive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildLive.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000011 /* WildLiveUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000000000000000000FF01 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF02 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Route.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF03 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF04 /* Domain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF05 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF06 /* MockGameService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockGameService.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF07 /* MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockGStoreService.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF09 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0A /* MyZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0B /* OtherZoosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtherZoosView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0C /* VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0D /* AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalDetailView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0E /* GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuildView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0F /* RegionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionPickerView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF10 /* DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchConfirmView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF11 /* ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionsView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF12 /* ExpeditionResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionResultView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF13 /* CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureNameView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF14 /* GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GStoreView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +113,26 @@
 			children = (
 				A100000000000000000000A1 /* WildLiveApp.swift */,
 				A100000000000000000000A2 /* TitleView.swift */,
+				A2000000000000000000FF03 /* RootView.swift */,
+				A2000000000000000000FF01 /* AppStore.swift */,
+				A2000000000000000000FF02 /* Route.swift */,
+				A2000000000000000000FF08 /* Theme.swift */,
+				A2000000000000000000FF04 /* Domain.swift */,
+				A2000000000000000000FF05 /* SampleData.swift */,
+				A2000000000000000000FF06 /* MockGameService.swift */,
+				A2000000000000000000FF07 /* MockGStoreService.swift */,
+				A2000000000000000000FF09 /* HomeView.swift */,
+				A2000000000000000000FF0A /* MyZooView.swift */,
+				A2000000000000000000FF0B /* OtherZoosView.swift */,
+				A2000000000000000000FF0C /* VisitZooView.swift */,
+				A2000000000000000000FF0D /* AnimalDetailView.swift */,
+				A2000000000000000000FF0E /* GuildView.swift */,
+				A2000000000000000000FF0F /* RegionPickerView.swift */,
+				A2000000000000000000FF10 /* DispatchConfirmView.swift */,
+				A2000000000000000000FF11 /* ExpeditionsView.swift */,
+				A2000000000000000000FF12 /* ExpeditionResultView.swift */,
+				A2000000000000000000FF13 /* CaptureNameView.swift */,
+				A2000000000000000000FF14 /* GStoreView.swift */,
 				A100000000000000000000A3 /* Assets.xcassets */,
 			);
 			path = WildLive;
@@ -185,6 +245,26 @@
 			files = (
 				A100000000000000000000B1 /* WildLiveApp.swift in Sources */,
 				A100000000000000000000B2 /* TitleView.swift in Sources */,
+				A2000000000000000000BB03 /* RootView.swift in Sources */,
+				A2000000000000000000BB01 /* AppStore.swift in Sources */,
+				A2000000000000000000BB02 /* Route.swift in Sources */,
+				A2000000000000000000BB08 /* Theme.swift in Sources */,
+				A2000000000000000000BB04 /* Domain.swift in Sources */,
+				A2000000000000000000BB05 /* SampleData.swift in Sources */,
+				A2000000000000000000BB06 /* MockGameService.swift in Sources */,
+				A2000000000000000000BB07 /* MockGStoreService.swift in Sources */,
+				A2000000000000000000BB09 /* HomeView.swift in Sources */,
+				A2000000000000000000BB0A /* MyZooView.swift in Sources */,
+				A2000000000000000000BB0B /* OtherZoosView.swift in Sources */,
+				A2000000000000000000BB0C /* VisitZooView.swift in Sources */,
+				A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */,
+				A2000000000000000000BB0E /* GuildView.swift in Sources */,
+				A2000000000000000000BB0F /* RegionPickerView.swift in Sources */,
+				A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */,
+				A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */,
+				A2000000000000000000BB12 /* ExpeditionResultView.swift in Sources */,
+				A2000000000000000000BB13 /* CaptureNameView.swift in Sources */,
+				A2000000000000000000BB14 /* GStoreView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

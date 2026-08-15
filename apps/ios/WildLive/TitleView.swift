@@ -1,9 +1,13 @@
-// WildLive — Milestone 001 title screen (Version 0).
-// Intentionally minimal. Human UI review will drive the next iteration.
+// WildLive — Title screen.
+//
+// Introduced in Milestone 001. Since Milestone 002 the START button hands
+// off to the in-memory NavigationStack owned by AppStore.
 
 import SwiftUI
 
 struct TitleView: View {
+    @Environment(AppStore.self) private var store
+
     var body: some View {
         ZStack {
             backgroundGradient
@@ -26,11 +30,7 @@ struct TitleView: View {
 
     private var backgroundGradient: some View {
         LinearGradient(
-            colors: [
-                Color(red: 0.04, green: 0.06, blue: 0.08),   // near-black
-                Color(red: 0.06, green: 0.10, blue: 0.09),   // deep forest
-                Color(red: 0.02, green: 0.04, blue: 0.06)    // darker at bottom
-            ],
+            colors: [Theme.bgTop, Theme.bgMid, Theme.bgBottom],
             startPoint: .top,
             endPoint: .bottom
         )
@@ -55,10 +55,7 @@ struct TitleView: View {
 
     private var startButton: some View {
         Button {
-            // Version 0: no navigation. Just record the tap for verification.
-            #if DEBUG
-            print("START tapped")
-            #endif
+            store.start()
         } label: {
             Text("START")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
@@ -79,4 +76,5 @@ struct TitleView: View {
 
 #Preview {
     TitleView()
+        .environment(AppStore())
 }
