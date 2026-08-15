@@ -5,7 +5,8 @@ Native iOS client for WildLive.
 - **Milestone 001 (Task 008, Version 0):** SwiftUI title screen only.
 - **Milestone 002 (Task 009):** UI-only clickable prototype of the WildLive core loop — home dashboard, own Zoo, other players' Zoos, Guild, Hunter contract, Region dispatch, expedition resolution, capture/name/release, and G store — all backed by in-memory dummy data.
   - **Iteration 2 (Apple SwiftUI defaults):** rendered against stock SwiftUI — system background, `List` / `Form` / `Section` / `LabeledContent` / `NavigationLink(value:)`, `.buttonStyle(.borderedProminent)`, system SF Symbols on `Label`, system blue tint. No forced colour scheme, no custom gradients, no custom card modifier. Colour is used only where it carries information (rarity tier, region difficulty).
-- **Milestone 002 (Task 010, this branch): first real vertical slice — player registration.** START on a fresh install now leads to a `RegistrationView` that calls `POST /api/players` on the local Laravel (see `docs/DEVELOPMENT.md`) and persists the returned player identifier in `UserDefaults`. Every other screen still runs against in-memory dummy data — only registration is real.
+- **Milestone 002 (Task 010): first real vertical slice — player registration.** START on a fresh install now leads to a `RegistrationView` that calls `POST /api/players` on the local Laravel (see `docs/DEVELOPMENT.md`) and persists the returned player identifier in `UserDefaults`. Every other screen still runs against in-memory dummy data — only registration is real.
+- **Milestone 002 (Task B — Task 016, this branch): iOS layered architecture refactor.** The Player-registration slice is reorganised into `App/` + `Presentation/` + `Application/` + `Domain/` + `Data/` folders with an explicit dependency direction (see [`ARCHITECTURE.md`](ARCHITECTURE.md)). Adds a `WildLiveTests` Unit Test target with 33 tests (Application use case, ViewModel, Data-layer HTTP via `URLProtocol` stubs, `UserDefaults` session repository, and machine-verified architecture-boundary rules). External API contract of `POST /api/players`, on-screen UI, and existing UI tests are all unchanged.
 
 ## Runtime dependencies (Task 010)
 
@@ -97,37 +98,58 @@ Or open `WildLive.xcodeproj` in Xcode and press ⌘R.
 7. Tap **Other Zoos** to visit another player's Zoo (read-only).
 8. Tap **Store → tap any bundle**. A mock 0.8 s purchase credits the `G` balance.
 
-## Project layout
+## Project layout (Task 016 — layered)
 
 ```
 apps/ios/
 ├── README.md                       (this file)
-├── WildLive.xcodeproj/
-│   └── project.pbxproj             (hand-authored — no XcodeGen/Tuist)
+├── ARCHITECTURE.md                 (layer rules + reference implementation)
+├── WildLive.xcodeproj/             (three targets: WildLive, WildLiveTests, WildLiveUITests)
 ├── WildLive/
-│   ├── WildLiveApp.swift           (@main App; injects AppStore)
-│   ├── RootView.swift              (Title vs. NavigationStack)
-│   ├── TitleView.swift             (Milestone 001 title screen; START now navigates)
-│   ├── AppStore.swift              (@Observable — the only mutable state)
-│   ├── Route.swift                 (NavigationStack destinations)
-│   ├── Theme.swift                 (colors, .card() modifier)
-│   ├── Domain.swift                (Species, Animal, Hunter, Region, Expedition, Player, GBundle)
-│   ├── SampleData.swift            (dummy species / hunters / regions / players / G bundles)
-│   ├── MockGameService.swift       (contract / dispatch / resolve / keep / release — idempotent)
-│   ├── MockGStoreService.swift     (mock RevenueCat-shaped store)
-│   ├── HomeView.swift              (dashboard)
-│   ├── MyZooView.swift             (own Zoo grid)
-│   ├── OtherZoosView.swift         (ranking of players)
-│   ├── VisitZooView.swift          (read-only other-player Zoo)
-│   ├── AnimalDetailView.swift      (single-animal detail)
-│   ├── GuildView.swift             (hunter list + contract)
-│   ├── RegionPickerView.swift      (region choice for a contracted hunter)
-│   ├── DispatchConfirmView.swift   (final confirmation before dispatch)
-│   ├── ExpeditionsView.swift       (ongoing + resolved list)
-│   ├── ExpeditionResultView.swift  (single expedition — resolves idempotently on view)
-│   ├── CaptureNameView.swift       (name a captured animal)
-│   ├── GStoreView.swift            (G bundles — mock IAP)
-│   └── Assets.xcassets/            (AppIcon, AccentColor placeholders)
-└── WildLiveUITests/
-    └── WildLiveUITests.swift       (title / start / navigation smoke tests)
+│   ├── Info.plist / Assets.xcassets
+│   ├── App/                        (composition root + shared UI state)
+│   │   ├── WildLiveApp.swift       (@main App — builds the DI graph)
+│   │   ├── AppStore.swift          (@Observable UI/game-state container)
+│   │   └── Route.swift             (NavigationStack destinations)
+│   ├── Presentation/               (SwiftUI Views + ViewModels)
+│   │   ├── RootView.swift, TitleView.swift, HomeView.swift, …
+│   │   ├── RegistrationView.swift
+│   │   ├── RegistrationViewModel.swift  (@Observable)
+│   │   └── Theme.swift
+│   ├── Application/                (use cases — framework-free)
+│   │   ├── RegisterPlayer.swift
+│   │   └── RegisterPlayerInput.swift
+│   ├── Domain/                     (protocols + value types — framework-free)
+│   │   ├── Game.swift              (Species / Animal / Hunter / Region / Player / …)
+│   │   ├── RegisteredPlayer.swift
+│   │   ├── PersistedSession.swift
+│   │   ├── PlayerRepository.swift
+│   │   └── PlayerSessionRepository.swift
+│   └── Data/                       (HTTP / persistence — the only outward-facing layer)
+│       ├── APIClient.swift
+│       ├── PlayerAPIDTO.swift
+│       ├── LivePlayerRepository.swift
+│       ├── MockPlayerRepository.swift
+│       ├── UserDefaultsPlayerSessionRepository.swift
+│       ├── SampleData.swift, MockGameService.swift, MockGStoreService.swift
+├── WildLiveTests/                  (Unit Test target — no Simulator UI)
+│   ├── RegisterPlayerTests.swift
+│   ├── RegistrationViewModelTests.swift
+│   ├── LivePlayerRepositoryTests.swift        (URLProtocol stub)
+│   ├── UserDefaultsPlayerSessionRepositoryTests.swift  (UserDefaults suite)
+│   └── ArchitectureBoundaryTests.swift
+└── WildLiveUITests/                (UI Test target — Simulator-based)
+    └── WildLiveUITests.swift
 ```
+
+## Adding a new feature — recommended order
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) §"Adding a new feature". Short version:
+
+1. `Domain/`: add value type + repository protocol.
+2. `Data/`: add `Mock*Repository`.
+3. `Presentation/`: build `View` + `ViewModel` against the mock (works in SwiftUI Preview).
+4. `Application/`: add a use case only when the flow encodes a rule.
+5. `Data/`: add `Live*Repository` when the endpoint exists.
+6. `App/WildLiveApp.swift`: wire the live impl behind the launch-arg guard.
+7. UI test: gate real-API E2E on `/api/health` self-ping.

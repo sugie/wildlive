@@ -1,13 +1,17 @@
 // WildLive — Root: chooses Title / Registration / Home, hosts NavigationStack.
 //
-// Post-START behaviour depends on the session:
-//   - no persisted session → RegistrationView (submit calls the real API)
-//   - persisted session    → Home dashboard
+// Receives the RegisterPlayer use case + PlayerSessionRepository from the
+// composition root and constructs a fresh RegistrationViewModel bound to
+// the AppStore. The ViewModel is given an `onSuccess` closure that pushes
+// the registered player into AppStore — the ViewModel itself never
+// imports AppStore.
 
 import SwiftUI
 
 struct RootView: View {
     @Environment(AppStore.self) private var store
+    let registerPlayer: RegisterPlayer
+    let sessionRepository: PlayerSessionRepository
 
     var body: some View {
         if store.hasStarted {
@@ -25,13 +29,22 @@ struct RootView: View {
                 if store.isRegistered {
                     HomeView()
                 } else {
-                    RegistrationView()
+                    RegistrationView(viewModel: makeRegistrationViewModel())
                 }
             }
             .navigationDestination(for: Route.self) { route in
                 destination(for: route)
             }
         }
+    }
+
+    private func makeRegistrationViewModel() -> RegistrationViewModel {
+        RegistrationViewModel(
+            registerPlayer: registerPlayer,
+            onSuccess: { [store] registered in
+                store.adoptRegistration(registered)
+            }
+        )
     }
 
     @ViewBuilder
