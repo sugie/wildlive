@@ -2,9 +2,9 @@
 
 The WildLive iOS client is organised into four folders under
 `apps/ios/WildLive/`, each mapping to one architectural layer plus a
-composition-root folder. The Player registration slice is the reference
-implementation; every subsequent feature is expected to follow the same
-shape.
+composition-root folder. The expedition slice — Maps → Hunter → dispatch →
+resolve → keep/release → My Zoo — is the reference implementation; every
+subsequent feature is expected to follow the same shape.
 
 ## Layers
 
@@ -25,8 +25,17 @@ apps/ios/WildLive/
 
 **Purpose.** Build the object graph on launch. Choose Live vs Mock
 implementations (from UI-test launch args). Own the `AppStore`
-`@Observable` state container that mocked screens still read from
-during the UI-first phase.
+`@Observable` state container.
+
+`GameDependencies` is the gameplay half of that graph: it names Domain
+protocols and Application use cases, never concrete Data types, which is
+why one struct serves the live app, the previews and the UI tests.
+
+`AppStore` holds only what genuinely spans screens — navigation, the
+session, the latest server snapshot of the player, and the sample data the
+still-mocked prototype screens (Other Zoos, G Store) need. It holds no game
+state: maps, hunters, expeditions and zoo animals live on the server and
+are loaded by the ViewModel of the screen that needs them.
 
 - **May**: import `SwiftUI`; instantiate `Live*` and `Mock*`
   implementations; read Info.plist; call the Domain protocols; hold the
@@ -119,7 +128,45 @@ asserts each layer folder is free of the forbidden tokens listed above.
 Comments and doc strings are stripped before searching so
 documentation is allowed to mention the forbidden names.
 
-## Reference implementation — Player Registration
+## Reference implementation — the expedition loop
+
+Real dependency chain for a capture decision, top to bottom:
+
+```
+CaptureNameView
+    │  binds to
+    ▼
+CaptureNameViewModel  (Presentation)
+    │  calls
+    ▼
+DecideCapturedAnimal  (Application)
+    │            └──────────────────────────┐
+    ▼                                       ▼
+ExpeditionRepository            PlayerProfileRepository   (Domain protocols)
+    ▲                                       ▲
+    │  implements                           │  implements
+LiveExpeditionRepository        LivePlayerProfileRepository   (Data)
+    │  uses
+    ▼
+APIClient  (Data)  ──►  Laravel  POST /api/players/{p}/expeditions/{e}/keep
+```
+
+`RootView` constructs every ViewModel from `GameDependencies`, handing each
+one a closure for anything it needs to push back into `AppStore`. No
+ViewModel imports `AppStore`; no View constructs a repository.
+
+The Application layer earns its place here: `DecideCapturedAnimal` owns the
+rule that keeping or releasing changes what Home and My Zoo should show, so
+both branches return a refreshed player snapshot alongside the decided
+expedition. It deliberately does *not* own the empty-name fallback — that
+lives on the server, so client and server cannot disagree about what an
+animal ended up called.
+
+Screens whose job is purely to read (map list, hunter roster, My Zoo) skip
+the Application layer and depend on a Domain protocol directly, per the
+"do not create a use case that only forwards" rule below.
+
+## Earlier reference implementation — Player Registration
 
 Real dependency chain, top to bottom:
 
@@ -177,8 +224,12 @@ Follow the UI-first WildLive policy: pixels first, real backend last.
    `LivePlayerRepositoryTests`-style `URLProtocol`-stub tests.
 6. **App composition root**: swap the mock for the live implementation
    behind the launch-arg guard.
-7. **UI tests**: gate a real-API end-to-end test with a
-   `/api/health` self-ping (so CI without Laravel skips it, not fails).
+7. **UI tests**: gate a real-API end-to-end test on the `WILDLIVE_E2E`
+   environment variable, so a machine with no backend skips it — and it
+   fails, rather than skips, once the variable is set. Do not gate on a
+   reachability ping: the ping runs in the test-runner process, not the
+   app, and the first version of this project's end-to-end test skipped
+   itself on every run for exactly that reason.
 
 ## Testing surfaces
 
@@ -189,6 +240,25 @@ Follow the UI-first WildLive policy: pixels first, real backend last.
 | Data (HTTP)   | `WildLiveTests`   | `URLProtocol` stub, no real network       |
 | Data (UDef.)  | `WildLiveTests`   | `UserDefaults(suiteName:)` per test       |
 | Boundaries    | `WildLiveTests`   | `FileManager` walk of layer folders       |
+| Flow          | `WildLiveUITests` | Real app, in-memory repositories          |
+| End to end    | `WildLiveUITests` | Real app + real Laravel + real PostgreSQL |
+
+## Adding a file to the Xcode project
+
+`project.pbxproj` is hand-maintained with readable object ids rather than
+Xcode's random ones, which keeps its diffs reviewable but means a new file
+needs four coordinated edits. Use the helper rather than making them by
+hand:
+
+```bash
+python3 apps/ios/Scripts/add_sources_to_pbxproj.py \
+  --target WildLive Domain/NewThing.swift Presentation/NewThingView.swift
+```
+
+It is idempotent, and it anchors on each group's and build phase's
+*definition* — anchoring on the first mention of an id silently inserts
+files into whichever list happens to follow, which produces a project that
+builds locally and fails in CI.
 | Live end-to-end | `WildLiveUITests` | Simulator → real Laravel → real PostgreSQL |
 
 Third-party mocking / architecture libraries are not used.

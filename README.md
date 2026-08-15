@@ -47,12 +47,26 @@ AI agents may implement, test, review, document, and propose changes, but must f
 
 ## Status
 
-Experimental / pre-alpha.
+Experimental / pre-alpha — but playable.
 
-The first implementation task — a minimal Docker development environment — is now
-in place. See [`.ai/tasks/001-docker-foundation.md`](.ai/tasks/001-docker-foundation.md)
-for the task spec and [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for day-to-day
-commands.
+The first gameplay loop works end to end, from the iPhone Simulator to
+PostgreSQL and back:
+
+> register → choose an African Map → contract a Hunter from the Guild →
+> dispatch → resolve → keep (and name) the animal, or release it → My Zoo
+
+Everything about the game is decided on the server from Game Master v0.3
+data: which animals a map can produce, what a Hunter costs, how long an
+expedition takes, what was encountered, and whether it was caught.
+
+See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) to run it,
+[`apps/ios/README.md`](apps/ios/README.md) to play it by hand, and
+[`docs/game-design/RUNTIME_MASTER_DATA.md`](docs/game-design/RUNTIME_MASTER_DATA.md)
+for how a number in the design workbook becomes a number on screen.
+
+Not yet implemented: authentication, multiplayer, World First, discoveries,
+trading, the G economy beyond a starting balance, and every region other
+than Africa.
 
 ## Local development
 
