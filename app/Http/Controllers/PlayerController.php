@@ -2,36 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Application\Players\RegisterPlayer;
+use App\Application\Players\RegisterPlayerInput;
 use App\Http\Requests\RegisterPlayerRequest;
 use App\Http\Resources\PlayerResource;
 use App\Http\Resources\ZooResource;
-use App\Models\Player;
-use App\Models\Zoo;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
-class PlayerController extends Controller
+/**
+ * Presentation Layer entry point for player registration.
+ *
+ * The controller intentionally holds no business rules: it validates
+ * (via RegisterPlayerRequest), maps the HTTP payload into a
+ * framework-free RegisterPlayerInput, delegates the atomic Player + Zoo
+ * creation to the RegisterPlayer application-layer use case, and shapes
+ * the response with API Resources.
+ *
+ * The controller must NOT call Eloquent (Player::/Zoo::) directly, must
+ * NOT open a DB transaction, and must NOT encode the Player + Zoo 1:1
+ * invariant — those live in the Application Layer.
+ */
+final class PlayerController extends Controller
 {
-    /**
-     * Create the first-time Player (with its owning Zoo) in one transaction.
-     *
-     * ER_MODEL.md §C1 requires Player and Zoo be created atomically so a Player
-     * never exists without a Zoo (or vice versa). The DB::transaction closure
-     * plus UNIQUE(zoos.player_id) NOT NULL enforce that invariant.
-     */
+    public function __construct(
+        private readonly RegisterPlayer $registerPlayer,
+    ) {
+    }
+
     public function store(RegisterPlayerRequest $request): JsonResponse
     {
-        [$player, $zoo] = DB::transaction(function () use ($request) {
-            $player = Player::create([
-                'display_name' => $request->string('display_name')->trim()->value(),
-            ]);
-            $zoo = Zoo::create(['player_id' => $player->id]);
-            return [$player, $zoo];
-        });
+        $input = new RegisterPlayerInput(
+            displayName: $request->string('display_name')->trim()->value(),
+        );
+
+        $result = ($this->registerPlayer)($input);
 
         return response()->json([
-            'player' => (new PlayerResource($player))->toArray($request),
-            'zoo' => (new ZooResource($zoo))->toArray($request),
+            'player' => (new PlayerResource($result->player))->toArray($request),
+            'zoo' => (new ZooResource($result->zoo))->toArray($request),
         ], 201);
     }
 }
