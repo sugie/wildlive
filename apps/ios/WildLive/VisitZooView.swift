@@ -7,62 +7,33 @@ struct VisitZooView: View {
     let playerId: String
 
     var body: some View {
-        ZStack {
-            Theme.appBackground
-            ScrollView {
-                if let player = store.player(playerId) {
-                    VStack(spacing: 16) {
-                        header(player)
-                        if player.animals.isEmpty {
-                            Text("This Zoo is empty.")
-                                .font(.footnote)
-                                .foregroundStyle(Theme.subtle)
-                        } else {
-                            grid(player.animals)
+        List {
+            if let player = store.player(playerId) {
+                Section(player.displayName) {
+                    LabeledContent("Zoo Value",
+                                   value: "\(player.zooValue(using: store.speciesById))")
+                    LabeledContent("Animals", value: "\(player.animals.count)")
+                }
+                if player.animals.isEmpty {
+                    Section {
+                        Text("This Zoo is empty.")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Section("Animals") {
+                        ForEach(player.animals) { animal in
+                            AnimalRow(animal: animal)
                         }
                     }
-                    .padding(20)
-                } else {
-                    Text("Player not found")
-                        .foregroundStyle(Theme.subtle)
-                        .padding(40)
+                }
+            } else {
+                Section {
+                    Text("Player not found.")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
         .navigationTitle("Visiting")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.bgTop, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-    }
-
-    private func header(_ player: Player) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(player.displayName)
-                    .font(.system(size: 26, weight: .semibold, design: .serif))
-                    .foregroundStyle(.white)
-                Text("Read-only visit")
-                    .font(.caption).foregroundStyle(Theme.subtle)
-            }
-            Spacer()
-            VStack(alignment: .trailing) {
-                Text("\(player.zooValue(using: store.speciesById))")
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                Text("Zoo Value").font(.caption2).foregroundStyle(Theme.subtle)
-            }
-        }
-        .card()
-    }
-
-    private func grid(_ animals: [Animal]) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
-            spacing: 12
-        ) {
-            ForEach(animals) { animal in
-                AnimalCardView(animal: animal)
-            }
-        }
     }
 }

@@ -4,6 +4,7 @@ Native iOS client for WildLive.
 
 - **Milestone 001 (Task 008, Version 0):** SwiftUI title screen only.
 - **Milestone 002 (Task 009, this branch):** UI-only clickable prototype of the WildLive core loop — home dashboard, own Zoo, other players' Zoos, Guild, Hunter contract, Region dispatch, expedition resolution, capture/name/release, and G store — all backed by in-memory dummy data.
+  - **Iteration 2 (Apple SwiftUI defaults):** rendered against stock SwiftUI — system background, `List` / `Form` / `Section` / `LabeledContent` / `NavigationLink(value:)`, `.buttonStyle(.borderedProminent)`, system SF Symbols on `Label`, system blue tint. No forced colour scheme, no custom gradients, no custom card modifier. Colour is used only where it carries information (rarity tier, region difficulty).
 
 ## Scope of Milestone 002
 

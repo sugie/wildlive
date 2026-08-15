@@ -1,4 +1,4 @@
-// WildLive — Dispatch confirmation. Final step: fire the expedition.
+// WildLive — Final confirmation before an expedition is dispatched.
 
 import SwiftUI
 
@@ -6,26 +6,21 @@ struct DispatchConfirmView: View {
     @Environment(AppStore.self) private var store
     let hunterId: String
     let regionId: String
+
     @State private var dispatched = false
     @State private var errorMessage: String?
 
     var body: some View {
-        ZStack {
-            Theme.appBackground
-            ScrollView {
-                VStack(spacing: 16) {
-                    if let hunter = store.hunter(hunterId), let region = store.region(regionId) {
-                        summary(hunter: hunter, region: region)
-                        actionButton(hunter: hunter, region: region)
-                    }
-                }
-                .padding(20)
+        Form {
+            if let hunter = store.hunter(hunterId), let region = store.region(regionId) {
+                hunterSection(hunter)
+                regionSection(region)
+                speciesSection(region)
+                actionSection(hunter: hunter, region: region)
             }
         }
         .navigationTitle("Dispatch")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.bgTop, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .alert("Dispatch failed", isPresented: errorBinding) {
             Button("OK") { errorMessage = nil }
         } message: {
@@ -37,69 +32,78 @@ struct DispatchConfirmView: View {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
     }
 
-    private func summary(hunter: Hunter, region: Region) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            row("Hunter", value: "\(hunter.name)  ·  \(hunter.tier.label)")
-            row("Skill",  value: "\(hunter.skill) / 100")
-            row("Region", value: region.name)
-            row("Difficulty", value: region.difficulty.label)
-            row("Simulated wait", value: "~ \(Int(region.simulatedDurationSeconds)) seconds")
-            row("Possible species", value: region.speciesPool
-                .compactMap { store.speciesById[$0]?.commonName }
-                .joined(separator: ", "))
+    private func hunterSection(_ hunter: Hunter) -> some View {
+        Section("Hunter") {
+            LabeledContent("Name",  value: hunter.name)
+            LabeledContent("Tier",  value: hunter.tier.label)
+            LabeledContent("Skill", value: "\(hunter.skill) / 100")
         }
-        .card()
     }
 
-    private func row(_ label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(Theme.subtle)
-            Text(value).font(.subheadline).foregroundStyle(.white)
+    private func regionSection(_ region: Region) -> some View {
+        Section("Region") {
+            LabeledContent("Name", value: region.name)
+            LabeledContent("Difficulty") {
+                Label(region.difficulty.label, systemImage: "target")
+                    .labelStyle(.titleAndIcon)
+                    .foregroundStyle(region.difficulty.systemColor)
+            }
+            LabeledContent("Simulated wait",
+                           value: "\(Int(region.simulatedDurationSeconds)) seconds")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func speciesSection(_ region: Region) -> some View {
+        Section("Possible species") {
+            ForEach(region.speciesPool, id: \.self) { id in
+                if let sp = store.speciesById[id] {
+                    HStack {
+                        Circle().fill(sp.rarity.systemColor).frame(width: 8, height: 8)
+                        Text(sp.commonName)
+                        Spacer()
+                        Text(sp.rarity.label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder
-    private func actionButton(hunter: Hunter, region: Region) -> some View {
+    private func actionSection(hunter: Hunter, region: Region) -> some View {
         if dispatched {
-            VStack(spacing: 8) {
-                Text("Dispatched.")
-                    .font(.headline).foregroundStyle(Theme.accent)
+            Section {
+                Label("Dispatched.", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.tint)
                 Text("Watch the countdown in Expeditions.")
-                    .font(.caption).foregroundStyle(Theme.subtle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 Button {
                     store.popToHome()
                     store.push(.expeditions)
                 } label: {
-                    Text("Go to Expeditions")
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(Capsule().fill(Theme.accent))
-                        .foregroundStyle(.black)
+                    Label("Go to Expeditions", systemImage: "map.fill")
                 }
-                .buttonStyle(.plain)
                 .accessibilityIdentifier("goToExpeditionsButton")
             }
-            .frame(maxWidth: .infinity)
-            .card()
         } else {
-            Button {
-                switch store.gameService.dispatch(hunterId: hunter.id, regionId: region.id) {
-                case .success:
-                    dispatched = true
-                case .failure(let err):
-                    errorMessage = err.localizedDescription
+            Section {
+                Button {
+                    switch store.gameService.dispatch(hunterId: hunter.id, regionId: region.id) {
+                    case .success:
+                        dispatched = true
+                    case .failure(let err):
+                        errorMessage = err.localizedDescription
+                    }
+                } label: {
+                    Text("Dispatch \(hunter.name)")
+                        .frame(maxWidth: .infinity)
                 }
-            } label: {
-                Text("Dispatch \(hunter.name)")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent))
-                    .foregroundStyle(.black)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("dispatchButton")
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("dispatchButton")
         }
     }
 }
