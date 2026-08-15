@@ -24,14 +24,40 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
 
-        <!-- Tests run against the same PostgreSQL engine used in production. -->
-        <env name="DB_CONNECTION" value="pgsql"/>
-        <env name="DB_HOST" value="postgres"/>
-        <env name="DB_PORT" value="5432"/>
-        <env name="DB_DATABASE" value="wildlive_test"/>
-        <env name="DB_USERNAME" value="wildlive"/>
-        <env name="DB_PASSWORD" value="wildlive_local_only"/>
-        <env name="DB_URL" value=""/>
+        <!--
+            Tests run against the same PostgreSQL engine used in production,
+            on a separate `wildlive_test` database.
+
+            Both <server> and <env>, both force="true", and that is not
+            belt-and-braces — it is the only combination that works here.
+
+            docker-compose.yml exports DB_DATABASE=wildlive into the app
+            container. PHP's CLI puts container environment variables into
+            $_SERVER, and Laravel's env() reads $_SERVER before $_ENV and
+            putenv(). PHPUnit's <env> writes only $_ENV and putenv(), so a
+            <env>-only override was silently losing to $_SERVER: the whole
+            suite ran against the DEVELOPMENT database, and RefreshDatabase
+            wiped it — game master data included — on every run.
+
+            CI sets DB_DATABASE=wildlive_test in the workflow environment,
+            so CI was always correct. That is exactly why this went
+            unnoticed: it only ever destroyed a developer's local data.
+        -->
+        <server name="DB_CONNECTION" value="pgsql" force="true"/>
+        <server name="DB_HOST" value="postgres" force="true"/>
+        <server name="DB_PORT" value="5432" force="true"/>
+        <server name="DB_DATABASE" value="wildlive_test" force="true"/>
+        <server name="DB_USERNAME" value="wildlive" force="true"/>
+        <server name="DB_PASSWORD" value="wildlive_local_only" force="true"/>
+        <server name="DB_URL" value="" force="true"/>
+
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_HOST" value="postgres" force="true"/>
+        <env name="DB_PORT" value="5432" force="true"/>
+        <env name="DB_DATABASE" value="wildlive_test" force="true"/>
+        <env name="DB_USERNAME" value="wildlive" force="true"/>
+        <env name="DB_PASSWORD" value="wildlive_local_only" force="true"/>
+        <env name="DB_URL" value="" force="true"/>
 
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

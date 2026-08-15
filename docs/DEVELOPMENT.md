@@ -80,6 +80,14 @@ The suite intentionally avoids SQLite so that PostgreSQL-specific
 behaviour (types, transactions, constraints used by World First
 and expedition resolution) is exercised in tests.
 
+`phpunit.xml` points the suite at `wildlive_test` using **both** `<server>`
+and `<env>` entries with `force="true"`. That is not redundancy: PHP's CLI
+copies the container's environment into `$_SERVER`, and Laravel's `env()`
+reads `$_SERVER` first — so an `<env>`-only override loses, the suite runs
+against the development database, and `RefreshDatabase` wipes it. If you
+ever see your seeded game master data disappear after running tests, that
+is what happened.
+
 ## First-time player registration (end-to-end)
 
 Milestone 002 (Task 010) added the first real vertical slice: the iOS
@@ -180,6 +188,11 @@ docker compose exec postgres psql -U wildlive -d wildlive -c "
 `TEST_RUNNER_` is not a typo: `xcodebuild` only forwards environment
 variables with that prefix into the test runner process, stripping it on
 the way.
+
+Add `-parallel-testing-enabled NO` when running more than one end-to-end
+test at a time. `php artisan serve` is single-threaded, and three
+simultaneous Simulator clones queue behind each other until the app's
+requests time out.
 
 To play it by hand instead, see
 [`apps/ios/README.md`](../apps/ios/README.md#play-the-expedition-loop-by-hand).
