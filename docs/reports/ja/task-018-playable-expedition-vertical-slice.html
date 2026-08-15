@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive タスク018 — 実際に遊べる探検バーティカルスライス: iPhoneシミュレータ → SwiftUI → Laravel → PostgreSQL。AIによる実装レポート。">
+<title>タスク018 — 実際に遊べる探検バーティカルスライス · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AIがつくるライブMMO — 自律的AIソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← レポート一覧</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-018-playable-expedition-vertical-slice.html">English</a>
+</nav>
+
+<h1>タスク018 — 実際に遊べる探検バーティカルスライス</h1>
+<p class="meta">
+  プロジェクト: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-16
+  &nbsp;·&nbsp; AIエージェント: <code>claude-opus-5[1m]</code>（Claude Code経由）
+  &nbsp;·&nbsp; ステータス: <span class="badge badge-warn">プルリクエスト公開中 — 未マージ</span>
+</p>
+
+<h2>人間の介入</h2>
+<ul>
+  <li><strong>タスク仕様の作成。</strong> 対象とするフロー、アーキテクチャ上の制約、データベースの前提、変更してはならないGame Master v0.3のルール、テスト要件、Gitの運用規律まで、指示書はすべて人間が書いた。</li>
+  <li><strong>差分への手作業の修正はなし。</strong> 変更された136ファイルの全行をAIエージェントが記述した。</li>
+  <li><strong>マージは保留。</strong> 人間はPR #16をマージしていない。指示書がエージェントによるマージを明示的に禁じており、エージェントはマージしていない。</li>
+  <li><strong>認証情報。</strong> 要求も作成も取り扱いもしていない。SSH鍵による認証がホスト側に拒否されたため、開発マシンに既存の<code>gh</code>認証を用いてブランチをpushした。新しい認証情報の設定は行っていない。</li>
+  <li><strong>人間に委ねた設計判断。</strong> Game Master v0.3が定めていない部分（捕獲難易度のペナルティ、捕獲率の上下限、初期所持G、Zoo Valueの解釈）については、エージェントが値を選んだうえでコード上に「バーティカルスライス限定の定数」と明示し、決定ではなく未解決の課題として記録した。</li>
+</ul>
+
+<h2>目的</h2>
+<p>
+  WildLiveを「本物の登録機能＋モックのゲーム」から、実際に遊べる最初のゲームループへ進める。
+  ローカル環境で iPhoneシミュレータ → SwiftUI → Laravel API → PostgreSQL 17 → 永続化されたゲーム状態 → 再び画面へ、
+  という一連の流れを成立させる。人間が実際に、登録し、アフリカのマップを選び、ハンターと契約し、探検を送り出し、
+  結果を確定させ、動物をKEEP（命名）またはRELEASEし、My Zooで確認できること。
+  そのすべての事実がサーバー側に保存されていること。
+</p>
+<p>
+  意図的に対象外としたもの: 本番デプロイ、さくらのクラウド、RevenueCat、認証、マルチプレイ／ギルドの同時実行制御、
+  PvP、トレード、チャット、経済バランスの完成、アフリカ以外のリージョン、高度な動物園シミュレーション。
+</p>
+
+<h2>AIが行ったこと</h2>
+<ol>
+  <li>GitHub上でPR #15（Game Master v0.3）が既に<strong>マージ済み</strong>であることを確認し、<code>main</code>を<code>3ebe7c2</code>までfast-forwardしてそこから分岐した（スタックしたブランチは作っていない）。</li>
+  <li>着手前のテスト基準値を記録: Laravel <strong>18テスト / 58アサーション</strong>、iOS <strong>35成功・1スキップ</strong>。</li>
+  <li>マスターデータの経路を一本化。新しいエクスポータが、レビュー用ワークブックを生成するのと同一のPythonモジュールを読み込み、<code>database/master/game-master-v0.3.json</code>を出力する。シーダーがそれをPostgreSQLへ投入する。実行時に<code>.xlsx</code>を開くことは一切ない。</li>
+  <li>追加のみの6つのマイグレーションと、マスターデータ・探検・動物園動物のEloquentモデルを追加。</li>
+  <li>探検のルールをフレームワーク非依存のDomainクラスとして実装。すべての乱数は注入可能な<code>RandomSource</code>を経由する。</li>
+  <li>トランザクションを担うApplicationユースケースと、薄いコントローラを持つ13のRESTエンドポイントを実装。</li>
+  <li>Laravel側に103本のテストを追加。<code>rare_find_bonus</code>が捕獲成功率に一切影響しないという不変条件の検証を含む。</li>
+  <li>iOSのゲーム画面をDomainプロトコル経由で実APIに接続。プロトタイプのゲーム型は「真実の情報源」を二重に持たないよう削除した。</li>
+  <li>iOSのユニットテストと、2層構成のUIテストを記述。何もモックしない実E2Eテストを含む。</li>
+  <li>新しいテストが暴き出した既存バグ4件（<em>問題点</em>参照）と、AI自身が持ち込みCIが検出した退行1件を修正。</li>
+  <li>実環境でのスクリーンショットを取得し、マスターデータの対応関係を文書化し、PR #16を作成。手動プレイ用にアプリをシミュレータへインストール・起動した状態で残した。</li>
+</ol>
+
+<h2>実装</h2>
+<table>
+  <thead><tr><th>構成要素</th><th>採用したもの</th></tr></thead>
+  <tbody>
+    <tr><td>マスターデータの源泉</td><td><code>docs/game-design/build_master_v0_3.py</code>（正典となるPythonリテラル）</td></tr>
+    <tr><td>実行時マスターデータ</td><td><code>database/master/game-master-v0.3.json</code>（<code>export_master_json.py</code>が生成）</td></tr>
+    <tr><td>乖離の防止</td><td>CIステップ<code>export_master_json.py --check</code>。JSONが古ければ失敗する</td></tr>
+    <tr><td>マスターテーブル</td><td><code>biomes</code>, <code>rarities</code>, <code>animals</code>, <code>hunters</code>, <code>maps</code>, <code>map_animals</code> — Game Masterの文字列IDを主キーに採用</td></tr>
+    <tr><td>ゲームプレイのテーブル</td><td><code>expeditions</code>, <code>zoo_animals</code>、および<code>players.g_balance</code></td></tr>
+    <tr><td>乱数</td><td><code>App\Domain\Support\RandomSource</code>。本番は<code>SystemRandomSource</code>（random_int）、テストは指定した数列</td></tr>
+    <tr><td>Domainルール</td><td><code>ExpeditionPlanner</code>, <code>EncounterTable</code>, <code>CaptureResolver</code>, <code>ExpeditionBalance</code></td></tr>
+    <tr><td>Applicationユースケース</td><td><code>StartExpedition</code>, <code>ResolveExpedition</code>, <code>DecideCapturedAnimal</code>、参照系3つ、<code>DevExpeditionPolicy</code></td></tr>
+    <tr><td>API</td><td>13エンドポイント。プレイヤー単位のルートは<code>/players/{player}</code>配下にネスト</td></tr>
+    <tr><td>iOS Domain</td><td><code>GameMap</code>, <code>AnimalSpecies</code>, <code>Hunter</code>, <code>Expedition</code>, <code>ZooAnimal</code>, <code>PlayerOverview</code> と3つのリポジトリプロトコル</td></tr>
+    <tr><td>iOSコンポジションルート</td><td><code>GameDependencies</code>がLive／Mock実装を選択。どの画面もリポジトリを自前で生成しない</td></tr>
+    <tr><td>iOS画面</td><td>9つのViewModel: Home, MapList, MapDetail, HunterList, DispatchConfirm, Expeditions, ExpeditionDetail, CaptureName, MyZoo</td></tr>
+  </tbody>
+</table>
+
+<h3>PostgreSQLへ投入したGame Master v0.3の内容</h3>
+<table>
+  <thead><tr><th>シート</th><th>PostgreSQL上の行数</th></tr></thead>
+  <tbody>
+    <tr><td>Biomes</td><td>6</td></tr>
+    <tr><td>Rarities</td><td>5</td></tr>
+    <tr><td>Animals</td><td>54</td></tr>
+    <tr><td>Hunters</td><td>18</td></tr>
+    <tr><td>Maps</td><td>15（<code>initial_africa</code>の9つがプレイ可能、<code>future_expansion</code>の6つは除外）</td></tr>
+    <tr><td>MapAnimals</td><td>72</td></tr>
+  </tbody>
+</table>
+
+<h3>実装したゲーム内計算式</h3>
+<table>
+  <thead><tr><th>ルール</th><th>計算式</th></tr></thead>
+  <tbody>
+    <tr><td>探検コスト</td><td><code>map.base_cost_g + hunter.contract_cost_g</code>。派遣時に引き落とし、返金は一切なし</td></tr>
+    <tr><td>所要時間</td><td><code>round(expedition_minutes × (1 − speed_bonus/100))</code>、[5, 1440]でクランプ</td></tr>
+    <tr><td>遭遇の重み</td><td><code>spawn_weight × ((100 + rare_find_bonus)/100) ^ (rarity_sort_order − 1)</code></td></tr>
+    <tr><td>捕獲確率</td><td><code>60 − 8×(map.difficulty−1) − 8×(animal.capture_difficulty−1) + capture_bonus + バイオーム一致で+10 + capture_modifier</code>、[5, 95]でクランプ</td></tr>
+    <tr><td>捕獲判定</td><td>1回の探検につきd100を1回。<code>ロール ≤ 確率</code>で成功</td></tr>
+    <tr><td>マップ解放</td><td><code>always</code>、またはZoo Value ≥ <code>unlock_value</code>。ハンターとは無関係</td></tr>
+    <tr><td>KEEP / RELEASE</td><td>KEEPは<code>zoo_animals</code>を1行作成（名前が空なら種名を使用）。RELEASEは何も作らず0&nbsp;G</td></tr>
+  </tbody>
+</table>
+
+<h2>アーキテクチャ／設計上の判断</h2>
+<ul>
+  <li><strong>マスターデータの経路を一本に</strong> — ワークブックとJSONは同じPythonリテラルから生成されるため、共通の源泉が変わらない限り両者が食い違うことはない。<a href="https://github.com/sugie/wildlive/blob/ai/018-playable-expedition-vertical-slice/docs/game-design/RUNTIME_MASTER_DATA.md">RUNTIME_MASTER_DATA.md</a>に記載。</li>
+  <li><strong>Game MasterのIDをそのまま主キーに</strong>（<code>map_kenyan_savanna_001</code>）— 表計算のセルからAPIのペイロードまで、対応表なしに目視で追跡できる。</li>
+  <li><strong>ルールは「忘れうるチェック」ではなく構造で担保する。</strong> キタシロサイは<code>map_animals</code>に行を持たないため、どの経路からも出現し得ない。<code>player_hunters</code>テーブルが存在しないため、ハンターを所有することはできない。<code>rare_find_bonus</code>は<code>EncounterTable</code>以外のどこからも参照されないため、捕獲成功率に混入し得ない。</li>
+  <li><strong>注入可能な乱数</strong> — すべてのロールが単一のインターフェースを通るため、テストがサイコロの目で落ちることはない。</li>
+  <li><strong>べき等な状態遷移</strong> — 結果確定は<code>resolved_at</code>、KEEP/RELEASEは<code>decided_at</code>で守り、いずれも<code>SELECT … FOR UPDATE</code>下で実行。最後の砦として<code>UNIQUE(zoo_animals.expedition_id)</code>を置いた。</li>
+  <li><strong>開発専用の時間短縮は本番と絶対に混同できない形に</strong> — 許可された環境・設定フラグ・リクエストごとの明示的な指定の3つすべてを要求する。生成された探検はPostgreSQLとすべてのAPIレスポンスに恒久的にフラグが立ち、アプリではオレンジ色の帯が表示され、本来の所要時間は<code>planned_duration_minutes</code>に保持される。正典の<code>expedition_minutes</code>は一切変更していない。</li>
+  <li><strong>プロトタイプ型は並存させず削除</strong> — クライアント側の<code>MockGameService</code>・<code>Hunter</code>・<code>Region</code>・<code>Expedition</code>は、サーバー実装が入った時点で削除した。「ハンターとは何か」の答えは常に一つである。</li>
+  <li><strong>ユースケースは必要な場所にだけ</strong> — 書き込み系のフローにはApplicationユースケースを置き、参照のみの画面はDomainプロトコルへ直接依存させた。本プロジェクト既存の「転送するだけのユースケースを作らない」という方針に従っている。</li>
+</ul>
+
+<h2>変更ファイル</h2>
+<p><code>git diff --stat main..HEAD</code>の合計: <strong>136ファイル変更、+13,307 / −979</strong>。</p>
+<table>
+  <thead><tr><th>領域</th><th>変更</th></tr></thead>
+  <tbody>
+    <tr><td><code>app/</code> + <code>tests/</code></td><td>62ファイル、+4,530 / −6</td></tr>
+    <tr><td><code>apps/ios/</code></td><td>48ファイル、+5,095 / −952</td></tr>
+    <tr><td><code>database/</code></td><td>7ファイル、+2,955 / −7（約2,900行の生成済みマスターJSONを含む）</td></tr>
+    <tr><td><code>docs/</code></td><td>12ファイル、+495 / −5、加えてPNGスクリーンショット8枚</td></tr>
+  </tbody>
+</table>
+
+<h2>検証</h2>
+<table>
+  <thead><tr><th>確認項目</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>python3 docs/game-design/export_master_json.py --check</code></td><td>ok — JSONは正典の源泉と一致</td></tr>
+    <tr><td><code>php artisan migrate --force</code></td><td>新規マイグレーション4件を適用（残り2件は先行ステップで適用済み）。エラーなし</td></tr>
+    <tr><td><code>php artisan db:seed --force</code></td><td>Game Master v0.3を投入: バイオーム6、レアリティ5、動物54、ハンター18、マップ15、出現行72</td></tr>
+    <tr><td><code>vendor/bin/phpunit</code></td><td>OK (121 tests, 783 assertions)</td></tr>
+    <tr><td><code>xcodebuild build</code></td><td>** BUILD SUCCEEDED **</td></tr>
+    <tr><td><code>xcodebuild test</code>（全件・直列・E2E有効）</td><td>** TEST SUCCEEDED ** — 90成功、0失敗</td></tr>
+    <tr><td>実APIのスモークテスト（<code>curl</code>）</td><td>登録 → マップ → マップ詳細 → ハンター → 派遣 → 結果確定 → KEEP → 動物園、すべて2xx</td></tr>
+    <tr><td>E2E実行後のPostgreSQL行確認</td><td>プレイヤー<code>E2EZookeeper</code>、900&nbsp;G、<code>E2ENala</code>と名付けられた<code>Masai Giraffe</code>が1頭</td></tr>
+    <tr><td><code>80aa43b</code>に対するGitHub Actions CI</td><td><a href="https://github.com/sugie/wildlive/actions/runs/31891141739">run 31891141739</a> — success</td></tr>
+  </tbody>
+</table>
+
+<h2>テスト</h2>
+<p>
+  Laravel: <strong>121テスト、783アサーション、OK</strong> — PostgreSQL 17に対し
+  PHP 8.5.9上のPHPUnit 12.5.33、実行時間00:01.498。
+  本タスク着手前の基準値は18テスト / 58アサーション。
+</p>
+<ul>
+  <li><strong>ユニット（52）</strong> — 解放条件と所要時間のクランプ、スケーリング済み遭遇重みの厳密値と境界値の抽選、上下限を含む捕獲確率の全式、開発用ショートカットが設定フラグONでも本番環境では拒否されること。</li>
+  <li><strong>フィーチャー（69）</strong> — アフリカの9マップとその解放制御、ケニアのサバンナの16行の出現テーブル、所有フィールドを持たない18人のハンター、Gを引き落とす派遣と何も課金しない拒否、べき等な結果確定、KEEP/RELEASEと翻意時の409、そしてキタシロサイがどの公開マップにも出現行を持たないこと。</li>
+  <li>最も重要な不変条件のテスト: 捕獲確率は<code>rare_find_bonus</code>の全範囲（−20〜+30）で<em>完全に同一</em>である。</li>
+</ul>
+<p>
+  iOS: <strong>90テスト成功、0失敗</strong> — Xcode 26.6、iOS 26.5のiPhone 17シミュレータ、
+  <code>-parallel-testing-enabled NO</code>で実行。
+  本タスク着手前の基準値は35成功 / 1スキップ。
+</p>
+<ul>
+  <li><strong>WildLiveTests（77）</strong> — 通信フォーマットからDomainへの変換、ユースケース、ViewModel、および9本の<code>ArchitectureBoundaryTests</code>。すべて成功のまま。</li>
+  <li><strong>WildLiveUITests（13）</strong> — インメモリ実装に対するフローテストに加え、<strong>何もモックしない3本</strong>: 実iOSアプリ・実Laravel・実PostgreSQL。</li>
+  <li>E2Eテストは登録・派遣・結果確定・KEEP・命名まで行ったあと、My Zooから一度離れて戻る。これによりその動物が画面上の状態ではなくサーバーの状態であることを証明している。</li>
+</ul>
+
+<h2>Git / コミット</h2>
+<p>ベース: <code class="commit-hash">3ebe7c2</code>（PR #15マージ後の<code>main</code>）。</p>
+<table>
+  <thead><tr><th>SHA</th><th>件名</th></tr></thead>
+  <tbody>
+    <tr><td class="commit-hash">3be35a1</td><td>feat(game): add Game Master v0.3 runtime master data and schema</td></tr>
+    <tr><td class="commit-hash">be47746</td><td>feat(api): add expedition domain, use cases and gameplay endpoints</td></tr>
+    <tr><td class="commit-hash">7aa2bae</td><td>test(game): add deterministic expedition test coverage</td></tr>
+    <tr><td class="commit-hash">421cd82</td><td>feat(ios): connect the expedition flow to the live API</td></tr>
+    <tr><td class="commit-hash">5f06653</td><td>docs(game): document the playable vertical slice</td></tr>
+    <tr><td class="commit-hash">6896059</td><td>fix(test): stop the PHPUnit suite from wiping the development database</td></tr>
+    <tr><td class="commit-hash">80aa43b</td><td>fix(test): force only the test database name, not the connection details</td></tr>
+  </tbody>
+</table>
+
+<h2>プルリクエスト</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/16">#16 — feat(game): playable expedition vertical slice — iOS → Laravel → PostgreSQL</a></li>
+  <li>ベース <code>main</code> ← ヘッド <code>ai/018-playable-expedition-vertical-slice</code></li>
+  <li>作成 2026-08-15T14:50:39Z · 状態: <strong>OPEN</strong> · マージ可否: <strong>MERGEABLE</strong> · マージコミット: <em>該当なし（未マージ）</em></li>
+  <li>CI <a href="https://github.com/sugie/wildlive/actions/runs/31891039179">run 31891039179</a>（<code class="commit-hash">6896059</code>）— <strong>失敗</strong>。AIが持ち込んだ退行で、データベース分離の最初の修正が<code>DB_HOST</code>まで強制上書きし、CI側の正しい値を潰していた。</li>
+  <li>CI <a href="https://github.com/sugie/wildlive/actions/runs/31891141739">run 31891141739</a>（<code class="commit-hash">80aa43b</code>）— <strong>成功</strong>。</li>
+</ul>
+
+<h2>問題点／既知の制約</h2>
+<p><strong>発見して修正したバグ。うち4件は本タスク以前から存在していた。</strong></p>
+<ol>
+  <li><strong>PHPUnitのテストスイートが開発用データベースに対して実行され、それを消していた。</strong> <code>docker-compose.yml</code>がappコンテナに<code>DB_DATABASE=wildlive</code>を渡し、PHPのCLIがコンテナの環境変数を<code>$_SERVER</code>へ複写し、Laravelの<code>env()</code>は<code>$_SERVER</code>を<code>$_ENV</code>や<code>putenv()</code>より先に読む。PHPUnitの<code>&lt;env&gt;</code>が書き込むのは後者だけである。失って困るものが無いうちは無害だったが、本タスクではセッション途中で投入済みのGame Masterデータを消し、動作中のアプリを壊した。<code>&lt;server&gt;</code>要素の追加で修正。CIは常に正しく、だからこそ見過ごされていた。</li>
+  <li><strong>「実API」UIテストが黙ってスキップされ続けていた。</strong> テストランナープロセス（アプリ側ではない）から到達性をpingする自己ゲートを持ち、それが成功することはなかったため、本プロジェクト唯一のE2Eテストは何も検証しなくなっていた。明示的な<code>WILDLIVE_E2E</code>オプトインに置き換え、指定時はスキップではなく<em>失敗</em>するようにした。</li>
+  <li><strong><code>JSONDecoder.iso8601</code>がLaravelのマイクロ秒付きタイムスタンプを拒否していた</strong>ため、全レスポンスの全日付がデコードに失敗していた。クライアントは両方の表記を受け付けるようにした。</li>
+  <li><strong><code>ExpeditionRejected::$code</code>が<code>Exception::$code</code>をreadonlyとして再宣言していた</strong> — 全ての拒否経路でPHPの致命的エラーになっていた。</li>
+  <li><strong>AIが持ち込んだ退行:</strong> 上記1の最初の修正が<code>DB_*</code>をすべて強制上書きし、CIが正しく与えているホストとパスワードを潰した。PR上のCIが検出し、上書き対象をデータベース名のみに絞り込んだ。</li>
+</ol>
+<p><strong>運用上の注意点。</strong></p>
+<ul>
+  <li>E2Eテストは<code>-parallel-testing-enabled NO</code>で実行すること。<code>php artisan serve</code>はシングルスレッドであり、3つのシミュレータクローンが同時に叩くとリクエストがタイムアウトするまで待ち行列になる。</li>
+  <li><code>xcodebuild</code>は<code>TEST_RUNNER_</code>接頭辞の付いた環境変数しかテストプロセスへ渡さないため、ゲートは<code>TEST_RUNNER_WILDLIVE_E2E=1</code>となる。</li>
+  <li>トランザクションのガードは構造上正しいが、実際の競合下での検証は行っていない（負荷テストなし）。</li>
+</ul>
+<p><strong>Game Master v0.3が定めていない値</strong> — 本スライスのために選んだ値であり、<code>ExpeditionBalance</code>と<code>RUNTIME_MASTER_DATA.md</code>に「決定ではなく未解決の課題」として明記している: 2つの−8難易度ペナルティ、[5, 95]の捕獲確率クランプ、初期1000&nbsp;G、そしてZoo Valueを<code>Rarity.base_multiplier</code>を掛けずに<code>base_zoo_value</code>の総和として読むこと。</p>
+
+<h2>実施しなかったこと</h2>
+<ul>
+  <li>本番デプロイ、さくらのクラウドへの移行、RevenueCatの課金連携。</li>
+  <li>認証 — 探検の所有権はURL中のプレイヤーIDで強制しているが、これはセキュリティ境界ではない。</li>
+  <li>マルチプレイ、ギルドの同時実行制御、World First、PvP、トレード、チャット、ソーシャルグラフ。</li>
+  <li>個体特性 — Game Master v0.3に定義がないため、創作しなかった。</li>
+  <li>初期所持金を超える経済バランス調整、アフリカ以外のリージョン、高度な動物園シミュレーション。</li>
+  <li>Gストアは引き続きローカルのモック残高に対する購入シミュレーションであり、サーバーには影響しない。</li>
+  <li><strong>本タスクで未対応のリポジトリ規約:</strong> <code>docs/ai-sessions/task-018-*</code>のセッション記録と、<code>docs/social/x/task-018-*.json</code>のXマニフェストを作成していない。これらが参照するスクリーンショットは<code>docs/social/x/assets/task-018/</code>にコミット済み。</li>
+</ul>
+
+<h2>次に推奨するタスク</h2>
+<p>
+  本タスクで欠けているセッション記録とXマニフェストを追加すること。そのうえで、
+  未解決のバランス4項目（捕獲難易度のペナルティ、捕獲確率の上下限、初期所持G、
+  <code>Rarity.base_multiplier</code>をZoo Valueに適用するか否か）を人間と決定し、
+  その結果をGame Master v0.4へ反映すること。本レポートは実装を<strong>承認しない</strong>。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  レポート生成日 2026-08-16 / <code>claude-opus-5[1m]</code>
+</footer>
+
+</body>
+</html>

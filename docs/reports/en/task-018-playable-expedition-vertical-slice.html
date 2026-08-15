@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 018 — Playable expedition vertical slice: iPhone Simulator → SwiftUI → Laravel → PostgreSQL. AI-authored implementation report.">
+<title>Task 018 — Playable Expedition Vertical Slice · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-018-playable-expedition-vertical-slice.html">日本語版</a>
+</nav>
+
+<h1>Task 018 — Playable Expedition Vertical Slice</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-16
+  &nbsp;·&nbsp; AI Agent: <code>claude-opus-5[1m]</code> (via Claude Code)
+  &nbsp;·&nbsp; Status: <span class="badge badge-warn">Pull Request open — not merged</span>
+</p>
+
+<h2>Human intervention</h2>
+<ul>
+  <li><strong>Task specification.</strong> The human wrote the full brief: the target flow, the architectural constraints, the database contract, the Game Master v0.3 rules that must not change, the testing requirements, and the Git discipline.</li>
+  <li><strong>No hand-edits to the diff.</strong> Every line in the 136 changed files was written by the AI agent.</li>
+  <li><strong>Merge withheld.</strong> The human has not merged PR #16. The brief explicitly forbade the agent from merging, and it did not.</li>
+  <li><strong>Credentials.</strong> None were requested, created, or handled. The branch was pushed using the developer machine's existing <code>gh</code> authentication after SSH key auth was refused by the host; no new credential was configured.</li>
+  <li><strong>Design decisions deferred to the human.</strong> Where Game Master v0.3 is silent (capture difficulty penalties, capture clamp, starting balance, Zoo-value interpretation), the agent chose a value, labelled it in code as a vertical-slice constant, and recorded it as an open question rather than a decision.</li>
+</ul>
+
+<h2>Objective</h2>
+<p>
+  Turn WildLive from "a real registration slice plus a mocked game" into a
+  genuinely playable first gameplay loop, running on a local stack:
+  iPhone Simulator → SwiftUI → Laravel API → PostgreSQL 17 → persisted game
+  state → back on screen. A human must be able to register, choose an
+  African Map, contract a Hunter, dispatch an expedition, resolve it, keep
+  (and name) or release the animal, and then see it in My Zoo — with every
+  one of those facts stored server-side.
+</p>
+<p>
+  Deliberately excluded: production deployment, Sakura Cloud, RevenueCat,
+  authentication, multiplayer/Guild concurrency, PvP, trading, chat,
+  complete economy balancing, regions other than Africa, and advanced Zoo
+  simulation.
+</p>
+
+<h2>What the AI did</h2>
+<ol>
+  <li>Confirmed from GitHub that PR #15 (Game Master v0.3) was already <strong>merged</strong>, fast-forwarded <code>main</code> to <code>3ebe7c2</code>, and branched from it — no stacked branch.</li>
+  <li>Recorded the pre-existing test baseline: Laravel <strong>18 tests / 58 assertions</strong>; iOS <strong>35 passed, 1 skipped</strong>.</li>
+  <li>Built a single traceable master-data path: a new exporter imports the same Python module that builds the review workbook and emits <code>database/master/game-master-v0.3.json</code>; a seeder loads it into PostgreSQL. The runtime never opens the <code>.xlsx</code>.</li>
+  <li>Added six additive migrations and the Eloquent models for master data, expeditions, and zoo animals.</li>
+  <li>Implemented the expedition rules as framework-free Domain classes with every dice roll behind an injectable <code>RandomSource</code>.</li>
+  <li>Implemented Application use cases owning the transactions, and thirteen REST endpoints with thin controllers.</li>
+  <li>Wrote 103 new Laravel tests, including the invariant that <code>rare_find_bonus</code> never affects capture success.</li>
+  <li>Rebuilt the iOS gameplay screens against the live API through Domain protocols, deleting the prototype game types rather than keeping two sources of truth.</li>
+  <li>Wrote iOS unit tests and two layers of UI tests, including a real end-to-end test with nothing mocked.</li>
+  <li>Debugged and fixed four pre-existing bugs the new tests exposed (see <em>Problems</em>), plus one regression the AI itself introduced and CI caught.</li>
+  <li>Captured screenshots of the live flow, documented the master-data mapping, opened PR #16, and left the app installed and running on the Simulator for manual play.</li>
+</ol>
+
+<h2>Implementation</h2>
+<table>
+  <thead><tr><th>Component</th><th>Choice</th></tr></thead>
+  <tbody>
+    <tr><td>Master-data source</td><td><code>docs/game-design/build_master_v0_3.py</code> (canonical Python literals)</td></tr>
+    <tr><td>Master-data runtime artifact</td><td><code>database/master/game-master-v0.3.json</code>, generated by <code>export_master_json.py</code></td></tr>
+    <tr><td>Drift protection</td><td>CI step <code>export_master_json.py --check</code> fails if the JSON is stale</td></tr>
+    <tr><td>Master tables</td><td><code>biomes</code>, <code>rarities</code>, <code>animals</code>, <code>hunters</code>, <code>maps</code>, <code>map_animals</code> — Game Master string ids as primary keys</td></tr>
+    <tr><td>Gameplay tables</td><td><code>expeditions</code>, <code>zoo_animals</code>, plus <code>players.g_balance</code></td></tr>
+    <tr><td>Randomness</td><td><code>App\Domain\Support\RandomSource</code>; <code>SystemRandomSource</code> (random_int) in production, scripted sequence in tests</td></tr>
+    <tr><td>Domain rules</td><td><code>ExpeditionPlanner</code>, <code>EncounterTable</code>, <code>CaptureResolver</code>, <code>ExpeditionBalance</code></td></tr>
+    <tr><td>Application use cases</td><td><code>StartExpedition</code>, <code>ResolveExpedition</code>, <code>DecideCapturedAnimal</code>, three read services, <code>DevExpeditionPolicy</code></td></tr>
+    <tr><td>API surface</td><td>13 endpoints; player-scoped routes nest under <code>/players/{player}</code></td></tr>
+    <tr><td>iOS Domain</td><td><code>GameMap</code>, <code>AnimalSpecies</code>, <code>Hunter</code>, <code>Expedition</code>, <code>ZooAnimal</code>, <code>PlayerOverview</code> + 3 repository protocols</td></tr>
+    <tr><td>iOS composition root</td><td><code>GameDependencies</code> selects Live or Mock implementations; no screen constructs a repository</td></tr>
+    <tr><td>iOS screens</td><td>9 ViewModels: Home, MapList, MapDetail, HunterList, DispatchConfirm, Expeditions, ExpeditionDetail, CaptureName, MyZoo</td></tr>
+  </tbody>
+</table>
+
+<h3>Seeded Game Master v0.3 content</h3>
+<table>
+  <thead><tr><th>Sheet</th><th>Rows in PostgreSQL</th></tr></thead>
+  <tbody>
+    <tr><td>Biomes</td><td>6</td></tr>
+    <tr><td>Rarities</td><td>5</td></tr>
+    <tr><td>Animals</td><td>54</td></tr>
+    <tr><td>Hunters</td><td>18</td></tr>
+    <tr><td>Maps</td><td>15 (9 <code>initial_africa</code> playable, 6 <code>future_expansion</code> filtered out)</td></tr>
+    <tr><td>MapAnimals</td><td>72</td></tr>
+  </tbody>
+</table>
+
+<h3>Gameplay formulas as implemented</h3>
+<table>
+  <thead><tr><th>Rule</th><th>Formula</th></tr></thead>
+  <tbody>
+    <tr><td>Expedition cost</td><td><code>map.base_cost_g + hunter.contract_cost_g</code>, debited at dispatch, never refunded</td></tr>
+    <tr><td>Duration</td><td><code>round(expedition_minutes × (1 − speed_bonus/100))</code>, clamped to [5, 1440]</td></tr>
+    <tr><td>Encounter weight</td><td><code>spawn_weight × ((100 + rare_find_bonus)/100) ^ (rarity_sort_order − 1)</code></td></tr>
+    <tr><td>Capture chance</td><td><code>60 − 8×(map.difficulty−1) − 8×(animal.capture_difficulty−1) + capture_bonus + 10 if biome match + capture_modifier</code>, clamped to [5, 95]</td></tr>
+    <tr><td>Capture roll</td><td>One d100 per expedition; success when <code>roll ≤ chance</code></td></tr>
+    <tr><td>Map unlock</td><td><code>always</code>, or Zoo value ≥ <code>unlock_value</code>; independent of Hunters</td></tr>
+    <tr><td>KEEP / RELEASE</td><td>KEEP creates one <code>zoo_animals</code> row (blank name → species name); RELEASE creates nothing and pays 0&nbsp;G</td></tr>
+  </tbody>
+</table>
+
+<h2>Architecture / Design Decisions</h2>
+<ul>
+  <li><strong>One source-to-runtime path for master data</strong> — the workbook and the JSON are generated from the same Python literals, so they cannot disagree without that shared source changing first. Documented in <a href="https://github.com/sugie/wildlive/blob/ai/018-playable-expedition-vertical-slice/docs/game-design/RUNTIME_MASTER_DATA.md">RUNTIME_MASTER_DATA.md</a>.</li>
+  <li><strong>Game Master ids as primary keys</strong> (<code>map_kenyan_savanna_001</code>) — a row can be traced by eye from spreadsheet cell to API payload without a lookup table.</li>
+  <li><strong>Rules enforced structurally, not by checks that can be forgotten.</strong> The Northern White Rhinoceros has no <code>map_animals</code> row, so no code path can produce one. There is no <code>player_hunters</code> table, so a Hunter cannot be owned. <code>rare_find_bonus</code> is referenced in <code>EncounterTable</code> and nowhere else, so it cannot leak into capture success.</li>
+  <li><strong>Injectable randomness</strong> — every roll goes through one interface, so no test in the suite can fail on a dice roll.</li>
+  <li><strong>Idempotent transitions</strong> — resolution is guarded by <code>resolved_at</code> and the decision by <code>decided_at</code>, both under <code>SELECT … FOR UPDATE</code>, with <code>UNIQUE(zoo_animals.expedition_id)</code> as the structural backstop.</li>
+  <li><strong>Development-only acceleration, impossible to confuse with production</strong> — requires an allowed environment, a config flag, <em>and</em> a per-request opt-in; the resulting expedition is permanently flagged in PostgreSQL and in every API response, shows an orange banner in the app, and keeps its real duration in <code>planned_duration_minutes</code>. Canonical <code>expedition_minutes</code> is never modified.</li>
+  <li><strong>Prototype types deleted rather than kept in parallel</strong> — the client-side <code>MockGameService</code>, <code>Hunter</code>, <code>Region</code> and <code>Expedition</code> were removed when their server-backed counterparts landed, so there is exactly one answer to "what is a Hunter".</li>
+  <li><strong>Use cases only where they earn it</strong> — write flows get an Application use case; read-only screens depend on a Domain protocol directly, per the project's existing "do not create a use case that only forwards" rule.</li>
+</ul>
+
+<h2>Files Changed</h2>
+<p>Total from <code>git diff --stat main..HEAD</code>: <strong>136 files changed, +13,307 / −979</strong>.</p>
+<table>
+  <thead><tr><th>Area</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td><code>app/</code> + <code>tests/</code></td><td>62 files, +4,530 / −6</td></tr>
+    <tr><td><code>apps/ios/</code></td><td>48 files, +5,095 / −952</td></tr>
+    <tr><td><code>database/</code></td><td>7 files, +2,955 / −7 (includes the 2,900-line generated master JSON)</td></tr>
+    <tr><td><code>docs/</code></td><td>12 files, +495 / −5, plus 8 PNG screenshots</td></tr>
+  </tbody>
+</table>
+
+<h2>Validation</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>python3 docs/game-design/export_master_json.py --check</code></td><td>ok — JSON matches the canonical source</td></tr>
+    <tr><td><code>php artisan migrate --force</code></td><td>4 new migrations applied (2 more applied in an earlier step); no errors</td></tr>
+    <tr><td><code>php artisan db:seed --force</code></td><td>Game Master v0.3 seeded: 6 biomes, 5 rarities, 54 animals, 18 hunters, 15 maps, 72 spawn rows</td></tr>
+    <tr><td><code>vendor/bin/phpunit</code></td><td>OK (121 tests, 783 assertions)</td></tr>
+    <tr><td><code>xcodebuild build</code></td><td>** BUILD SUCCEEDED **</td></tr>
+    <tr><td><code>xcodebuild test</code> (full, serial, E2E enabled)</td><td>** TEST SUCCEEDED ** — 90 passed, 0 failed</td></tr>
+    <tr><td>Live API smoke test (<code>curl</code>)</td><td>register → maps → map detail → hunters → dispatch → resolve → keep → zoo, all 2xx</td></tr>
+    <tr><td>PostgreSQL row inspection after the E2E run</td><td>Player <code>E2EZookeeper</code>, 900&nbsp;G, one <code>Masai Giraffe</code> named <code>E2ENala</code></td></tr>
+    <tr><td>GitHub Actions CI on <code>80aa43b</code></td><td><a href="https://github.com/sugie/wildlive/actions/runs/31891141739">run 31891141739</a> — success</td></tr>
+  </tbody>
+</table>
+
+<h2>Tests</h2>
+<p>
+  Laravel: <strong>121 tests, 783 assertions, OK</strong> — PHPUnit 12.5.33 on
+  PHP 8.5.9 against PostgreSQL 17, runtime 00:01.498. The baseline before this
+  task was 18 tests / 58 assertions.
+</p>
+<ul>
+  <li><strong>Unit (52)</strong> — unlock rules and duration clamps; exact scaled encounter weights and boundary draws; the full capture formula with its clamps; the development-shortcut policy refusing production even with the flag on.</li>
+  <li><strong>Feature (69)</strong> — nine African maps and their gating; the 16-row Kenyan Savanna spawn table; 18 Hunters with no ownership field; dispatch debiting G and refusals charging nothing; idempotent resolution; KEEP/RELEASE and the 409 on changing your mind; and the Northern White Rhinoceros having no spawn row on any released map.</li>
+  <li>The invariant test that matters most: capture chance is <em>identical</em> across the whole <code>rare_find_bonus</code> range −20…+30.</li>
+</ul>
+<p>
+  iOS: <strong>90 tests passed, 0 failed</strong> — Xcode 26.6, iPhone 17
+  Simulator on iOS 26.5, run with <code>-parallel-testing-enabled NO</code>.
+  The baseline before this task was 35 passed / 1 skipped.
+</p>
+<ul>
+  <li><strong>WildLiveTests (77)</strong> — wire-format → Domain mapping, use cases, ViewModels, and the 9 <code>ArchitectureBoundaryTests</code>, all still green.</li>
+  <li><strong>WildLiveUITests (13)</strong> — flow tests against the in-memory repositories, plus <strong>3 tests with nothing mocked</strong>: real iOS app, real Laravel, real PostgreSQL.</li>
+  <li>The end-to-end test registers, dispatches, resolves, keeps, names, then navigates away from My Zoo and back — proving the animal is server state, not screen state.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<p>Base: <code class="commit-hash">3ebe7c2</code> (<code>main</code> after PR #15 merged).</p>
+<table>
+  <thead><tr><th>SHA</th><th>Subject</th></tr></thead>
+  <tbody>
+    <tr><td class="commit-hash">3be35a1</td><td>feat(game): add Game Master v0.3 runtime master data and schema</td></tr>
+    <tr><td class="commit-hash">be47746</td><td>feat(api): add expedition domain, use cases and gameplay endpoints</td></tr>
+    <tr><td class="commit-hash">7aa2bae</td><td>test(game): add deterministic expedition test coverage</td></tr>
+    <tr><td class="commit-hash">421cd82</td><td>feat(ios): connect the expedition flow to the live API</td></tr>
+    <tr><td class="commit-hash">5f06653</td><td>docs(game): document the playable vertical slice</td></tr>
+    <tr><td class="commit-hash">6896059</td><td>fix(test): stop the PHPUnit suite from wiping the development database</td></tr>
+    <tr><td class="commit-hash">80aa43b</td><td>fix(test): force only the test database name, not the connection details</td></tr>
+  </tbody>
+</table>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <a href="https://github.com/sugie/wildlive/pull/16">#16 — feat(game): playable expedition vertical slice — iOS → Laravel → PostgreSQL</a></li>
+  <li>Base <code>main</code> ← Head <code>ai/018-playable-expedition-vertical-slice</code></li>
+  <li>Created 2026-08-15T14:50:39Z · State: <strong>OPEN</strong> · Mergeable: <strong>MERGEABLE</strong> · Merge commit: <em>Not applicable — not merged</em></li>
+  <li>CI <a href="https://github.com/sugie/wildlive/actions/runs/31891039179">run 31891039179</a> on <code class="commit-hash">6896059</code> — <strong>failure</strong> (an AI-introduced regression: the first database-isolation fix also forced <code>DB_HOST</code>, overriding CI's correct value).</li>
+  <li>CI <a href="https://github.com/sugie/wildlive/actions/runs/31891141739">run 31891141739</a> on <code class="commit-hash">80aa43b</code> — <strong>success</strong>.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<p><strong>Bugs found and fixed. Four pre-dated this task.</strong></p>
+<ol>
+  <li><strong>The PHPUnit suite was running against the development database and wiping it.</strong> <code>docker-compose.yml</code> exports <code>DB_DATABASE=wildlive</code> into the app container; PHP's CLI copies container environment variables into <code>$_SERVER</code>; and Laravel's <code>env()</code> reads <code>$_SERVER</code> before <code>$_ENV</code> and <code>putenv()</code> — which is all PHPUnit's <code>&lt;env&gt;</code> writes. Harmless while the database held nothing worth losing; in this task it deleted the seeded Game Master data mid-session and broke the running app. Fixed by adding a <code>&lt;server&gt;</code> entry. CI was never affected, which is exactly why it went unnoticed.</li>
+  <li><strong>The "real API" UI test had been silently skipping.</strong> It self-gated on an HTTP reachability ping that runs in the test-runner process, not the app, and never succeeded — so the project's only end-to-end test had stopped testing anything. Replaced with an explicit <code>WILDLIVE_E2E</code> opt-in that <em>fails</em> rather than skips when set.</li>
+  <li><strong><code>JSONDecoder.iso8601</code> rejects Laravel's microsecond timestamps</strong>, so every date in every response failed to decode. The client now accepts both spellings.</li>
+  <li><strong><code>ExpeditionRejected::$code</code> redeclared <code>Exception::$code</code> as readonly</strong> — a PHP fatal error on every refusal path.</li>
+  <li><strong>AI-introduced regression:</strong> the first version of fix #1 forced every <code>DB_*</code> variable, overriding the host and password CI legitimately supplies. CI caught it on the PR; the override was narrowed to the database name alone.</li>
+</ol>
+<p><strong>Operational notes.</strong></p>
+<ul>
+  <li>Run the end-to-end tests with <code>-parallel-testing-enabled NO</code>. <code>php artisan serve</code> is single-threaded, and three simultaneous Simulator clones queue behind each other until requests time out.</li>
+  <li><code>xcodebuild</code> only forwards environment variables prefixed <code>TEST_RUNNER_</code> into the test process, so the gate is <code>TEST_RUNNER_WILDLIVE_E2E=1</code>.</li>
+  <li>The transaction guards are correct by construction but have not been exercised under real contention — there is no load test.</li>
+</ul>
+<p><strong>Values Game Master v0.3 does not fix</strong> — chosen for this slice, labelled in <code>ExpeditionBalance</code> and in <code>RUNTIME_MASTER_DATA.md</code> as open questions rather than decisions: the two −8 difficulty penalties, the [5, 95] capture clamp, the 1000&nbsp;G starting balance, and reading Zoo value as the sum of <code>base_zoo_value</code> without applying <code>Rarity.base_multiplier</code>.</p>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>Production deployment, Sakura Cloud migration, RevenueCat purchase integration.</li>
+  <li>Authentication — expedition ownership is enforced by the player id in the URL, which is not a security boundary.</li>
+  <li>Multiplayer, Guild concurrency, World First, PvP, trading, chat, social graph.</li>
+  <li>Individual animal traits — Game Master v0.3 does not define them, so none were invented.</li>
+  <li>Economy balancing beyond a starting balance; regions other than Africa; advanced Zoo simulation.</li>
+  <li>The G Store still simulates purchases against a local mock balance and does not touch the server.</li>
+  <li><strong>Repository conventions still outstanding for this task:</strong> the session record under <code>docs/ai-sessions/task-018-*</code> and the X manifest at <code>docs/social/x/task-018-*.json</code> were not written. The screenshots they would reference are committed at <code>docs/social/x/assets/task-018/</code>.</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  Add the missing session record and X manifest for this task, then decide
+  the four open balance questions with a human — the capture difficulty
+  penalties, the capture clamp, the starting balance, and whether
+  <code>Rarity.base_multiplier</code> applies to Zoo value — and fold the
+  answers back into Game Master v0.4. Implementation is <strong>not</strong>
+  authorised by this report.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-16 by <code>claude-opus-5[1m]</code>.
+</footer>
+
+</body>
+</html>
