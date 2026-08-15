@@ -2,7 +2,7 @@
 
 Human-review workbooks for the WildLive master data — Maps, Animals, Hunters, and the tables that support them. Each workbook is a **draft** produced from `docs/adr/0002-game-system-foundation.md` and the game design notes in `docs/GAME_DESIGN.md`. Nothing here is a final balance decision or a DB / API specification.
 
-Two versions live here side-by-side. **v0.1 stays as a historical baseline; v0.2 is the current review target.**
+Three versions live here side-by-side. **v0.1 and v0.2 stay as historical baselines; v0.3 is the current review target.**
 
 ## Files
 
@@ -11,8 +11,10 @@ docs/game-design/
 ├── README.md                                        (this file)
 ├── WildLive-Game-Master-Draft-v0.1.xlsx             (v0.1 — historical baseline, do not modify)
 ├── build_master_v0_1.py                             (v0.1 builder — kept alongside its xlsx)
-├── WildLive-Game-Master-Draft-v0.2.xlsx             (v0.2 — current review target)
-└── build_master_v0_2.py                             (v0.2 builder)
+├── WildLive-Game-Master-Draft-v0.2.xlsx             (v0.2 — historical baseline, do not modify)
+├── build_master_v0_2.py                             (v0.2 builder — kept alongside its xlsx)
+├── WildLive-Game-Master-Draft-v0.3.xlsx             (v0.3 — current review target)
+└── build_master_v0_3.py                             (v0.3 builder)
 ```
 
 Each builder is the source of truth for its version. When a human edits the xlsx, the edit lives only in the xlsx until an AI (on human instruction) mirrors it back into the Python source. Regenerating the xlsx from the builder always reproduces the same bytes given the same inputs.
@@ -20,20 +22,96 @@ Each builder is the source of truth for its version. When a human edits the xlsx
 ## Regenerate
 
 ```bash
-# v0.2 (current target)
+# v0.3 (current target)
+python3 docs/game-design/build_master_v0_3.py
+
+# v0.2 (historical — regenerate only if the file was lost)
 python3 docs/game-design/build_master_v0_2.py
 
 # v0.1 (historical — regenerate only if the file was lost)
 python3 docs/game-design/build_master_v0_1.py
 ```
 
-Prerequisite: `pip install openpyxl`. Both scripts run validation before writing and refuse to write if anything is broken.
+Prerequisite: `pip install openpyxl`. All scripts run validation before writing and refuse to write if anything is broken.
 
 ---
 
-## v0.2 — Current
+## v0.3 — Current
 
-Human + ChatGPT reviewed v0.1 and asked for the following changes. v0.2 applies them all.
+Human + ChatGPT reviewed v0.2 and asked for a focused set of refinements to the Africa-first fauna, the Hunter roster, and the Map progression column. v0.3 applies them all. **All v0.2 design pivots (1..12) still hold** — v0.3 layers on top, it does not overturn them.
+
+### Design refinements (v0.3)
+
+| # | Change | v0.3 rule |
+|---|---|---|
+| 1 | **Ethiopian Highlands endemic fauna** | Added `Gelada` (`animal_gelada_051`) and `Walia Ibex` (`animal_walia_ibex_052`) — both real Ethiopian endemics — so the Map has a distinct highland-primate + cliff-dwelling-ungulate identity, not just "another montane forest with an Ethiopian Wolf". |
+| 2 | **Virunga Highlands endemic fauna** | Added `Golden Monkey` (`animal_golden_monkey_053`) — real Virungas endemic — so the Map is not a Mountain-Gorilla-only sink. |
+| 3 | **Correct East African baboon** | Added `Olive Baboon` (`animal_olive_baboon_054`) — the actual East African baboon. v0.2 had used `Chacma Baboon` (a Southern African species) as a proxy on 4 East African Maps with `needs_review=1`. v0.3 replaces those 4 proxy rows with Olive Baboon and keeps Chacma only on Okavango Delta (real Southern African range). Net result: **`MapAnimals.needs_review = 0` across all 72 rows.** |
+| 4 | **New desert-specialist Hunter** | Added `hunter_susumu_019` (Susumu / 進, Gold rank, `preferred_biome_id = biome_desert`, `capture_bonus = +15`). Closes the v0.2 gap where no Hunter had `preferred_biome_id = biome_desert` despite two desert Maps existing. |
+| 5 | **New montane-speed Hunter** | Added `hunter_yuto_020` (Yu-to / 雄斗, Silver rank, `preferred_biome_id = biome_mountain`, `speed_bonus = +20`). Reinforces the Ethiopian / Virunga / Kilimanjaro / Atlas Highlands cluster. |
+| 6 | **Reduced "any"-biome Hunter count** | Removed `hunter_yuki_nakamura_008` and `hunter_chen_wei_014` (both had `preferred_biome_id = any` with unremarkable stats). Total Hunters remain 18. "any" count drops from 6 → 4 so preferred-biome specialisation is a meaningful roster axis, not a majority. |
+| 7 | **`Maps.map_role` column** | New column: `starter` / `general` / `specialist` / `long_expedition`. Documents each Map's intended role in the progression curve without changing any unlock rule. Kenyan Savanna = `starter`; Congo Rainforest = `long_expedition`; the two v0.3-added Highlands = `specialist`; the rest = `general`. |
+| 8 | **`Hunters.name_ja` column** | New column with the Japanese display name for each Hunter (kanji for the two v0.3 Hunters, katakana for the rest). Mirrors the bilingual policy already used on Maps and Animals. |
+| 9 | **Legendary Hunter descriptions cleaned** | Removed "Only one player may hold her contract at a time" language from `hunter_aiko_tanabe_009` and `hunter_malik_osei_012`. Reason: MMO-scarcity contract semantics are a full separate design decision (server-authoritative arbitration, queue behaviour, availability windows) and were not in scope for the v0.3 refinement. Flagged as `review_031`. |
+| 10 | **`rare_find_bonus` semantics tightened** | `HunterSkills` description clarifies: this bias operates on encounter probability, **independent of** capture success. Prevents future readers from stacking it into a capture-success formula by mistake. |
+
+### Sheet counts (v0.3)
+
+| Sheet | Purpose | Rows | Δ vs v0.2 |
+|---|---|---|---|
+| **Biomes** | Controlled vocabulary for biome tags. | 6 | — |
+| **Rarities** | 5 in-game rarity tiers, Common → Legendary. | 5 | — |
+| **Maps** | Regions the player can dispatch a Hunter to. Now with `map_role`. | 15 (9 initial_africa + 6 future_expansion) | +`map_role` column |
+| **Animals** | Real wild species. | 54 (36 initial_africa + 17 future_region + 1 special_event) | +4 (Gelada, Walia Ibex, Golden Monkey, Olive Baboon) |
+| **Hunters** | Contract-able Hunters. Now with `name_ja`. | 18 | +Susumu, +Yu-to, −Yuki Nakamura, −Chen Wei (net 0) |
+| **MapAnimals** | Spawn table. **`needs_review = 0` everywhere.** | 72 | +4 (new endemics + Olive Baboon replacing 4 Chacma proxies on East African Maps; net +4 due to added rows on the two Highlands Maps) |
+| **HunterSkills** | Data dictionary for the numeric columns on the Hunters sheet. | 4 | Description of `rare_find_bonus` tightened |
+| **ExpeditionRules** | Numeric knobs. | 13 | — |
+| **Review** | 29 v0.2 items with updated decisions applied + 7 new v0.3 items. | 36 | +7 v0.3 items |
+
+### New Review items (v0.3)
+
+| ID | Topic | Status |
+|---|---|---|
+| `review_030` | Expedition resolution order when a player has multiple expired-but-unresolved expeditions (FIFO? player choice? lazy-on-touch?) | open |
+| `review_031` | MMO-scarce Hunter contract semantics — the language removed from Aiko / Dr. Osei needs a proper server-authoritative design | open |
+| `review_032` | Ethiopian Highlands fauna additions — human confirmation Gelada / Walia Ibex / Olive Baboon are the right shortlist for v0.3 | draft-applied |
+| `review_033` | Virunga Highlands specialist — Golden Monkey addition | draft-applied |
+| `review_034` | Any-biome Hunter cap — should we hold "any" at ≤4, or drive it further down? | open |
+| `review_035` | Desert Hunter placement — is Susumu enough, or do we need a second Africa-desert profile before shipping? | open |
+| `review_036` | `montane_forest` sub-biome — currently rolled into `mountain`; should Virunga / Ethiopian Highlands get their own biome id? | open |
+
+### Reference: v0.3 initial African Map roster (with `map_role`)
+
+1. Kenyan Savanna — `starter`, `unlock_rule = always`
+2. Serengeti Plains — `general`, `zoo_value ≥ 100`
+3. Okavango Delta — `general`, `zoo_value ≥ 500`
+4. Namib Desert — `general`, `zoo_value ≥ 800`
+5. Kilimanjaro Slopes — `general`, `zoo_value ≥ 2000`
+6. Atlas Mountains — `general`, `zoo_value ≥ 1500`
+7. Ethiopian Highlands — `specialist`, `zoo_value ≥ 3000`
+8. Virunga Highlands — `specialist`, `zoo_value ≥ 6000`
+9. Congo Rainforest — `long_expedition`, `zoo_value ≥ 5000`
+
+### Non-goals (v0.3)
+
+- Laravel code changes
+- PostgreSQL migrations / seeders
+- iOS code changes
+- API endpoints
+- RevenueCat integration
+- Server-authoritative MMO-scarce contract mechanic (`review_031` — DEFERRED)
+- Sub-biome vocabulary (`review_036` — DEFERRED)
+- G economy final numbers (still DEFERRED, was `review_010` / `review_023`)
+- Zoo Value final formula (still DEFERRED, was `review_011` / `review_024`)
+
+---
+
+## v0.2 — Historical baseline
+
+**Kept unchanged for the paper trail.** v0.2 was the first Africa-first draft (see design pivots below). v0.3 refines fauna and Hunter roster on top; the design pivots recorded here still hold.
+
+Human + ChatGPT reviewed v0.1 and asked for the following changes. v0.2 applied them all.
 
 ### Design pivots
 
@@ -145,9 +223,9 @@ IDs are case-sensitive, ASCII, snake_case, and expensive to rename once downstre
 ## Workflow — where this fits
 
 ```text
-Human review of v0.2  (edit v0.2 xlsx, fill Review.decision)
+Human review of v0.3  (edit v0.3 xlsx, fill Review.decision)
     ↓
-AI mirrors decisions back into build_master_v0_2.py → v0.3
+AI mirrors decisions back into build_master_v0_3.py → v0.4
     ↓
 Once decisions are stable enough:
     → DB schema design (alongside docs/ER_MODEL.md)
