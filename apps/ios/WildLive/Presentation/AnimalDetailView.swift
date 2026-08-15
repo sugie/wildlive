@@ -58,19 +58,14 @@ struct AnimalDetailView: View {
         }
     }
 
+    /// Map and Hunter names are no longer resolved here: those types are
+    /// now live, server-backed concepts (GameWorld.swift) and this screen
+    /// only ever shows prototype animals from the mocked zoos.
     private func provenanceSection(_ animal: Animal) -> some View {
         Section("Provenance") {
             LabeledContent("Captured",
                            value: animal.capturedAt.formatted(date: .abbreviated,
                                                               time: .shortened))
-            if let regionId = animal.capturedFromRegionId,
-               let region = store.region(regionId) {
-                LabeledContent("Region", value: region.name)
-            }
-            if let hunterId = animal.capturedByHunterId,
-               let hunter = store.hunter(hunterId) {
-                LabeledContent("Hunter", value: hunter.name)
-            }
         }
     }
 }

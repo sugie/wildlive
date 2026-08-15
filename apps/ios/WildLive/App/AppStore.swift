@@ -1,17 +1,21 @@
-// WildLive — Central @Observable state container for the mocked screens.
+// WildLive — Central @Observable state container.
 //
-// AppStore is deliberately narrow: it holds UI-facing state (navigation,
-// current-player snapshot, mock game state) and knows nothing about how
-// the real player was registered or where the session is persisted. Those
-// live in the Application / Data layers and are wired in from the
-// composition root (WildLiveApp).
+// AppStore holds only what genuinely spans screens:
 //
-// Kept as a single class because every mocked screen still reads from it
-// and the alternative — per-screen @Observable stores plus a coordinator —
-// would be excessive for the current mock-heavy phase. The moment more
-// screens go real (Guild, Zoo, …), each real feature will grow its own
-// use case + ViewModel and only push the resulting snapshot into
-// AppStore via a narrow apply-method.
+//   - navigation and session state (has the player started, where are they,
+//     who are they);
+//   - the latest server snapshot of the player (`overview`), so Home, the
+//     dispatch screen and My Zoo agree on the G balance without each
+//     re-fetching it;
+//   - the sample data the still-mocked prototype screens need.
+//
+// It does NOT hold game state. Maps, hunters, expeditions and zoo animals
+// live on the server and are loaded by the ViewModel of the screen that
+// needs them. When the expedition loop went live, the in-memory game state
+// that used to live here (hunters, regions, expeditions, contracted hunter,
+// MockGameService) was deleted rather than kept in parallel — two sources of
+// truth for the same thing is exactly the bug this architecture exists to
+// prevent.
 
 import Foundation
 import Observation
@@ -25,48 +29,42 @@ final class AppStore {
     var navigationPath: [Route] = []
     var registeredSession: PersistedSession?
 
-    // MARK: Master data (immutable during a session)
+    /// The most recent server snapshot of the signed-in player. Written by
+    /// whichever ViewModel last talked to the server; read by every screen
+    /// that shows the G balance or Zoo totals.
+    var overview: PlayerOverview?
+
+    // MARK: Sample data for the remaining prototype screens
 
     let species: [Species]
     let speciesById: [String: Species]
-    let regions: [Region]
     let gBundles: [GBundle]
-
-    // MARK: Mocked game state
-
-    var currentPlayer: Player
     var otherPlayers: [Player]
-    var hunters: [Hunter]
-    var expeditions: [Expedition] = []
-    var contractedHunterId: String?
 
-    // MARK: Mock services (game loop stays UI-only in this milestone)
+    /// The mock player record behind Other Zoos and the G Store. Distinct
+    /// from `overview`, which is the real one — Home, My Zoo and the
+    /// expedition flow all use `overview`.
+    var currentPlayer: Player
 
-    let gameService: MockGameService
     let storeService: MockGStoreService
 
     // MARK: Init
 
-    /// The composition root (WildLiveApp) is responsible for loading any
-    /// persisted session ahead of time and passing it here. AppStore does
-    /// not know a PlayerSessionRepository exists.
+    /// The composition root (WildLiveApp) loads any persisted session ahead
+    /// of time and passes it here. AppStore does not know a
+    /// PlayerSessionRepository exists.
     init(restoredSession: PersistedSession? = nil) {
         let sp = SampleData.species
         self.species = sp
         self.speciesById = Dictionary(uniqueKeysWithValues: sp.map { ($0.id, $0) })
-        self.regions = SampleData.regions
         self.gBundles = SampleData.gBundles
         self.otherPlayers = SampleData.makeOtherPlayers()
-        self.hunters = SampleData.hunters
 
         self.registeredSession = restoredSession
         self.currentPlayer = Self.makeCurrentPlayer(from: restoredSession)
 
-        let game = MockGameService()
         let store = MockGStoreService()
-        self.gameService = game
         self.storeService = store
-        game.bind(store: self)
         store.bind(store: self)
     }
 
@@ -87,19 +85,11 @@ final class AppStore {
 
     var isRegistered: Bool { registeredSession != nil }
 
-    var myZooValue: Int { currentPlayer.zooValue(using: speciesById) }
+    /// The id every gameplay call needs. Nil before registration.
+    var playerID: String? { registeredSession?.playerId }
 
-    var contractedHunter: Hunter? {
-        guard let id = contractedHunterId else { return nil }
-        return hunters.first { $0.id == id }
-    }
-
-    var ongoingExpeditions: [Expedition] {
-        expeditions.filter { $0.state == .inProgress || $0.state == .awaitingResolution }
-    }
-
-    var unhandledCapturedExpeditions: [Expedition] {
-        expeditions.filter { $0.state == .captured }
+    var displayName: String {
+        overview?.displayName ?? registeredSession?.displayName ?? currentPlayer.displayName
     }
 
     // MARK: Session helpers (thin — called after use cases succeed)
@@ -108,18 +98,24 @@ final class AppStore {
     /// RegistrationViewModel after the use case returns successfully;
     /// AppStore does not perform the registration itself.
     func adoptRegistration(_ registered: RegisteredPlayer) {
-        let session = PersistedSession(
+        registeredSession = PersistedSession(
             playerId: registered.playerId,
             displayName: registered.displayName,
             zooId: registered.zooId
         )
-        registeredSession = session
         currentPlayer = Player(
             id: registered.playerId,
             displayName: registered.displayName,
             gBalance: currentPlayer.gBalance,
             animals: []
         )
+        overview = nil
+    }
+
+    /// Adopt a fresh server snapshot. Every gameplay ViewModel calls this
+    /// after an action that could have changed the balance or the Zoo.
+    func apply(_ snapshot: PlayerOverview) {
+        overview = snapshot
     }
 
     // MARK: Session actions
@@ -138,9 +134,8 @@ final class AppStore {
     /// itself is the composition root / caller's job.
     func forgetRegistrationInMemory() {
         registeredSession = nil
+        overview = nil
         currentPlayer = Self.makeCurrentPlayer(from: nil)
-        expeditions = []
-        contractedHunterId = nil
         hasStarted = false
         navigationPath = []
     }
@@ -148,11 +143,12 @@ final class AppStore {
     func push(_ route: Route) { navigationPath.append(route) }
     func popToHome() { navigationPath.removeAll() }
 
-    // MARK: Lookups
+    /// Replace the whole stack — used after a capture decision, so Back
+    /// from My Zoo goes Home rather than into a settled expedition.
+    func resetPath(to routes: [Route]) { navigationPath = routes }
 
-    func hunter(_ id: String) -> Hunter? { hunters.first { $0.id == id } }
-    func region(_ id: String) -> Region? { regions.first { $0.id == id } }
-    func expedition(_ id: UUID) -> Expedition? { expeditions.first { $0.id == id } }
+    // MARK: Lookups (prototype screens only)
+
     func animal(_ id: UUID) -> Animal? {
         if let a = currentPlayer.animals.first(where: { $0.id == id }) { return a }
         for p in otherPlayers {
@@ -160,6 +156,7 @@ final class AppStore {
         }
         return nil
     }
+
     func player(_ id: String) -> Player? {
         if id == currentPlayer.id { return currentPlayer }
         return otherPlayers.first { $0.id == id }

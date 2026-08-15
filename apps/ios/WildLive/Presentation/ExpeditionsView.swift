@@ -1,119 +1,156 @@
-// WildLive — List of expeditions: ongoing, awaiting decision, resolved.
-// Auto-resolves any expedition whose end time has passed (idempotent).
+// WildLive — Every expedition this player has sent.
+//
+// Read-only: opening one is what settles it. The list never resolves
+// anything itself, so refreshing the screen cannot silently roll a pile of
+// outcomes.
 
 import SwiftUI
 
 struct ExpeditionsView: View {
-    @Environment(AppStore.self) private var store
+    @State var viewModel: ExpeditionsViewModel
 
     var body: some View {
         List {
-            if store.expeditions.isEmpty {
+            if let error = viewModel.errorMessage {
+                Section {
+                    Label(error, systemImage: "wifi.exclamationmark")
+                        .foregroundStyle(.orange)
+                        .font(.footnote)
+                }
+            }
+
+            if viewModel.expeditions.isEmpty && !viewModel.isLoading {
                 Section {
                     Text("No expeditions yet.")
                         .foregroundStyle(.secondary)
-                    Text("Contract a Hunter at the Guild to send one out.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                if !store.ongoingExpeditions.isEmpty {
-                    Section("Ongoing") {
-                        ForEach(store.ongoingExpeditions) { exp in
-                            row(exp)
-                        }
-                    }
-                }
-                if !store.unhandledCapturedExpeditions.isEmpty {
-                    Section("Awaiting your decision") {
-                        ForEach(store.unhandledCapturedExpeditions) { exp in
-                            row(exp)
-                        }
-                    }
-                }
-                let resolved = store.expeditions.filter {
-                    $0.state == .noCapture || $0.state == .handled
-                }
-                if !resolved.isEmpty {
-                    Section("Resolved") {
-                        ForEach(resolved) { exp in
-                            row(exp)
-                        }
+                    NavigationLink(value: Route.maps) {
+                        Label("Choose a Map", systemImage: "map.fill")
                     }
                 }
             }
+
+            section("Awaiting your decision", viewModel.awaitingDecision)
+            section("In the field", viewModel.ongoing)
+            section("Settled", viewModel.settled)
         }
         .navigationTitle("Expeditions")
+        .refreshable { await viewModel.load() }
+        .task { await viewModel.load() }
         .accessibilityIdentifier("expeditionsView")
-        .onAppear(perform: autoResolveDue)
-    }
-
-    private func autoResolveDue() {
-        for exp in store.expeditions where exp.isReadyToResolve {
-            _ = store.gameService.resolve(expeditionId: exp.id)
-        }
-    }
-
-    private func row(_ exp: Expedition) -> some View {
-        NavigationLink(value: Route.expeditionResult(expeditionId: exp.id)) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(store.hunter(exp.hunterId)?.name ?? "Hunter")
-                        Text(store.region(exp.regionId)?.name ?? "Region")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    stateBadge(exp)
-                }
-                trailingText(exp)
-            }
-            .padding(.vertical, 2)
-        }
-        .accessibilityIdentifier("expeditionRow_\(exp.id.uuidString.prefix(8))")
     }
 
     @ViewBuilder
-    private func trailingText(_ exp: Expedition) -> some View {
-        switch exp.state {
-        case .inProgress, .awaitingResolution:
-            ExpeditionCountdownView(endsAt: exp.endsAt)
-        case .captured:
+    private func section(_ title: String, _ items: [Expedition]) -> some View {
+        if !items.isEmpty {
+            Section(title) {
+                ForEach(items) { expedition in
+                    NavigationLink(value: Route.expedition(expeditionID: expedition.id)) {
+                        ExpeditionRow(expedition: expedition)
+                    }
+                    .accessibilityIdentifier("expeditionRow_\(expedition.id)")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Row
+
+struct ExpeditionRow: View {
+    let expedition: Expedition
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(expedition.mapNameEN)
+                    Text(expedition.hunterName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                ExpeditionStateBadge(expedition: expedition)
+            }
+
+            if expedition.devInstantResolve {
+                Label("Development run", systemImage: "hammer.fill")
+                    .labelStyle(.titleAndIcon)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.orange)
+            }
+
+            trailing
+        }
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private var trailing: some View {
+        if !expedition.isResolved {
+            ExpeditionCountdownView(endsAt: expedition.endsAt)
+        } else if expedition.awaitsDecision {
             Label("Tap to name or release", systemImage: "hand.tap")
                 .labelStyle(.titleAndIcon)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.tint)
-        case .noCapture:
-            Text("No capture")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        case .handled:
-            if exp.handledDecision == .keptInZoo {
-                Text("Added to your Zoo")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Released")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        } else if let species = expedition.resolution?.encounteredSpecies {
+            switch expedition.decision {
+            case .kept:
+                Text("\(species.nameEN) — in your Zoo")
+                    .font(.caption).foregroundStyle(.secondary)
+            case .released:
+                Text("\(species.nameEN) — released")
+                    .font(.caption).foregroundStyle(.secondary)
+            case nil:
+                Text("\(species.nameEN) got away")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
     }
+}
 
-    private func stateBadge(_ exp: Expedition) -> some View {
-        let (text, color): (String, Color) = {
-            switch exp.state {
-            case .inProgress:         return ("In progress", .secondary)
-            case .awaitingResolution: return ("Ready",       .accentColor)
-            case .captured:           return ("Captured",    .accentColor)
-            case .noCapture:          return ("No capture",  .red)
-            case .handled:            return ("Done",        .secondary)
-            }
-        }()
-        return Text(text)
+struct ExpeditionStateBadge: View {
+    let expedition: Expedition
+
+    private var state: (String, Color) {
+        if !expedition.isResolved {
+            return expedition.isDue ? ("Ready", .accentColor) : ("In the field", .secondary)
+        }
+        if expedition.awaitsDecision { return ("Captured", .accentColor) }
+        switch expedition.decision {
+        case .kept:     return ("Kept", .green)
+        case .released: return ("Released", .secondary)
+        case nil:       return ("No capture", .red)
+        }
+    }
+
+    var body: some View {
+        Text(state.0)
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(color)
+            .foregroundStyle(state.1)
             .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(Capsule().strokeBorder(color.opacity(0.5)))
+            .background(Capsule().strokeBorder(state.1.opacity(0.5)))
+    }
+}
+
+// MARK: - Countdown
+
+struct ExpeditionCountdownView: View {
+    let endsAt: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let remaining = Int(endsAt.timeIntervalSince(context.date).rounded())
+            if remaining <= 0 {
+                Label("Ready to resolve", systemImage: "checkmark.circle.fill")
+                    .labelStyle(.titleAndIcon)
+                    .foregroundStyle(.tint)
+                    .font(.caption.weight(.semibold))
+            } else {
+                Label(DurationFormat.remaining(seconds: remaining), systemImage: "hourglass")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }

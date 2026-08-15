@@ -1,11 +1,17 @@
-// WildLive — Home dashboard. Apple-defaults render: List with grouped
-// Sections, LabeledContent for scalar stats, Labels + system SF Symbols
-// for the navigation rows.
+// WildLive — Home dashboard.
+//
+// Every number on this screen comes from the server. It reloads on each
+// appearance because an expedition settled elsewhere in the app changes
+// what Home should say.
+//
+// Apple defaults throughout: List with grouped Sections, LabeledContent
+// for scalar stats, Labels with system SF Symbols for navigation rows.
 
 import SwiftUI
 
 struct HomeView: View {
     @Environment(AppStore.self) private var store
+    @State var viewModel: HomeViewModel
 
     var body: some View {
         List {
@@ -16,22 +22,37 @@ struct HomeView: View {
         }
         .navigationTitle("WildLive")
         .navigationBarTitleDisplayMode(.inline)
+        .refreshable { await viewModel.load() }
+        .task { await viewModel.load() }
         .accessibilityIdentifier("homeView")
     }
 
     // MARK: Sections
 
+    @ViewBuilder
     private var statusSection: some View {
         Section("Zookeeper") {
-            LabeledContent("Name", value: store.currentPlayer.displayName)
+            LabeledContent("Name", value: viewModel.overview?.displayName ?? store.displayName)
+
             LabeledContent("G Balance") {
-                Text("\(store.currentPlayer.gBalance)")
+                if let overview = viewModel.overview {
+                    Text("\(overview.gBalance)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("gBalanceValue")
+                } else {
+                    loadingOrError
+                }
+            }
+
+            LabeledContent("Zoo Value", value: "\(viewModel.overview?.zoo.zooValue ?? 0)")
+            LabeledContent("Animals") {
+                Text("\(viewModel.overview?.zoo.animalCount ?? 0)")
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("animalCountValue")
             }
-            LabeledContent("Zoo Value", value: "\(store.myZooValue)")
-            LabeledContent("Animals",   value: "\(store.currentPlayer.animals.count)")
-            LabeledContent("Visitors / day", value: "\(store.currentPlayer.visitorsPerDay)")
+
             Button {
                 store.push(.store)
             } label: {
@@ -42,29 +63,60 @@ struct HomeView: View {
     }
 
     @ViewBuilder
-    private var expeditionsSection: some View {
-        let ongoing = store.ongoingExpeditions
-        let pending = store.unhandledCapturedExpeditions
+    private var loadingOrError: some View {
+        if viewModel.isLoading {
+            ProgressView().controlSize(.small)
+        } else if viewModel.errorMessage != nil {
+            Label("Unavailable", systemImage: "exclamationmark.triangle.fill")
+                .labelStyle(.titleAndIcon)
+                .font(.caption)
+                .foregroundStyle(.orange)
+        } else {
+            Text("—").foregroundStyle(.secondary)
+        }
+    }
 
+    @ViewBuilder
+    private var expeditionsSection: some View {
         Section("Expeditions") {
-            if ongoing.isEmpty && pending.isEmpty {
-                Text("No active expeditions. Visit the Guild to dispatch a Hunter.")
+            if let error = viewModel.errorMessage {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Cannot reach WildLive", systemImage: "wifi.exclamationmark")
+                        .foregroundStyle(.orange)
+                    Text(error)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("homeErrorRow")
+            }
+
+            let overview = viewModel.overview
+
+            if let overview, overview.pendingDecisions > 0 {
+                Label(
+                    "\(overview.pendingDecisions) capture(s) awaiting your decision.",
+                    systemImage: "exclamationmark.circle.fill"
+                )
+                .foregroundStyle(.orange)
+                .accessibilityIdentifier("pendingDecisionsBadge")
+            }
+
+            if let overview, overview.activeExpeditions > 0 {
+                Label("\(overview.activeExpeditions) expedition(s) in the field.",
+                      systemImage: "figure.walk.motion")
+                    .foregroundStyle(.secondary)
+            }
+
+            if overview?.activeExpeditions == 0 && overview?.pendingDecisions == 0 {
+                Text("No active expeditions. Choose a Map to send one out.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-            } else {
-                if !pending.isEmpty {
-                    Label("\(pending.count) expedition(s) awaiting your decision.",
-                          systemImage: "exclamationmark.circle.fill")
-                        .foregroundStyle(.orange)
-                }
-                ForEach(ongoing.prefix(3)) { exp in
-                    ongoingRow(exp)
-                }
-                NavigationLink(value: Route.expeditions) {
-                    Label("See all expeditions", systemImage: "list.bullet")
-                }
-                .accessibilityIdentifier("viewExpeditionsButton")
             }
+
+            NavigationLink(value: Route.maps) {
+                Label("Send an Expedition", systemImage: "map.fill")
+            }
+            .accessibilityIdentifier("navMaps")
         }
     }
 
@@ -75,20 +127,20 @@ struct HomeView: View {
             }
             .accessibilityIdentifier("navMyZoo")
 
-            NavigationLink(value: Route.otherZoos) {
-                Label("Other Zoos", systemImage: "person.2.fill")
+            NavigationLink(value: Route.expeditions) {
+                Label("Expeditions", systemImage: "list.bullet.rectangle")
             }
-            .accessibilityIdentifier("navOtherZoos")
+            .accessibilityIdentifier("navExpeditions")
 
             NavigationLink(value: Route.guild) {
                 Label("Guild", systemImage: "figure.walk")
             }
             .accessibilityIdentifier("navGuild")
 
-            NavigationLink(value: Route.expeditions) {
-                Label("Expeditions", systemImage: "map.fill")
+            NavigationLink(value: Route.otherZoos) {
+                Label("Other Zoos", systemImage: "person.2.fill")
             }
-            .accessibilityIdentifier("navExpeditions")
+            .accessibilityIdentifier("navOtherZoos")
 
             NavigationLink(value: Route.store) {
                 Label("Store", systemImage: "creditcard.fill")
@@ -101,43 +153,6 @@ struct HomeView: View {
         Section {
             Button("Sign out (return to title)", role: .destructive) {
                 store.returnToTitle()
-            }
-        }
-    }
-
-    // MARK: Row helpers
-
-    private func ongoingRow(_ exp: Expedition) -> some View {
-        let hunter = store.hunter(exp.hunterId)?.name ?? "Hunter"
-        let region = store.region(exp.regionId)?.name ?? "Region"
-        return HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(hunter)
-                Text(region).font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer()
-            ExpeditionCountdownView(endsAt: exp.endsAt)
-        }
-    }
-}
-
-// MARK: - Countdown
-
-struct ExpeditionCountdownView: View {
-    let endsAt: Date
-
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
-            let remaining = max(0, Int(endsAt.timeIntervalSince(context.date)))
-            if remaining == 0 {
-                Label("Ready", systemImage: "checkmark.circle.fill")
-                    .labelStyle(.titleAndIcon)
-                    .foregroundStyle(.tint)
-                    .font(.caption.weight(.semibold))
-            } else {
-                Text("\(remaining)s")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
             }
         }
     }

@@ -1,26 +1,32 @@
-// WildLive — Name the captured Animal, or release from here.
+// WildLive — Name the animal you just caught.
+//
+// The last step before it becomes a permanent row in your Zoo. The name is
+// optional: leaving it blank keeps the species name, and the preview under
+// the field shows exactly what will be saved either way.
 
 import SwiftUI
 
 struct CaptureNameView: View {
     @Environment(AppStore.self) private var store
-    let expeditionId: UUID
-
-    @State private var name: String = ""
-    @State private var errorMessage: String?
+    @State var viewModel: CaptureNameViewModel
     @FocusState private var nameFieldFocused: Bool
 
     var body: some View {
         Form {
-            if let animal = store.gameService.pendingAnimal(for: expeditionId),
-               let species = store.speciesById[animal.speciesId] {
-                summarySection(animal: animal, species: species)
-                namingSection
+            if let species = viewModel.species {
+                capturedSection(species)
+                namingSection(species)
                 actionSection
+            } else if viewModel.isLoading {
+                Section {
+                    HStack {
+                        ProgressView().controlSize(.small)
+                        Text("Loading…").foregroundStyle(.secondary)
+                    }
+                }
             } else {
                 Section {
-                    Text("Nothing to name.")
-                        .foregroundStyle(.secondary)
+                    Text("Nothing to name.").foregroundStyle(.secondary)
                     Text("This capture has already been handled.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -29,67 +35,66 @@ struct CaptureNameView: View {
         }
         .navigationTitle("Name your Animal")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { nameFieldFocused = true }
-        .alert("Cannot add", isPresented: errorBinding) {
-            Button("OK") { errorMessage = nil }
-        } message: { Text(errorMessage ?? "") }
+        .task {
+            await viewModel.load()
+            nameFieldFocused = true
+        }
+        .alert("Could not add to your Zoo", isPresented: errorBinding) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+        .accessibilityIdentifier("captureNameView")
     }
 
     private var errorBinding: Binding<Bool> {
-        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )
     }
 
-    private func summarySection(animal: Animal, species: Species) -> some View {
+    private func capturedSection(_ species: AnimalSpecies) -> some View {
         Section("Captured") {
-            LabeledContent("Species", value: species.commonName)
+            LabeledContent("Species", value: species.nameEN)
             LabeledContent("Rarity") {
                 HStack(spacing: 6) {
                     Circle().fill(species.rarity.systemColor).frame(width: 10, height: 10)
-                    Text(species.rarity.label).foregroundStyle(.secondary)
+                    Text(species.rarity.nameEN).foregroundStyle(.secondary)
                 }
             }
-            if animal.trait != .none {
-                LabeledContent("Trait", value: animal.trait.label)
-            }
+            LabeledContent("Zoo value", value: "\(species.baseZooValue)")
         }
     }
 
-    private var namingSection: some View {
+    private func namingSection(_ species: AnimalSpecies) -> some View {
         Section {
-            TextField("Nickname (optional)", text: $name)
+            TextField("Name (optional)", text: $viewModel.name)
                 .autocorrectionDisabled()
                 .focused($nameFieldFocused)
-                .accessibilityIdentifier("nicknameField")
+                .accessibilityIdentifier("animalNameField")
+        } header: {
+            Text("Name")
         } footer: {
-            Text("Give it a name, or leave blank to keep it unnamed.")
+            Text("Will be saved as “\(viewModel.effectiveName)”.")
         }
     }
 
     private var actionSection: some View {
         Section {
             Button {
-                switch store.gameService.keepInZoo(expeditionId: expeditionId, nickname: name) {
-                case .success:
-                    store.popToHome()
-                    store.push(.myZoo)
-                case .failure(let err):
-                    errorMessage = err.localizedDescription
-                }
+                Task { await viewModel.keep() }
             } label: {
-                Label("Add to Zoo", systemImage: "plus.circle.fill")
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    if viewModel.isSaving { ProgressView().controlSize(.small) }
+                    Text(viewModel.isSaving ? "Adding…" : "Add to My Zoo")
+                        .frame(maxWidth: .infinity)
+                }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .accessibilityIdentifier("confirmAddToZooButton")
-
-            Button(role: .destructive) {
-                _ = store.gameService.release(expeditionId: expeditionId)
-                store.popToHome()
-            } label: {
-                Label("Release instead", systemImage: "arrow.uturn.backward.circle")
-                    .frame(maxWidth: .infinity)
-            }
+            .disabled(!viewModel.canSave)
+            .accessibilityIdentifier("confirmKeepButton")
         }
     }
 }
