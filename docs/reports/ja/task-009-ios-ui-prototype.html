@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 009 — Milestone 002 UI-first。Task 008 のタイトル画面を、コアループ全体をクリックで一巡できる SwiftUI プロトタイプ（ホーム / 自分の Zoo / 他人の Zoo / ギルド / ハンター契約 / 派遣 / 遠征結果 / 命名して展示 or リリース / G 購入）に拡張。全部インメモリのダミーデータ。">
+<title>Task 009 — iOS UI プロトタイプ（Milestone 002）· WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">AI が作るライブ MMO — 自律的 AI ソフトウェア開発の公開実験。</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← すべてのレポート</a>
+  &nbsp;·&nbsp;
+  <a href="../en/task-009-ios-ui-prototype.html">English</a>
+</nav>
+
+<h1>Task 009 — iOS コアループ UI プロトタイプ（Milestone 002、UI-first）</h1>
+<p class="meta">
+  プロジェクト: WildLive
+  &nbsp;·&nbsp; 日付: 2026-08-15
+  &nbsp;·&nbsp; AI エージェント: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; 状態: <span class="badge badge-warn">ローカルレビュー中 — PR 未作成</span>
+</p>
+
+<h2>人による指示</h2>
+<p>
+  <strong>リポジトリオーナー（人間）が、コアループ全体を UI プロトタイプとしてダミーデータで作ることを承認した。</strong>指示内容は、Milestone 001 のタイトル画面から続けて、UI のメインは引き続き SwiftUI、以下の一連の画面をシミュレーターで実際に操作して確認できるものを作ってほしい、というもの — トップ（ユーザーの最新ステータス）／自分の動物園／他人の動物園一覧／ギルド／ハンターを見つけて狩りを依頼／結果一覧／捕獲したアニマルの命名（Zoo に追加）or リリース／RevenueCat 型のゲーム内通貨 G 購入画面。すべてサーバー通信なしでシミュレーター内完結。AI が範囲（RevenueCat SDK は入れない、永続化なし、遠征タイマーはプロトタイプ用に短縮）と分岐ブランチ <code>ai/013-ios-ui-prototype</code> を提案し、人間が「GO」と応答した。
+</p>
+
+<h2>目的</h2>
+<p>
+  Task 008 のタイトル画面を、WildLive のコアループを一巡できる SwiftUI プロトタイプに拡張する。ホーム／自分の Zoo／他人の Zoo／ギルド／契約／派遣／遠征結果／命名して展示 or リリース／G ストアまで、すべてインメモリのダミーデータのみで、iOS シミュレーター内で人間がクリックで確認できるようにする。バックエンドは一切関与させない。
+</p>
+
+<h2>何を出荷したか</h2>
+
+<h3>アプリ</h3>
+<ul>
+  <li><code>apps/ios/WildLive/</code> 配下に SwiftUI ソース 20 本を新規追加。<code>project.pbxproj</code> を手で更新し、20 本すべてを <code>WildLive</code> ターゲットに追加。</li>
+  <li><strong>状態管理</strong> — <code>AppStore</code> を単一の <code>@Observable</code> にして、現在プレイヤー、他プレイヤー、ハンター、遠征、契約中ハンターなど、可変ゲーム状態をすべてここに集約。永続化はしない — 起動ごとに状態リセットは意図的。</li>
+  <li><strong>ナビゲーション</strong> — <code>NavigationStack</code> を 1 本、<code>AppStore.navigationPath</code> にバインド。<code>Route</code> は宛先ごとに 1 ケースを持つ平坦な <code>Hashable</code> 列挙型。各 push は識別子だけを運び、モデル本体は運ばない。</li>
+  <li><strong>ドメイン + ダミーデータ</strong> — <code>Domain.swift</code> が <code>Species</code>、<code>Animal</code>、<code>Hunter</code>、<code>Region</code>、<code>Expedition</code>、<code>Player</code>、<code>GBundle</code> を定義。<code>SampleData.swift</code> が実在種 18 種、4 階層のハンター 8 名、4 難度のリージョン 6 箇所、G バンドル 4 個、現在プレイヤー（初期アニマル 3 匹つき）、他プレイヤー 3 名を手で埋めている。</li>
+  <li><strong>サービス層</strong>:
+    <ul>
+      <li><code>MockGameService</code> — <code>contract / dispatch / resolve / keepInZoo / release</code>。<code>resolve</code> は idempotent（将来サーバー側で強制される遷移を模す）で、2 回目以降は既に確定した状態を返す。</li>
+      <li><code>MockGStoreService</code> は <code>GStoreServiceProtocol</code> を実装し、RevenueCat 型 IAP を <em>形だけ</em>模す。<strong>実際の RevenueCat SDK は入れていない。</strong><code>purchase</code> は 0.8 秒待って（スピナー確認用）から <code>MainActor</code> で G 残高を加算するだけ。</li>
+    </ul>
+  </li>
+  <li><strong>画面</strong> — <code>TitleView</code>（START が <code>AppStore.start()</code> に配線された）、<code>RootView</code>、<code>HomeView</code>、<code>MyZooView</code>、<code>OtherZoosView</code>、<code>VisitZooView</code>、<code>AnimalDetailView</code>、<code>GuildView</code>、<code>RegionPickerView</code>、<code>DispatchConfirmView</code>、<code>ExpeditionsView</code>、<code>ExpeditionResultView</code>、<code>CaptureNameView</code>、<code>GStoreView</code>。全画面がセーフエリア尊重、ダークテーマ、縦向き固定。</li>
+  <li><strong>プロトタイプ用に短縮した遠征タイマー</strong> — <code>simulatedDurationSeconds</code> は 8〜60 秒。<code>docs/GAME_DESIGN.md</code> の本来の 10 分〜24 時間ではなく、シミュレーター 1 セッション内でループを最後まで回せる長さに設定。サーバー側の本物のタイミングは別物。</li>
+  <li><code>apps/ios/README.md</code> を更新: Milestone 002 のスコープ、依然として有効な非目標、CLI ビルド/テストコマンド、手動プレイスルー手順を追記。</li>
+</ul>
+
+<h3>ガバナンス</h3>
+<ul>
+  <li>この日英対訳レポート 2 本、および <code>docs/reports/index.html</code> の先頭行追加。</li>
+  <li>Task 009 の AI セッションアーカイブ一式: <code>docs/ai-sessions/task-009-ios-ui-prototype/</code>（<code>prompt.en.md</code>、<code>transcript.en.md</code>、<code>metadata.json</code>、タスク別 <code>README.md</code>）と <code>docs/ai-sessions/index.md</code> の先頭行追加。</li>
+  <li><strong>X マニフェストは無し。</strong>これは依然として人間の UI レビュー前の Version-0 系イテレーションであり、レビュー前に一般向けアナウンスするのは範囲外。<code>X Development Live</code> ワークフローはこの PR の diff に 0 件のマニフェストを検出してドキュメント通り no-op で終了する。</li>
+</ul>
+
+<h2>実測での検証（PR オープン前）</h2>
+<p>以下の結果はすべて実際に実行したコマンドの出力に基づく。設定からの推測ではない。</p>
+<table>
+  <thead><tr><th>チェック</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild -version</code></td><td>Xcode 26.6、Build 17F113</td></tr>
+    <tr><td><code>xcrun simctl list runtimes</code></td><td>iOS 26.5 が使用可能。<strong>iPhone 17</strong> を選択</td></tr>
+    <tr>
+      <td>
+        <code>xcodebuild -project WildLive.xcodeproj -scheme WildLive -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' -derivedDataPath build build</code>
+      </td>
+      <td><strong><code>** BUILD SUCCEEDED **</code></strong>。Swift ソース 22 本（既存 2 + 新規 20）すべてクリーンにコンパイル。</td>
+    </tr>
+    <tr>
+      <td>
+        <code>xcodebuild &hellip; test</code>（同じ destination）
+      </td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>。スイート <code>WildLiveUITests</code>:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — 成功（7.156 秒）</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — 成功（6.896 秒）</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — 成功（17.598 秒）</li>
+        </ul>
+        <strong>3/3 テスト成功。</strong>
+      </td>
+    </tr>
+    <tr><td><code>xcrun simctl boot 'iPhone 17'</code></td><td>State: <code>Booted</code></td></tr>
+    <tr><td><code>xcrun simctl install booted WildLive.app</code></td><td>OK</td></tr>
+    <tr><td><code>xcrun simctl launch booted dev.wildlive.WildLive</code></td><td>PID <strong>7318</strong>、+2 秒後もプロセス生存。起動直後クラッシュなし。</td></tr>
+    <tr><td><code>xcrun simctl io booted screenshot</code></td><td>410 KB の PNG を <code>/tmp/wildlive_title.png</code> に書き込み、人間がインラインで確認。リポジトリにはコミットしていない。</td></tr>
+  </tbody>
+</table>
+
+<h2>追加 / 変更ファイル</h2>
+<p>本ブランチ上のコミットは現時点 1 本。加えてこのドキュメント用コミットが加わる。</p>
+<table>
+  <thead><tr><th>パス</th><th>変更</th><th>LoC</th></tr></thead>
+  <tbody>
+    <tr><td><code>apps/ios/WildLive/AppStore.swift</code></td><td>追加</td><td>119</td></tr>
+    <tr><td><code>apps/ios/WildLive/Route.swift</code></td><td>追加</td><td>22</td></tr>
+    <tr><td><code>apps/ios/WildLive/RootView.swift</code></td><td>追加</td><td>57</td></tr>
+    <tr><td><code>apps/ios/WildLive/Domain.swift</code></td><td>追加</td><td>216</td></tr>
+    <tr><td><code>apps/ios/WildLive/SampleData.swift</code></td><td>追加</td><td>179</td></tr>
+    <tr><td><code>apps/ios/WildLive/Theme.swift</code></td><td>追加</td><td>53</td></tr>
+    <tr><td><code>apps/ios/WildLive/MockGameService.swift</code></td><td>追加</td><td>254</td></tr>
+    <tr><td><code>apps/ios/WildLive/MockGStoreService.swift</code></td><td>追加</td><td>49</td></tr>
+    <tr><td><code>apps/ios/WildLive/HomeView.swift</code></td><td>追加</td><td>197</td></tr>
+    <tr><td><code>apps/ios/WildLive/MyZooView.swift</code></td><td>追加</td><td>137</td></tr>
+    <tr><td><code>apps/ios/WildLive/OtherZoosView.swift</code></td><td>追加</td><td>96</td></tr>
+    <tr><td><code>apps/ios/WildLive/VisitZooView.swift</code></td><td>追加</td><td>68</td></tr>
+    <tr><td><code>apps/ios/WildLive/AnimalDetailView.swift</code></td><td>追加</td><td>90</td></tr>
+    <tr><td><code>apps/ios/WildLive/GuildView.swift</code></td><td>追加</td><td>153</td></tr>
+    <tr><td><code>apps/ios/WildLive/RegionPickerView.swift</code></td><td>追加</td><td>85</td></tr>
+    <tr><td><code>apps/ios/WildLive/DispatchConfirmView.swift</code></td><td>追加</td><td>105</td></tr>
+    <tr><td><code>apps/ios/WildLive/ExpeditionsView.swift</code></td><td>追加</td><td>137</td></tr>
+    <tr><td><code>apps/ios/WildLive/ExpeditionResultView.swift</code></td><td>追加</td><td>173</td></tr>
+    <tr><td><code>apps/ios/WildLive/CaptureNameView.swift</code></td><td>追加</td><td>120</td></tr>
+    <tr><td><code>apps/ios/WildLive/GStoreView.swift</code></td><td>追加</td><td>157</td></tr>
+    <tr><td><code>apps/ios/WildLive/TitleView.swift</code></td><td>変更 — <code>START</code> が <code>store.start()</code> を呼ぶように</td><td>80</td></tr>
+    <tr><td><code>apps/ios/WildLive/WildLiveApp.swift</code></td><td>変更 — <code>.environment(...)</code> で <code>AppStore</code> を注入し <code>RootView</code> を root に</td><td>19</td></tr>
+    <tr><td><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code></td><td>変更 — <code>PBXFileReference</code> 20、<code>PBXBuildFile</code> 20、group 子要素 20、<code>Sources</code> フェーズ 20 を追加</td><td>—</td></tr>
+    <tr><td><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code></td><td>変更 — Milestone 001 のタイトルチェックは維持、Milestone 002 用に START → Home 引き継ぎとトップナビゲーションカードのチェックを追加</td><td>91</td></tr>
+    <tr><td><code>apps/ios/README.md</code></td><td>変更 — Milestone 002 スコープ、非目標、CLI テストコマンド、手動プレイスルー</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>方針的に明示しておく判断</h2>
+<ul>
+  <li><strong><code>@Observable</code> のストア 1 本、DI フレームワークなし。</strong>全画面が <code>@Environment(AppStore.self)</code> 経由で <code>AppStore</code> を読む。UI-first フェーズでは意図的に抽象化を減らしている。将来 API が来たら、変わるのはサービス層（<code>MockGameService</code>、<code>MockGStoreService</code>）だけ。</li>
+  <li><strong><code>MockGameService.resolve</code> は idempotent</strong>。解決済み遠征を再度呼んでも再抽選せず、既に確定した状態を返す。将来サーバー側で強制される遷移を模しており、「遠征/発見の解決は複数回呼んでも安全でなければならない」という WildLive の非交渉ルールに一致。</li>
+  <li><strong>プロトタイプ用の短縮遠征タイマー（8〜60 秒）。</strong>本来の 10 分〜24 時間（<code>docs/GAME_DESIGN.md</code>）ではシミュレーター 1 セッションでループを終えられない。短縮値はクライアント側の <code>Region</code> 構造体に置いてあり、「プロトタイプ値」であることが明白 — ゲーム設計の確定値ではない。</li>
+  <li><strong>RevenueCat SDK なし。</strong>ストア画面は <code>GStoreServiceProtocol</code> を介するので、後日 View を触らずに実 RevenueCat 実装へ差し替え可能。バンドル一覧、スピナー、確認ダイアログ、エラーアラートの UI 要素はすべてモックで動作確認済。</li>
+  <li><strong>ベーシック vs. 共有 ハンター。</strong>契約時に <code>available=false</code> になるのは非 <code>basic</code> ハンターだけ。ベーシックは常に契約可能のまま。<code>docs/GAME_DESIGN.md</code> の「ベーシックハンターは絶対に枯渇しない」という柱をモックでも守っている。</li>
+</ul>
+
+<h2>意図的な非目標（引き続き有効）</h2>
+<ul>
+  <li>REST/GraphQL/WebSocket クライアント、認証、ユーザーモデル、いずれも無し。</li>
+  <li>PostgreSQL 接続、pgvector、サーバーコード、いずれも触っていない。Task 007 の PostgreSQL 17 + pgvector スタックは<strong>起動すらしていない</strong>。</li>
+  <li>SwiftData / Core Data / <code>UserDefaults</code> 永続化、いずれも無し。起動毎に状態リセットは意図的。</li>
+  <li>実 RevenueCat SDK、App Store Connect 商品、レシート、いずれも無し。</li>
+  <li>サードパーティ UI フレームワーク、DI/MVVM/Redux、アナリティクス、プッシュ通知、ゲームエンジン、いずれも無し。</li>
+  <li>本番インフラアクセス無し — 本番サーバー、クラスタ、PgBouncer、DNS、AppRun、Sakura Cloud には何も送信していない。本タスクは全部この Mac 上で完結。</li>
+  <li>X マニフェスト無し（上記「ガバナンス」参照）。</li>
+</ul>
+
+<h2>テスト</h2>
+<ul>
+  <li><strong>WildLiveUITests: 3/3 成功</strong>（<code>xcodebuild test</code>、<code>iPhone 17 / iOS 26.5</code>、合計約 32 秒）。</li>
+  <li>Milestone 001 の「START タップ後もタイトルが残る」というアサーションは、新しい遷移仕様に合わせて「<code>startButton</code> が hittable」に置き換えた。</li>
+  <li>PHPUnit と Python のセッションアーカイブ validator は<strong>触っていない</strong>。本ブランチは Laravel / Python の変更を含まない。</li>
+  <li>テストの弱体化、スキップ、削除は一切ない。</li>
+</ul>
+
+<h2>Git / コミット</h2>
+<ul>
+  <li>ブランチ: <code>ai/013-ios-ui-prototype</code>。<code>ai/011-ios-title-screen</code> の <code>17bfb8b</code> から派生。理由: Task 008 のタイトル画面（PR #12）がまだそのブランチで open のため。Task 009 はスタックブランチになる — PR #12 マージ後に <code>main</code> へ rebase / re-target する。</li>
+  <li>コードコミット: <code>73f0a28</code> — <em>feat(ios): UI-only prototype of core loop (Milestone 002, UI-first)</em>。25 files changed, +2,717 / −86。</li>
+  <li>ドキュメントコミット: このレポートと AI セッションアーカイブを含むコミット。</li>
+</ul>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <strong>まだ作成していない。</strong>次のステップは人間がシミュレーターで一巡プレイして UI レビューすること。push / PR / merge のいずれも認可されていない。</li>
+  <li>作成時のターゲットは <code>ai/011-ios-title-screen</code>（スタック）とし、diff が Task 009 の変更だけになるようにする予定。</li>
+  <li>マージ後の <code>main</code> CI: <span class="badge badge-warn">未実行 — PR がまだ存在しない</span>。</li>
+</ul>
+
+<h2>問題 / 既知の限界</h2>
+<ul>
+  <li>契約 → 派遣 → 解決 → 捕獲 のフル一巡は自動テストしていない。時間依存（リージョンあたり最大 60 秒）でありスモークテストには不向き。手動プレイスルー手順は <code>apps/ios/README.md</code> に記載。</li>
+  <li>各画面のシミュレーターショットはリポジトリにコミットしていない。Task 008 で「プレイスルー用スクリーンショットは一時ファイルで、人間がチャット中に確認する」慣例を確立済み。</li>
+  <li>遠征所要時間、捕獲確率、Zoo Value 重み、G バンドル金額は仮のチューニング値であり、本編の経済設計提案ではない。</li>
+</ul>
+
+<h2>やっていないこと</h2>
+<ul>
+  <li>人間の UI レビュー前に push / PR / merge は一切していない。</li>
+  <li>本 milestone に対応する X マニフェストは作成していない。</li>
+  <li>API 実装、認証、バックエンド、DB 変更、サーバー側ゲームロジック、いずれも無し。</li>
+  <li>本番インフラの変更、いずれも無し。</li>
+  <li>Swift Package を含むサードパーティ依存の新規追加、無し。</li>
+</ul>
+
+<h2>次に推奨するタスク</h2>
+<p>
+  <strong>人間がシミュレーターでプロトタイプを実際にプレイし、進める前に何を変えるかを判定する</strong> — 画面構成、情報密度、文言、足りない画面（設定、イベント、ランキング詳細）、雰囲気など。人間がこのビルドを一巡するまでは、サーバー側実装への着手やモックサービスの本物化に進んではならない。本レポートはそれを認可しない。
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-15 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>

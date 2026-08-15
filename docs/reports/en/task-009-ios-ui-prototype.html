@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="WildLive Task 009 — Milestone 002, UI-first. Turns the Task 008 title screen into a clickable SwiftUI prototype of the WildLive core loop (home dashboard, own Zoo, other Zoos, Guild, contract, dispatch, expedition resolution, capture/name/release, and G store) — all against in-memory dummy data.">
+<title>Task 009 — iOS UI prototype (Milestone 002) · WildLive</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="site">
+  <p class="brand">WildLive</p>
+  <p class="tagline">An AI-made live MMO — a public experiment in autonomous AI software development.</p>
+</header>
+
+<nav class="lang">
+  <a href="../index.html">← All reports</a>
+  &nbsp;·&nbsp;
+  <a href="../ja/task-009-ios-ui-prototype.html">日本語版</a>
+</nav>
+
+<h1>Task 009 — iOS UI prototype of the core loop (Milestone 002, UI-first)</h1>
+<p class="meta">
+  Project: WildLive
+  &nbsp;·&nbsp; Date: 2026-08-15
+  &nbsp;·&nbsp; AI Agent: Claude Code (<code>claude-opus-4-7[1m]</code>)
+  &nbsp;·&nbsp; Status: <span class="badge badge-warn">In local review — PR not yet opened</span>
+</p>
+
+<h2>Human intervention</h2>
+<p>
+  <strong>The human (repository owner) approved a UI-first prototype covering the entire core loop with dummy data.</strong> The instruction was: continue from the Milestone 001 title screen, still with SwiftUI as the main UI framework, and build a walk-through of every screen a player will see — home / own Zoo / other players' Zoos / Guild / contract a Hunter / dispatch to a Region / expedition result / keep-and-name or release / RevenueCat-shaped G purchase — verified in the Simulator without any server communication. The AI proposed the scope (including "no real RevenueCat SDK", "no persistence", "prototype-scaled expedition timers") and the branch <code>ai/013-ios-ui-prototype</code>; the human replied <em>GO</em>.
+</p>
+
+<h2>Objective</h2>
+<p>
+  Extend Task 008's title screen into a click-through SwiftUI prototype of the WildLive core loop, entirely against in-memory dummy data, so a human can walk through every screen the game will need — home dashboard, Zoo, other Zoos, Guild, contract, dispatch, expedition resolution, capture-and-name or release, and G store — inside the iOS Simulator with no backend involved.
+</p>
+
+<h2>What ships</h2>
+
+<h3>The app</h3>
+<ul>
+  <li>20 new SwiftUI source files under <code>apps/ios/WildLive/</code>, plus a hand-updated <code>project.pbxproj</code> that adds all of them to the <code>WildLive</code> target.</li>
+  <li><strong>State</strong> — <code>AppStore</code> is a single <code>@Observable</code> holding all mutable game state (the current player, other players, hunters, expeditions, contract). No persistence: state is fresh on every launch, deliberately.</li>
+  <li><strong>Navigation</strong> — one <code>NavigationStack</code> bound to <code>AppStore.navigationPath</code>. <code>Route</code> is a flat <code>Hashable</code> enum with one case per destination. Every push carries only identifiers, never model instances.</li>
+  <li><strong>Domain + dummy data</strong> — <code>Domain.swift</code> defines <code>Species</code>, <code>Animal</code>, <code>Hunter</code>, <code>Region</code>, <code>Expedition</code>, <code>Player</code>, <code>GBundle</code>. <code>SampleData.swift</code> hand-seeds 18 real species, 8 hunters (4 tiers), 6 regions (4 difficulties), 4 G bundles, one current player (with 3 seeded animals), and 3 other players.</li>
+  <li><strong>Services</strong>:
+    <ul>
+      <li><code>MockGameService</code> — <code>contract / dispatch / resolve / keepInZoo / release</code>. <code>resolve</code> is idempotent (mirrors the future server transition); a second call returns the already-set state.</li>
+      <li><code>MockGStoreService</code> implements <code>GStoreServiceProtocol</code>, shaped like a RevenueCat-backed IAP layer. <strong>No real RevenueCat SDK is imported.</strong> <code>purchase</code> awaits 0.8 s (to exercise the spinner) then credits G to the current player on <code>MainActor</code>.</li>
+    </ul>
+  </li>
+  <li><strong>Screens</strong> — <code>TitleView</code> (now wired to <code>AppStore.start()</code>), <code>RootView</code>, <code>HomeView</code>, <code>MyZooView</code>, <code>OtherZoosView</code>, <code>VisitZooView</code>, <code>AnimalDetailView</code>, <code>GuildView</code>, <code>RegionPickerView</code>, <code>DispatchConfirmView</code>, <code>ExpeditionsView</code>, <code>ExpeditionResultView</code>, <code>CaptureNameView</code>, <code>GStoreView</code>. Every screen respects safe area, dark theme, and portrait-only.</li>
+  <li><strong>Prototype-scaled timers</strong> — expeditions use <code>simulatedDurationSeconds</code> of 8 to 60 seconds instead of the real 10-minute-to-24-hour timings, so a human can play the whole loop inside a Simulator session in under a minute. Real timing lives on the server.</li>
+  <li><code>apps/ios/README.md</code> updated: Milestone 002 scope, non-goals still in force, CLI build/test commands, and a step-by-step manual playthrough.</li>
+</ul>
+
+<h3>Governance</h3>
+<ul>
+  <li>This bilingual report + its Japanese counterpart, plus a new row at the top of <code>docs/reports/index.html</code>.</li>
+  <li>The Task 009 AI session archive under <code>docs/ai-sessions/task-009-ios-ui-prototype/</code> (<code>prompt.en.md</code>, <code>transcript.en.md</code>, <code>metadata.json</code>, per-task <code>README.md</code>) + a new row at the top of <code>docs/ai-sessions/index.md</code>.</li>
+  <li><strong>No X manifest.</strong> This is still a Version-0-ish UI iteration before the human's next UI review; announcing it publicly before that review is out of scope. The <code>X Development Live</code> workflow will find zero manifests in this PR's diff and exit as a documented no-op.</li>
+</ul>
+
+<h2>Live verification (before opening this PR)</h2>
+<p>All results below are from actual commands, not inferred from configuration.</p>
+<table>
+  <thead><tr><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><code>xcodebuild -version</code></td><td>Xcode 26.6, Build 17F113</td></tr>
+    <tr><td><code>xcrun simctl list runtimes</code></td><td>iOS 26.5 available; selected <strong>iPhone 17</strong></td></tr>
+    <tr>
+      <td>
+        <code>xcodebuild -project WildLive.xcodeproj -scheme WildLive -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' -derivedDataPath build build</code>
+      </td>
+      <td><strong><code>** BUILD SUCCEEDED **</code></strong> — all 22 Swift sources compile clean (2 existing + 20 new).</td>
+    </tr>
+    <tr>
+      <td>
+        <code>xcodebuild &hellip; test</code> (same destination)
+      </td>
+      <td>
+        <strong><code>** TEST SUCCEEDED **</code></strong>. Suite <code>WildLiveUITests</code>:
+        <ul>
+          <li><code>test_titleScreen_showsBrandingAndTappableStartButton</code> — passed (7.156 s)</li>
+          <li><code>test_startAdvancesToHomeDashboard</code> — passed (6.896 s)</li>
+          <li><code>test_homeNavigationCards_pushDestinations</code> — passed (17.598 s)</li>
+        </ul>
+        <strong>3/3 tests passing.</strong>
+      </td>
+    </tr>
+    <tr><td><code>xcrun simctl boot 'iPhone 17'</code></td><td>State: <code>Booted</code></td></tr>
+    <tr><td><code>xcrun simctl install booted WildLive.app</code></td><td>OK</td></tr>
+    <tr><td><code>xcrun simctl launch booted dev.wildlive.WildLive</code></td><td>PID <strong>7318</strong>, still running after +2 s — no launch crash</td></tr>
+    <tr><td><code>xcrun simctl io booted screenshot</code></td><td>410 KB PNG written to <code>/tmp/wildlive_title.png</code>; human reviewed inline. Not committed to the repository.</td></tr>
+  </tbody>
+</table>
+
+<h2>Files added / changed</h2>
+<p>1 commit on this branch so far, plus this documentation commit.</p>
+<table>
+  <thead><tr><th>Path</th><th>Change</th><th>LoC</th></tr></thead>
+  <tbody>
+    <tr><td><code>apps/ios/WildLive/AppStore.swift</code></td><td>added</td><td>119</td></tr>
+    <tr><td><code>apps/ios/WildLive/Route.swift</code></td><td>added</td><td>22</td></tr>
+    <tr><td><code>apps/ios/WildLive/RootView.swift</code></td><td>added</td><td>57</td></tr>
+    <tr><td><code>apps/ios/WildLive/Domain.swift</code></td><td>added</td><td>216</td></tr>
+    <tr><td><code>apps/ios/WildLive/SampleData.swift</code></td><td>added</td><td>179</td></tr>
+    <tr><td><code>apps/ios/WildLive/Theme.swift</code></td><td>added</td><td>53</td></tr>
+    <tr><td><code>apps/ios/WildLive/MockGameService.swift</code></td><td>added</td><td>254</td></tr>
+    <tr><td><code>apps/ios/WildLive/MockGStoreService.swift</code></td><td>added</td><td>49</td></tr>
+    <tr><td><code>apps/ios/WildLive/HomeView.swift</code></td><td>added</td><td>197</td></tr>
+    <tr><td><code>apps/ios/WildLive/MyZooView.swift</code></td><td>added</td><td>137</td></tr>
+    <tr><td><code>apps/ios/WildLive/OtherZoosView.swift</code></td><td>added</td><td>96</td></tr>
+    <tr><td><code>apps/ios/WildLive/VisitZooView.swift</code></td><td>added</td><td>68</td></tr>
+    <tr><td><code>apps/ios/WildLive/AnimalDetailView.swift</code></td><td>added</td><td>90</td></tr>
+    <tr><td><code>apps/ios/WildLive/GuildView.swift</code></td><td>added</td><td>153</td></tr>
+    <tr><td><code>apps/ios/WildLive/RegionPickerView.swift</code></td><td>added</td><td>85</td></tr>
+    <tr><td><code>apps/ios/WildLive/DispatchConfirmView.swift</code></td><td>added</td><td>105</td></tr>
+    <tr><td><code>apps/ios/WildLive/ExpeditionsView.swift</code></td><td>added</td><td>137</td></tr>
+    <tr><td><code>apps/ios/WildLive/ExpeditionResultView.swift</code></td><td>added</td><td>173</td></tr>
+    <tr><td><code>apps/ios/WildLive/CaptureNameView.swift</code></td><td>added</td><td>120</td></tr>
+    <tr><td><code>apps/ios/WildLive/GStoreView.swift</code></td><td>added</td><td>157</td></tr>
+    <tr><td><code>apps/ios/WildLive/TitleView.swift</code></td><td>modified — <code>START</code> now calls <code>store.start()</code></td><td>80</td></tr>
+    <tr><td><code>apps/ios/WildLive/WildLiveApp.swift</code></td><td>modified — injects <code>AppStore</code> via <code>.environment(...)</code>, roots on <code>RootView</code></td><td>19</td></tr>
+    <tr><td><code>apps/ios/WildLive.xcodeproj/project.pbxproj</code></td><td>modified — added 20 <code>PBXFileReference</code>, 20 <code>PBXBuildFile</code>, 20 group children, and 20 <code>Sources</code> phase entries</td><td>—</td></tr>
+    <tr><td><code>apps/ios/WildLiveUITests/WildLiveUITests.swift</code></td><td>modified — Milestone 001 title check retained; new Milestone 002 checks for START → Home hand-off and top-level navigation cards</td><td>91</td></tr>
+    <tr><td><code>apps/ios/README.md</code></td><td>modified — Milestone 002 scope, non-goals, CLI test command, manual playthrough</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>Design decisions worth flagging</h2>
+<ul>
+  <li><strong>One <code>@Observable</code> store, no DI framework.</strong> All screens read from <code>AppStore</code> via <code>@Environment(AppStore.self)</code>. This is a deliberate anti-abstraction choice for the UI-first phase: when the real API arrives, only the service layer (<code>MockGameService</code>, <code>MockGStoreService</code>) changes.</li>
+  <li><strong><code>MockGameService.resolve</code> is idempotent.</strong> A second call on a resolved expedition returns the already-set state instead of re-rolling. This mirrors the future server-side transition and matches WildLive's non-negotiable rule that expedition/discovery resolution must be safe to invoke more than once.</li>
+  <li><strong>Prototype-scaled expedition timers (8–60 s).</strong> Real durations (10 min to 24 h per <code>docs/GAME_DESIGN.md</code>) would make the loop untestable inside a single Simulator session. The scaled value lives on the client-only <code>Region</code> struct so it is visibly a prototype value, not a design commitment.</li>
+  <li><strong>No RevenueCat SDK.</strong> The store screen goes through a <code>GStoreServiceProtocol</code> so a real RevenueCat implementation can slot in later without touching any View. Every UI element (bundle list, spinner, confirmation, error alert) is exercised by the mock.</li>
+  <li><strong>Basic vs. shared Hunters.</strong> Only non-<code>basic</code> hunters flip <code>available=false</code> when contracted; basic hunters remain contractable forever. This preserves the "basic hunters never dry up" pillar from <code>docs/GAME_DESIGN.md</code> even in the mock.</li>
+</ul>
+
+<h2>Deliberate non-goals (still in force)</h2>
+<ul>
+  <li>No REST/GraphQL/WebSocket client, no auth, no user model.</li>
+  <li>No PostgreSQL connection, no pgvector, no server-side code touched. The Task 007 PostgreSQL 17 + pgvector stack was <strong>not started</strong> for this milestone.</li>
+  <li>No SwiftData / Core Data / <code>UserDefaults</code> persistence. State resets on every launch, intentionally.</li>
+  <li>No real RevenueCat SDK, no App Store Connect product, no receipts.</li>
+  <li>No third-party UI framework, no DI/MVVM/Redux, no analytics, no push notifications, no game engine.</li>
+  <li>No production infrastructure access — nothing sent to any production server, cluster, PgBouncer, DNS, AppRun, or Sakura Cloud. Entire task ran on this Mac.</li>
+  <li>No X manifest (see "Governance" above).</li>
+</ul>
+
+<h2>Tests</h2>
+<ul>
+  <li><strong>WildLiveUITests: 3/3 passing</strong> under <code>xcodebuild test</code> on <code>iPhone 17 / iOS 26.5</code>. Runtime ~ 32 s total.</li>
+  <li>The pre-existing Milestone 001 assertion "title still visible after tapping START" is replaced by an assertion that <code>startButton</code> is hittable, matching the new post-START navigation.</li>
+  <li>PHPUnit and the Python session-archive validator were <strong>not touched</strong>: this branch has zero Laravel and zero Python changes.</li>
+  <li>No test was weakened, skipped, or removed.</li>
+</ul>
+
+<h2>Git / Commits</h2>
+<ul>
+  <li>Branch: <code>ai/013-ios-ui-prototype</code>. Forked from <code>ai/011-ios-title-screen</code> at <code>17bfb8b</code> because Task 008's title screen (PR #12) is still open on that branch. This makes Task 009 a stacked branch: it will be re-based / re-targeted onto <code>main</code> after PR #12 merges.</li>
+  <li>Code commit: <code>73f0a28</code> — <em>feat(ios): UI-only prototype of core loop (Milestone 002, UI-first)</em>. 25 files changed, +2,717 / −86.</li>
+  <li>Documentation commit: the commit landing this report and the AI-session archive.</li>
+</ul>
+
+<h2>Pull Request</h2>
+<ul>
+  <li>PR: <strong>not yet opened.</strong> The next step is a human review of the Simulator playthrough. Push / PR / merge is not authorised yet.</li>
+  <li>When opened, planned target will be <code>ai/011-ios-title-screen</code> (stacked) so the diff shows only Task 009's changes.</li>
+  <li>Post-merge <code>main</code> CI: <span class="badge badge-warn">pending — PR does not exist yet</span>.</li>
+</ul>
+
+<h2>Problems / Known Limitations</h2>
+<ul>
+  <li>No automated coverage of the full contract → dispatch → resolve → capture loop. The loop is time-based (up to 60 s per Region) and belongs in a longer manual playthrough, not a fast UI test. The playthrough is documented in <code>apps/ios/README.md</code>.</li>
+  <li>Simulator screenshots of every screen are not committed — Task 008 established the convention of keeping walkthrough screenshots as temporary files that the human reviews in-chat.</li>
+  <li>Expedition timings, capture probabilities, Zoo Value weights, and G bundle amounts are placeholder tuning values, not proposals for the real game economy.</li>
+</ul>
+
+<h2>What was NOT done</h2>
+<ul>
+  <li>No push, no PR, no merge before the human's UI review.</li>
+  <li>No X manifest for this milestone.</li>
+  <li>No API implementation, no auth, no backend, no database change, no server-side game logic.</li>
+  <li>No production infrastructure change of any kind.</li>
+  <li>No new third-party dependency of any kind (Swift Package or otherwise).</li>
+</ul>
+
+<h2>Next Recommended Task</h2>
+<p>
+  <strong>Human plays the prototype in the Simulator</strong> and decides what should change before we go any further — screen composition, information density, wording, missing screens (settings, event, ranking detail), tone. Do not implement server-side pieces or replace the mock services until the human has walked through this build. This report does not authorise that.
+</p>
+
+<footer class="site">
+  Source: <a href="https://github.com/sugie/wildlive">github.com/sugie/wildlive</a>
+  &nbsp;·&nbsp;
+  Report generated 2026-08-15 by Claude Code (<code>claude-opus-4-7[1m]</code>).
+</footer>
+
+</body>
+</html>
