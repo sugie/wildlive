@@ -67,6 +67,7 @@ If docs conflict, **stop and flag it** — do not guess.
 - **Autonomous-development constraints:** `docs/AUTONOMY.md`, `docs/GUARDRAILS.md`
 - **Domain (design workspace, not spec):** `docs/DOMAIN_MODEL.md`
 - **Open questions to resolve before implementing:** `docs/DECISIONS_PENDING.md`
+- **Production runbook (api1):** `docs/operations/API1_PRODUCTION_DEPLOYMENT.md` — read before touching anything that affects the deployed API (deploy, rollback, DB / PgBouncer, firewall, health checks).
 
 `docs/DOMAIN_MODEL.md` and `docs/API.md` are working notes, not specifications. Do not treat candidate entity/endpoint lists as permission to build them all — implement only what the current task needs.
 
