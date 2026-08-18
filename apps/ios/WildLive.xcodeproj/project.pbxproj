@@ -70,6 +70,7 @@
 		A60000000000000000BB16 /* MyZooViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF16 /* MyZooViewModel.swift */; };
 		A70000000000000000BB01 /* GameAPIMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF01 /* GameAPIMappingTests.swift */; };
 		A70000000000000000BB02 /* ExpeditionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF02 /* ExpeditionViewModelTests.swift */; };
+		A70000000000000000BB03 /* LiveProdConnectivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF03 /* LiveProdConnectivityTests.swift */; };
 		A80000000000000000BB01 /* ExpeditionFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000FF01 /* ExpeditionFlowUITests.swift */; };
 /* End PBXBuildFile section */
 
@@ -118,6 +119,8 @@
 		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF04 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationView.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A3000000000000000000FF06 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Debug.xcconfig; sourceTree = "<group>"; };
+		A3000000000000000000FF07 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Release.xcconfig; sourceTree = "<group>"; };
 		A5000000000000000000FF01 /* RegisteredPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/RegisteredPlayer.swift; sourceTree = "<group>"; };
 		A5000000000000000000FF02 /* PersistedSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PersistedSession.swift; sourceTree = "<group>"; };
 		A5000000000000000000FF03 /* PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerRepository.swift; sourceTree = "<group>"; };
@@ -158,6 +161,7 @@
 		A60000000000000000FF16 /* MyZooViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooViewModel.swift; sourceTree = "<group>"; };
 		A70000000000000000FF01 /* GameAPIMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAPIMappingTests.swift; sourceTree = "<group>"; };
 		A70000000000000000FF02 /* ExpeditionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionViewModelTests.swift; sourceTree = "<group>"; };
+		A70000000000000000FF03 /* LiveProdConnectivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProdConnectivityTests.swift; sourceTree = "<group>"; };
 		A80000000000000000FF01 /* ExpeditionFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionFlowUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -264,6 +268,8 @@
 				A2000000000000000000FF05 /* SampleData.swift */,
 				A2000000000000000000FF07 /* MockGStoreService.swift */,
 				A3000000000000000000FF05 /* Info.plist */,
+				A3000000000000000000FF06 /* Debug.xcconfig */,
+				A3000000000000000000FF07 /* Release.xcconfig */,
 				A100000000000000000000A3 /* Assets.xcassets */,
 			);
 			path = WildLive;
@@ -281,6 +287,7 @@
 		A10000000000000000000006 /* WildLiveTests */ = {
 			isa = PBXGroup;
 			children = (
+				A70000000000000000FF03 /* LiveProdConnectivityTests.swift */,
 				A70000000000000000FF02 /* ExpeditionViewModelTests.swift */,
 				A70000000000000000FF01 /* GameAPIMappingTests.swift */,
 				A4000000000000000000FF01 /* RegisterPlayerTests.swift */,
@@ -483,6 +490,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A70000000000000000BB03 /* LiveProdConnectivityTests.swift in Sources */,
 				A70000000000000000BB02 /* ExpeditionViewModelTests.swift in Sources */,
 				A70000000000000000BB01 /* GameAPIMappingTests.swift in Sources */,
 				A4000000000000000000BB01 /* RegisterPlayerTests.swift in Sources */,
@@ -511,6 +519,7 @@
 /* Begin XCBuildConfiguration section */
 		A10000000000000000000031 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3000000000000000000FF06 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -573,6 +582,7 @@
 		};
 		A10000000000000000000032 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3000000000000000000FF07 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

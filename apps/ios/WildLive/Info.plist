@@ -39,6 +39,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>WildLiveAPIBaseURL</key>
-	<string>http://localhost:8000/api</string>
+	<string>$(WILDLIVE_API_BASE_URL)</string>
 </dict>
 </plist>
