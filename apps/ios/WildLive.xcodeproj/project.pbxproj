@@ -119,6 +119,7 @@
 		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF04 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationView.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A3000000000000000000FF08 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
 		A3000000000000000000FF06 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Debug.xcconfig; sourceTree = "<group>"; };
 		A3000000000000000000FF07 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Release.xcconfig; sourceTree = "<group>"; };
 		A5000000000000000000FF01 /* RegisteredPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/RegisteredPlayer.swift; sourceTree = "<group>"; };
@@ -268,6 +269,7 @@
 				A2000000000000000000FF05 /* SampleData.swift */,
 				A2000000000000000000FF07 /* MockGStoreService.swift */,
 				A3000000000000000000FF05 /* Info.plist */,
+				A3000000000000000000FF08 /* Shared.xcconfig */,
 				A3000000000000000000FF06 /* Debug.xcconfig */,
 				A3000000000000000000FF07 /* Release.xcconfig */,
 				A100000000000000000000A3 /* Assets.xcassets */,

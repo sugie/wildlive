@@ -15,4 +15,6 @@
 // (Release / TestFlight) must not honour the override; APIClient enforces
 // that.
 
+#include "Shared.xcconfig"
+
 WILDLIVE_API_BASE_URL = http:/$()/localhost:8000/api

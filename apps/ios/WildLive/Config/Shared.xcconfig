@@ -1,0 +1,10 @@
+// WildLive — settings shared by every build configuration.
+//
+// Included first by Debug.xcconfig and Release.xcconfig, so anything set
+// here can still be overridden per configuration below the #include.
+
+// Apple Developer team. Required for device builds and for any
+// TestFlight / App Store distribution; without it automatic signing has
+// no team to resolve a provisioning profile against. Team IDs are not
+// secret — they are readable from every shipped app.
+DEVELOPMENT_TEAM = PP7EWEKNZZ
