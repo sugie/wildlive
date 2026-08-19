@@ -92,12 +92,17 @@ struct HomeView: View {
 
             let overview = viewModel.overview
 
+            // Tappable, not just informative: a to-do the player cannot act
+            // on from here is a to-do they have to go hunting for. The list
+            // it lands on already leads with "Awaiting your decision".
             if let overview, overview.pendingDecisions > 0 {
-                Label(
-                    "\(overview.pendingDecisions) capture(s) awaiting your decision.",
-                    systemImage: "exclamationmark.circle.fill"
-                )
-                .foregroundStyle(.orange)
+                NavigationLink(value: Route.expeditions) {
+                    Label(
+                        "\(overview.pendingDecisions) capture(s) awaiting your decision.",
+                        systemImage: "exclamationmark.circle.fill"
+                    )
+                    .foregroundStyle(.orange)
+                }
                 .accessibilityIdentifier("pendingDecisionsBadge")
             }
 
