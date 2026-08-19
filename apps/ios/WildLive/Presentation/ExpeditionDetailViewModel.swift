@@ -23,6 +23,7 @@ final class ExpeditionDetailViewModel {
     private let repository: ExpeditionRepository
     private let resolveExpedition: ResolveExpedition
     private let decideCapture: DecideCapturedAnimal
+    private let notifier: ExpeditionNotifying
     private let onOverviewChanged: (PlayerOverview) -> Void
 
     init(
@@ -31,6 +32,7 @@ final class ExpeditionDetailViewModel {
         repository: ExpeditionRepository,
         resolveExpedition: ResolveExpedition,
         decideCapture: DecideCapturedAnimal,
+        notifier: ExpeditionNotifying,
         onOverviewChanged: @escaping (PlayerOverview) -> Void
     ) {
         self.playerID = playerID
@@ -38,6 +40,7 @@ final class ExpeditionDetailViewModel {
         self.repository = repository
         self.resolveExpedition = resolveExpedition
         self.decideCapture = decideCapture
+        self.notifier = notifier
         self.onOverviewChanged = onOverviewChanged
     }
 
@@ -55,8 +58,12 @@ final class ExpeditionDetailViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            expedition = try await repository.get(playerID: playerID, expeditionID: expeditionID)
+            let loaded = try await repository.get(playerID: playerID, expeditionID: expeditionID)
+            expedition = loaded
             errorMessage = nil
+            // The read endpoint settles a due expedition on the way out, so
+            // simply opening this screen can beat the reminder to it.
+            await cancelReminderIfSettled(loaded)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -67,8 +74,10 @@ final class ExpeditionDetailViewModel {
         isActing = true
         defer { isActing = false }
         do {
-            expedition = try await resolveExpedition(playerID: playerID, expeditionID: expeditionID)
+            let resolved = try await resolveExpedition(playerID: playerID, expeditionID: expeditionID)
+            expedition = resolved
             errorMessage = nil
+            await cancelReminderIfSettled(resolved)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -86,5 +95,12 @@ final class ExpeditionDetailViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Drop the return reminder once the expedition it announces has been
+    /// settled, so an alarm never fires for something already seen.
+    private func cancelReminderIfSettled(_ expedition: Expedition) async {
+        guard expedition.isResolved else { return }
+        await notifier.cancelReturn(expeditionID: expedition.id)
     }
 }

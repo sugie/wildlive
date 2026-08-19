@@ -17,6 +17,10 @@ struct GameDependencies {
     let expeditions: ExpeditionRepository
     let profiles: PlayerProfileRepository
 
+    /// Return reminders and the app-icon badge. A Domain protocol like the
+    /// repositories, so a UI test never reaches the system prompt.
+    let notifier: ExpeditionNotifying
+
     let startExpedition: StartExpedition
     let resolveExpedition: ResolveExpedition
     let decideCapture: DecideCapturedAnimal
@@ -33,11 +37,13 @@ struct GameDependencies {
         catalog: GameCatalogRepository,
         expeditions: ExpeditionRepository,
         profiles: PlayerProfileRepository,
+        notifier: ExpeditionNotifying,
         devInstantResolveDefault: Bool = false
     ) {
         self.catalog = catalog
         self.expeditions = expeditions
         self.profiles = profiles
+        self.notifier = notifier
         self.devInstantResolveDefault = devInstantResolveDefault
         self.startExpedition = StartExpedition(expeditions: expeditions, profiles: profiles)
         self.resolveExpedition = ResolveExpedition(expeditions: expeditions)
@@ -54,6 +60,7 @@ struct GameDependencies {
             catalog: MockGameCatalogRepository(),
             expeditions: MockExpeditionRepository(),
             profiles: MockPlayerProfileRepository(displayName: displayName),
+            notifier: MockExpeditionNotifier(),
             devInstantResolveDefault: devInstantResolveDefault
         )
     }
@@ -64,6 +71,7 @@ struct GameDependencies {
             catalog: LiveGameCatalogRepository(),
             expeditions: LiveExpeditionRepository(),
             profiles: LivePlayerProfileRepository(),
+            notifier: LocalExpeditionNotifier(),
             devInstantResolveDefault: devInstantResolveDefault
         )
     }

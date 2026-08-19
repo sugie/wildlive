@@ -269,7 +269,7 @@ final class HomeViewModelTests: XCTestCase {
         let profiles = FakeProfileRepository(overview: .fixture(gBalance: 750, animalCount: 3))
         var received: PlayerOverview?
 
-        let viewModel = HomeViewModel(playerID: "p", profiles: profiles) { received = $0 }
+        let viewModel = HomeViewModel(playerID: "p", profiles: profiles, notifier: MockExpeditionNotifier()) { received = $0 }
         await viewModel.load()
 
         XCTAssertEqual(viewModel.overview?.gBalance, 750)
@@ -283,7 +283,7 @@ final class HomeViewModelTests: XCTestCase {
         profiles.overviewResult = .failure(TestError.server("Network error"))
         var notified = false
 
-        let viewModel = HomeViewModel(playerID: "p", profiles: profiles) { _ in notified = true }
+        let viewModel = HomeViewModel(playerID: "p", profiles: profiles, notifier: MockExpeditionNotifier()) { _ in notified = true }
         await viewModel.load()
 
         XCTAssertEqual(viewModel.errorMessage, "Network error")
@@ -337,6 +337,7 @@ final class ExpeditionDetailViewModelTests: XCTestCase {
             repository: repository,
             resolveExpedition: ResolveExpedition(expeditions: repository),
             decideCapture: DecideCapturedAnimal(expeditions: repository, profiles: FakeProfileRepository()),
+            notifier: MockExpeditionNotifier(),
             onOverviewChanged: onOverviewChanged
         )
     }

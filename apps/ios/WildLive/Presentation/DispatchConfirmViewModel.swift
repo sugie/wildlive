@@ -29,6 +29,7 @@ final class DispatchConfirmViewModel {
     private let hunterID: String
     private let catalog: GameCatalogRepository
     private let startExpedition: StartExpedition
+    private let notifier: ExpeditionNotifying
     private let onDispatched: (Expedition, PlayerOverview) -> Void
 
     init(
@@ -37,6 +38,7 @@ final class DispatchConfirmViewModel {
         hunterID: String,
         catalog: GameCatalogRepository,
         startExpedition: StartExpedition,
+        notifier: ExpeditionNotifying,
         devInstantResolveDefault: Bool = false,
         onDispatched: @escaping (Expedition, PlayerOverview) -> Void
     ) {
@@ -45,6 +47,7 @@ final class DispatchConfirmViewModel {
         self.hunterID = hunterID
         self.catalog = catalog
         self.startExpedition = startExpedition
+        self.notifier = notifier
         self.devInstantResolve = devInstantResolveDefault
         self.onDispatched = onDispatched
     }
@@ -84,6 +87,14 @@ final class DispatchConfirmViewModel {
         guard !isDispatching else { return }
         isDispatching = true
         defer { isDispatching = false }
+        // Ask here rather than at launch: this is the one moment where
+        // "we will tell you when your Hunter is back" is the obvious next
+        // sentence, and a refusal costs the player nothing. The system
+        // prompts at most once, so repeating this on later dispatches is
+        // free. Deliberately before the call, not after — the answer must
+        // not depend on whether the dispatch succeeded.
+        await notifier.requestAuthorization()
+
         do {
             let started = try await startExpedition(
                 playerID: playerID,
@@ -92,6 +103,7 @@ final class DispatchConfirmViewModel {
                 devInstantResolve: devInstantResolve
             )
             errorMessage = nil
+            await notifier.scheduleReturn(for: started.expedition)
             onDispatched(started.expedition, started.overview)
         } catch {
             errorMessage = error.localizedDescription

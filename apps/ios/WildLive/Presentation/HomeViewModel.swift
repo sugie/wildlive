@@ -15,15 +15,18 @@ final class HomeViewModel {
 
     private let playerID: String
     private let profiles: PlayerProfileRepository
+    private let notifier: ExpeditionNotifying
     private let onLoaded: (PlayerOverview) -> Void
 
     init(
         playerID: String,
         profiles: PlayerProfileRepository,
+        notifier: ExpeditionNotifying,
         onLoaded: @escaping (PlayerOverview) -> Void
     ) {
         self.playerID = playerID
         self.profiles = profiles
+        self.notifier = notifier
         self.onLoaded = onLoaded
     }
 
@@ -37,6 +40,10 @@ final class HomeViewModel {
             overview = snapshot
             errorMessage = nil
             onLoaded(snapshot)
+            // The overview already carries the count, so the badge costs no
+            // extra request. Home reloads on every appearance, which is the
+            // same cadence the badge wants.
+            await notifier.setPendingDecisionCount(snapshot.pendingDecisions)
         } catch {
             errorMessage = error.localizedDescription
         }

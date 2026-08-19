@@ -15,10 +15,16 @@ final class ExpeditionsViewModel {
 
     private let playerID: String
     private let repository: ExpeditionRepository
+    private let notifier: ExpeditionNotifying
 
-    init(playerID: String, repository: ExpeditionRepository) {
+    init(
+        playerID: String,
+        repository: ExpeditionRepository,
+        notifier: ExpeditionNotifying
+    ) {
         self.playerID = playerID
         self.repository = repository
+        self.notifier = notifier
     }
 
     var ongoing: [Expedition] { expeditions.filter { !$0.isResolved } }
@@ -33,6 +39,9 @@ final class ExpeditionsViewModel {
         do {
             expeditions = try await repository.list(playerID: playerID)
             errorMessage = nil
+            // The authoritative list just arrived, so this is the cheapest
+            // honest moment to make the pending reminders match it.
+            await notifier.resync(with: expeditions)
         } catch {
             errorMessage = error.localizedDescription
         }

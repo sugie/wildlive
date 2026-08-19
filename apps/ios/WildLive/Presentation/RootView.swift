@@ -83,7 +83,8 @@ struct RootView: View {
             case .expeditions:
                 ExpeditionsView(viewModel: ExpeditionsViewModel(
                     playerID: playerID,
-                    repository: game.expeditions
+                    repository: game.expeditions,
+                    notifier: game.notifier
                 ))
 
             case .expedition(let expeditionID):
@@ -129,6 +130,7 @@ struct RootView: View {
         HomeViewModel(
             playerID: playerID,
             profiles: game.profiles,
+            notifier: game.notifier,
             onLoaded: { [store] overview in store.apply(overview) }
         )
     }
@@ -144,6 +146,7 @@ struct RootView: View {
             hunterID: hunterID,
             catalog: game.catalog,
             startExpedition: game.startExpedition,
+            notifier: game.notifier,
             devInstantResolveDefault: game.devInstantResolveDefault,
             onDispatched: { [store] expedition, overview in
                 store.apply(overview)
@@ -165,6 +168,7 @@ struct RootView: View {
             repository: game.expeditions,
             resolveExpedition: game.resolveExpedition,
             decideCapture: game.decideCapture,
+            notifier: game.notifier,
             onOverviewChanged: { [store] overview in store.apply(overview) }
         )
     }
