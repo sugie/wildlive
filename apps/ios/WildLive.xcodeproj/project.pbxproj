@@ -3,71 +3,71 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A100000000000000000000B1 /* WildLiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* WildLiveApp.swift */; };
-		A100000000000000000000B2 /* TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* TitleView.swift */; };
+		A100000000000000000000B1 /* App/WildLiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* App/WildLiveApp.swift */; };
+		A100000000000000000000B2 /* Presentation/TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* Presentation/TitleView.swift */; };
 		A100000000000000000000B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A3 /* Assets.xcassets */; };
 		A100000000000000000000B4 /* WildLiveUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A4 /* WildLiveUITests.swift */; };
-		A2000000000000000000BB01 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF01 /* AppStore.swift */; };
-		A2000000000000000000BB02 /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF02 /* Route.swift */; };
-		A2000000000000000000BB03 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF03 /* RootView.swift */; };
-		A2000000000000000000BB04 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Game.swift */; };
-		A2000000000000000000BB05 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF05 /* SampleData.swift */; };
-		A2000000000000000000BB07 /* MockGStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF07 /* MockGStoreService.swift */; };
-		A2000000000000000000BB08 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF08 /* Theme.swift */; };
-		A2000000000000000000BB09 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF09 /* HomeView.swift */; };
-		A2000000000000000000BB0A /* MyZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0A /* MyZooView.swift */; };
-		A2000000000000000000BB0B /* OtherZoosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0B /* OtherZoosView.swift */; };
-		A2000000000000000000BB0C /* VisitZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0C /* VisitZooView.swift */; };
-		A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0D /* AnimalDetailView.swift */; };
-		A2000000000000000000BB0E /* GuildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0E /* GuildView.swift */; };
-		A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF10 /* DispatchConfirmView.swift */; };
-		A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF11 /* ExpeditionsView.swift */; };
-		A2000000000000000000BB13 /* CaptureNameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF13 /* CaptureNameView.swift */; };
-		A2000000000000000000BB14 /* GStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF14 /* GStoreView.swift */; };
-		A3000000000000000000BB01 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF01 /* APIClient.swift */; };
-		A3000000000000000000BB04 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF04 /* RegistrationView.swift */; };
-		A5000000000000000000BB01 /* RegisteredPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF01 /* RegisteredPlayer.swift */; };
-		A5000000000000000000BB02 /* PersistedSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF02 /* PersistedSession.swift */; };
-		A5000000000000000000BB03 /* PlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF03 /* PlayerRepository.swift */; };
-		A5000000000000000000BB04 /* PlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF04 /* PlayerSessionRepository.swift */; };
-		A5000000000000000000BB05 /* RegisterPlayerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF05 /* RegisterPlayerInput.swift */; };
-		A5000000000000000000BB06 /* RegisterPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF06 /* RegisterPlayer.swift */; };
-		A5000000000000000000BB07 /* PlayerAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF07 /* PlayerAPIDTO.swift */; };
-		A5000000000000000000BB08 /* LivePlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF08 /* LivePlayerRepository.swift */; };
-		A5000000000000000000BB09 /* MockPlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF09 /* MockPlayerRepository.swift */; };
-		A5000000000000000000BB0A /* UserDefaultsPlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */; };
-		A5000000000000000000BB0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0B /* RegistrationViewModel.swift */; };
+		A2000000000000000000BB01 /* App/AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF01 /* App/AppStore.swift */; };
+		A2000000000000000000BB02 /* App/Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF02 /* App/Route.swift */; };
+		A2000000000000000000BB03 /* Presentation/RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF03 /* Presentation/RootView.swift */; };
+		A2000000000000000000BB04 /* Domain/Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF04 /* Domain/Game.swift */; };
+		A2000000000000000000BB05 /* Data/SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF05 /* Data/SampleData.swift */; };
+		A2000000000000000000BB07 /* Data/MockGStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF07 /* Data/MockGStoreService.swift */; };
+		A2000000000000000000BB08 /* Presentation/Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF08 /* Presentation/Theme.swift */; };
+		A2000000000000000000BB09 /* Presentation/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF09 /* Presentation/HomeView.swift */; };
+		A2000000000000000000BB0A /* Presentation/MyZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0A /* Presentation/MyZooView.swift */; };
+		A2000000000000000000BB0B /* Presentation/OtherZoosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0B /* Presentation/OtherZoosView.swift */; };
+		A2000000000000000000BB0C /* Presentation/VisitZooView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0C /* Presentation/VisitZooView.swift */; };
+		A2000000000000000000BB0D /* Presentation/AnimalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0D /* Presentation/AnimalDetailView.swift */; };
+		A2000000000000000000BB0E /* Presentation/GuildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF0E /* Presentation/GuildView.swift */; };
+		A2000000000000000000BB10 /* Presentation/DispatchConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF10 /* Presentation/DispatchConfirmView.swift */; };
+		A2000000000000000000BB11 /* Presentation/ExpeditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF11 /* Presentation/ExpeditionsView.swift */; };
+		A2000000000000000000BB13 /* Presentation/CaptureNameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF13 /* Presentation/CaptureNameView.swift */; };
+		A2000000000000000000BB14 /* Presentation/GStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000FF14 /* Presentation/GStoreView.swift */; };
+		A3000000000000000000BB01 /* Data/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF01 /* Data/APIClient.swift */; };
+		A3000000000000000000BB04 /* Presentation/RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000FF04 /* Presentation/RegistrationView.swift */; };
 		A4000000000000000000BB01 /* RegisterPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF01 /* RegisterPlayerTests.swift */; };
 		A4000000000000000000BB02 /* RegistrationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF02 /* RegistrationViewModelTests.swift */; };
 		A4000000000000000000BB03 /* LivePlayerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */; };
 		A4000000000000000000BB04 /* UserDefaultsPlayerSessionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */; };
 		A4000000000000000000BB05 /* ArchitectureBoundaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */; };
-		A60000000000000000BB01 /* GameWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF01 /* GameWorld.swift */; };
-		A60000000000000000BB02 /* GameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF02 /* GameRepositories.swift */; };
-		A60000000000000000BB03 /* StartExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF03 /* StartExpedition.swift */; };
-		A60000000000000000BB04 /* ResolveExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF04 /* ResolveExpedition.swift */; };
-		A60000000000000000BB05 /* DecideCapturedAnimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF05 /* DecideCapturedAnimal.swift */; };
-		A60000000000000000BB06 /* GameAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF06 /* GameAPIDTO.swift */; };
-		A60000000000000000BB07 /* LiveGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF07 /* LiveGameRepositories.swift */; };
-		A60000000000000000BB08 /* MockGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF08 /* MockGameRepositories.swift */; };
-		A60000000000000000BB09 /* GameDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF09 /* GameDependencies.swift */; };
-		A60000000000000000BB0A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0A /* HomeViewModel.swift */; };
-		A60000000000000000BB0B /* MapListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0B /* MapListViewModel.swift */; };
-		A60000000000000000BB0C /* MapListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0C /* MapListView.swift */; };
-		A60000000000000000BB0D /* MapDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0D /* MapDetailViewModel.swift */; };
-		A60000000000000000BB0E /* MapDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0E /* MapDetailView.swift */; };
-		A60000000000000000BB0F /* HunterListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0F /* HunterListViewModel.swift */; };
-		A60000000000000000BB10 /* HunterPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF10 /* HunterPickerView.swift */; };
-		A60000000000000000BB11 /* DispatchConfirmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF11 /* DispatchConfirmViewModel.swift */; };
-		A60000000000000000BB12 /* ExpeditionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF12 /* ExpeditionsViewModel.swift */; };
-		A60000000000000000BB13 /* ExpeditionDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */; };
-		A60000000000000000BB14 /* ExpeditionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF14 /* ExpeditionDetailView.swift */; };
-		A60000000000000000BB15 /* CaptureNameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF15 /* CaptureNameViewModel.swift */; };
-		A60000000000000000BB16 /* MyZooViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF16 /* MyZooViewModel.swift */; };
+		A5000000000000000000BB01 /* Domain/RegisteredPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF01 /* Domain/RegisteredPlayer.swift */; };
+		A5000000000000000000BB02 /* Domain/PersistedSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF02 /* Domain/PersistedSession.swift */; };
+		A5000000000000000000BB03 /* Domain/PlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF03 /* Domain/PlayerRepository.swift */; };
+		A5000000000000000000BB04 /* Domain/PlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF04 /* Domain/PlayerSessionRepository.swift */; };
+		A5000000000000000000BB05 /* Application/RegisterPlayerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF05 /* Application/RegisterPlayerInput.swift */; };
+		A5000000000000000000BB06 /* Application/RegisterPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF06 /* Application/RegisterPlayer.swift */; };
+		A5000000000000000000BB07 /* Data/PlayerAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF07 /* Data/PlayerAPIDTO.swift */; };
+		A5000000000000000000BB08 /* Data/LivePlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF08 /* Data/LivePlayerRepository.swift */; };
+		A5000000000000000000BB09 /* Data/MockPlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF09 /* Data/MockPlayerRepository.swift */; };
+		A5000000000000000000BB0A /* Data/UserDefaultsPlayerSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0A /* Data/UserDefaultsPlayerSessionRepository.swift */; };
+		A5000000000000000000BB0B /* Presentation/RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000000000000000000FF0B /* Presentation/RegistrationViewModel.swift */; };
+		A60000000000000000BB01 /* Domain/GameWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF01 /* Domain/GameWorld.swift */; };
+		A60000000000000000BB02 /* Domain/GameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF02 /* Domain/GameRepositories.swift */; };
+		A60000000000000000BB03 /* Application/StartExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF03 /* Application/StartExpedition.swift */; };
+		A60000000000000000BB04 /* Application/ResolveExpedition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF04 /* Application/ResolveExpedition.swift */; };
+		A60000000000000000BB05 /* Application/DecideCapturedAnimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF05 /* Application/DecideCapturedAnimal.swift */; };
+		A60000000000000000BB06 /* Data/GameAPIDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF06 /* Data/GameAPIDTO.swift */; };
+		A60000000000000000BB07 /* Data/LiveGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF07 /* Data/LiveGameRepositories.swift */; };
+		A60000000000000000BB08 /* Data/MockGameRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF08 /* Data/MockGameRepositories.swift */; };
+		A60000000000000000BB09 /* App/GameDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF09 /* App/GameDependencies.swift */; };
+		A60000000000000000BB0A /* Presentation/HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0A /* Presentation/HomeViewModel.swift */; };
+		A60000000000000000BB0B /* Presentation/MapListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0B /* Presentation/MapListViewModel.swift */; };
+		A60000000000000000BB0C /* Presentation/MapListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0C /* Presentation/MapListView.swift */; };
+		A60000000000000000BB0D /* Presentation/MapDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0D /* Presentation/MapDetailViewModel.swift */; };
+		A60000000000000000BB0E /* Presentation/MapDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0E /* Presentation/MapDetailView.swift */; };
+		A60000000000000000BB0F /* Presentation/HunterListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF0F /* Presentation/HunterListViewModel.swift */; };
+		A60000000000000000BB10 /* Presentation/HunterPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF10 /* Presentation/HunterPickerView.swift */; };
+		A60000000000000000BB11 /* Presentation/DispatchConfirmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF11 /* Presentation/DispatchConfirmViewModel.swift */; };
+		A60000000000000000BB12 /* Presentation/ExpeditionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF12 /* Presentation/ExpeditionsViewModel.swift */; };
+		A60000000000000000BB13 /* Presentation/ExpeditionDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF13 /* Presentation/ExpeditionDetailViewModel.swift */; };
+		A60000000000000000BB14 /* Presentation/ExpeditionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF14 /* Presentation/ExpeditionDetailView.swift */; };
+		A60000000000000000BB15 /* Presentation/CaptureNameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF15 /* Presentation/CaptureNameViewModel.swift */; };
+		A60000000000000000BB16 /* Presentation/MyZooViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60000000000000000FF16 /* Presentation/MyZooViewModel.swift */; };
 		A70000000000000000BB01 /* GameAPIMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF01 /* GameAPIMappingTests.swift */; };
 		A70000000000000000BB02 /* ExpeditionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF02 /* ExpeditionViewModelTests.swift */; };
 		A70000000000000000BB03 /* LiveProdConnectivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000FF03 /* LiveProdConnectivityTests.swift */; };
@@ -92,74 +92,74 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A100000000000000000000A1 /* WildLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WildLiveApp.swift; sourceTree = "<group>"; };
-		A100000000000000000000A2 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/TitleView.swift; sourceTree = "<group>"; };
-		A100000000000000000000A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A100000000000000000000A4 /* WildLiveUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveUITests.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* WildLive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildLive.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000011 /* WildLiveUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000012 /* WildLiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildLiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A2000000000000000000FF01 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppStore.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF02 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/Route.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF03 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RootView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF04 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Game.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF05 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/SampleData.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF07 /* MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGStoreService.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/Theme.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF09 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0A /* MyZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0B /* OtherZoosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/OtherZoosView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0C /* VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/VisitZooView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0D /* AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/AnimalDetailView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF0E /* GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GuildView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF10 /* DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF11 /* ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF13 /* CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameView.swift; sourceTree = "<group>"; };
-		A2000000000000000000FF14 /* GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GStoreView.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF01 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
-		A3000000000000000000FF04 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationView.swift; sourceTree = "<group>"; };
+		A100000000000000000000A1 /* App/WildLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WildLiveApp.swift; sourceTree = "<group>"; };
+		A100000000000000000000A2 /* Presentation/TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/TitleView.swift; sourceTree = "<group>"; };
+		A100000000000000000000A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A100000000000000000000A4 /* WildLiveUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildLiveUITests.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF01 /* App/AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppStore.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF02 /* App/Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/Route.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF03 /* Presentation/RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RootView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF04 /* Domain/Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Game.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF05 /* Data/SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/SampleData.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF07 /* Data/MockGStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGStoreService.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF08 /* Presentation/Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/Theme.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF09 /* Presentation/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0A /* Presentation/MyZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0B /* Presentation/OtherZoosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/OtherZoosView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0C /* Presentation/VisitZooView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/VisitZooView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0D /* Presentation/AnimalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/AnimalDetailView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF0E /* Presentation/GuildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GuildView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF10 /* Presentation/DispatchConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF11 /* Presentation/ExpeditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF13 /* Presentation/CaptureNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameView.swift; sourceTree = "<group>"; };
+		A2000000000000000000FF14 /* Presentation/GStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/GStoreView.swift; sourceTree = "<group>"; };
+		A3000000000000000000FF01 /* Data/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/APIClient.swift; sourceTree = "<group>"; };
+		A3000000000000000000FF04 /* Presentation/RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationView.swift; sourceTree = "<group>"; };
 		A3000000000000000000FF05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A3000000000000000000FF08 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
-		A3000000000000000000FF06 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Debug.xcconfig; sourceTree = "<group>"; };
-		A3000000000000000000FF07 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Release.xcconfig; sourceTree = "<group>"; };
-		A5000000000000000000FF01 /* RegisteredPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/RegisteredPlayer.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF02 /* PersistedSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PersistedSession.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF03 /* PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerRepository.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF04 /* PlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerSessionRepository.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF05 /* RegisterPlayerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayerInput.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF06 /* RegisterPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayer.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF07 /* PlayerAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/PlayerAPIDTO.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF08 /* LivePlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LivePlayerRepository.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF09 /* MockPlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockPlayerRepository.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/UserDefaultsPlayerSessionRepository.swift; sourceTree = "<group>"; };
-		A5000000000000000000FF0B /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationViewModel.swift; sourceTree = "<group>"; };
+		A3000000000000000000FF06 /* Config/Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Debug.xcconfig; sourceTree = "<group>"; };
+		A3000000000000000000FF07 /* Config/Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Release.xcconfig; sourceTree = "<group>"; };
+		A3000000000000000000FF08 /* Config/Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
 		A4000000000000000000FF01 /* RegisterPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterPlayerTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF02 /* RegistrationViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModelTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF03 /* LivePlayerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePlayerRepositoryTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF04 /* UserDefaultsPlayerSessionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPlayerSessionRepositoryTests.swift; sourceTree = "<group>"; };
 		A4000000000000000000FF05 /* ArchitectureBoundaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureBoundaryTests.swift; sourceTree = "<group>"; };
-		A60000000000000000FF01 /* GameWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameWorld.swift; sourceTree = "<group>"; };
-		A60000000000000000FF02 /* GameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameRepositories.swift; sourceTree = "<group>"; };
-		A60000000000000000FF03 /* StartExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/StartExpedition.swift; sourceTree = "<group>"; };
-		A60000000000000000FF04 /* ResolveExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/ResolveExpedition.swift; sourceTree = "<group>"; };
-		A60000000000000000FF05 /* DecideCapturedAnimal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/DecideCapturedAnimal.swift; sourceTree = "<group>"; };
-		A60000000000000000FF06 /* GameAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/GameAPIDTO.swift; sourceTree = "<group>"; };
-		A60000000000000000FF07 /* LiveGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LiveGameRepositories.swift; sourceTree = "<group>"; };
-		A60000000000000000FF08 /* MockGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGameRepositories.swift; sourceTree = "<group>"; };
-		A60000000000000000FF09 /* GameDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/GameDependencies.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0B /* MapListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0C /* MapListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListView.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0D /* MapDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0E /* MapDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailView.swift; sourceTree = "<group>"; };
-		A60000000000000000FF0F /* HunterListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterListViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF10 /* HunterPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterPickerView.swift; sourceTree = "<group>"; };
-		A60000000000000000FF11 /* DispatchConfirmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF12 /* ExpeditionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF14 /* ExpeditionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailView.swift; sourceTree = "<group>"; };
-		A60000000000000000FF15 /* CaptureNameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameViewModel.swift; sourceTree = "<group>"; };
-		A60000000000000000FF16 /* MyZooViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooViewModel.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF01 /* Domain/RegisteredPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/RegisteredPlayer.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF02 /* Domain/PersistedSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PersistedSession.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF03 /* Domain/PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF04 /* Domain/PlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PlayerSessionRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF05 /* Application/RegisterPlayerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayerInput.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF06 /* Application/RegisterPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/RegisterPlayer.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF07 /* Data/PlayerAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/PlayerAPIDTO.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF08 /* Data/LivePlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LivePlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF09 /* Data/MockPlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockPlayerRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF0A /* Data/UserDefaultsPlayerSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/UserDefaultsPlayerSessionRepository.swift; sourceTree = "<group>"; };
+		A5000000000000000000FF0B /* Presentation/RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/RegistrationViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF01 /* Domain/GameWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameWorld.swift; sourceTree = "<group>"; };
+		A60000000000000000FF02 /* Domain/GameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/GameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF03 /* Application/StartExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/StartExpedition.swift; sourceTree = "<group>"; };
+		A60000000000000000FF04 /* Application/ResolveExpedition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/ResolveExpedition.swift; sourceTree = "<group>"; };
+		A60000000000000000FF05 /* Application/DecideCapturedAnimal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application/DecideCapturedAnimal.swift; sourceTree = "<group>"; };
+		A60000000000000000FF06 /* Data/GameAPIDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/GameAPIDTO.swift; sourceTree = "<group>"; };
+		A60000000000000000FF07 /* Data/LiveGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/LiveGameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF08 /* Data/MockGameRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data/MockGameRepositories.swift; sourceTree = "<group>"; };
+		A60000000000000000FF09 /* App/GameDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/GameDependencies.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0A /* Presentation/HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HomeViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0B /* Presentation/MapListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0C /* Presentation/MapListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapListView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0D /* Presentation/MapDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0E /* Presentation/MapDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MapDetailView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF0F /* Presentation/HunterListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterListViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF10 /* Presentation/HunterPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/HunterPickerView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF11 /* Presentation/DispatchConfirmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/DispatchConfirmViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF12 /* Presentation/ExpeditionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionsViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF13 /* Presentation/ExpeditionDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF14 /* Presentation/ExpeditionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/ExpeditionDetailView.swift; sourceTree = "<group>"; };
+		A60000000000000000FF15 /* Presentation/CaptureNameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/CaptureNameViewModel.swift; sourceTree = "<group>"; };
+		A60000000000000000FF16 /* Presentation/MyZooViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/MyZooViewModel.swift; sourceTree = "<group>"; };
 		A70000000000000000FF01 /* GameAPIMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAPIMappingTests.swift; sourceTree = "<group>"; };
 		A70000000000000000FF02 /* ExpeditionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionViewModelTests.swift; sourceTree = "<group>"; };
 		A70000000000000000FF03 /* LiveProdConnectivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProdConnectivityTests.swift; sourceTree = "<group>"; };
@@ -191,7 +191,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A10000000000000000000002 /* Main */ = {
+		A10000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000004 /* WildLive */,
@@ -214,64 +214,64 @@
 		A10000000000000000000004 /* WildLive */ = {
 			isa = PBXGroup;
 			children = (
-				A60000000000000000FF16 /* MyZooViewModel.swift */,
-				A60000000000000000FF15 /* CaptureNameViewModel.swift */,
-				A60000000000000000FF14 /* ExpeditionDetailView.swift */,
-				A60000000000000000FF13 /* ExpeditionDetailViewModel.swift */,
-				A60000000000000000FF12 /* ExpeditionsViewModel.swift */,
-				A60000000000000000FF11 /* DispatchConfirmViewModel.swift */,
-				A60000000000000000FF10 /* HunterPickerView.swift */,
-				A60000000000000000FF0F /* HunterListViewModel.swift */,
-				A60000000000000000FF0E /* MapDetailView.swift */,
-				A60000000000000000FF0D /* MapDetailViewModel.swift */,
-				A60000000000000000FF0C /* MapListView.swift */,
-				A60000000000000000FF0B /* MapListViewModel.swift */,
-				A60000000000000000FF0A /* HomeViewModel.swift */,
-				A60000000000000000FF09 /* GameDependencies.swift */,
-				A60000000000000000FF08 /* MockGameRepositories.swift */,
-				A60000000000000000FF07 /* LiveGameRepositories.swift */,
-				A60000000000000000FF06 /* GameAPIDTO.swift */,
-				A60000000000000000FF05 /* DecideCapturedAnimal.swift */,
-				A60000000000000000FF04 /* ResolveExpedition.swift */,
-				A60000000000000000FF03 /* StartExpedition.swift */,
-				A60000000000000000FF02 /* GameRepositories.swift */,
-				A60000000000000000FF01 /* GameWorld.swift */,
-				A100000000000000000000A1 /* WildLiveApp.swift */,
-				A2000000000000000000FF01 /* AppStore.swift */,
-				A2000000000000000000FF02 /* Route.swift */,
-				A2000000000000000000FF03 /* RootView.swift */,
-				A100000000000000000000A2 /* TitleView.swift */,
-				A2000000000000000000FF08 /* Theme.swift */,
-				A2000000000000000000FF09 /* HomeView.swift */,
-				A3000000000000000000FF04 /* RegistrationView.swift */,
-				A5000000000000000000FF0B /* RegistrationViewModel.swift */,
-				A2000000000000000000FF0A /* MyZooView.swift */,
-				A2000000000000000000FF0B /* OtherZoosView.swift */,
-				A2000000000000000000FF0C /* VisitZooView.swift */,
-				A2000000000000000000FF0D /* AnimalDetailView.swift */,
-				A2000000000000000000FF0E /* GuildView.swift */,
-				A2000000000000000000FF10 /* DispatchConfirmView.swift */,
-				A2000000000000000000FF11 /* ExpeditionsView.swift */,
-				A2000000000000000000FF13 /* CaptureNameView.swift */,
-				A2000000000000000000FF14 /* GStoreView.swift */,
-				A5000000000000000000FF06 /* RegisterPlayer.swift */,
-				A5000000000000000000FF05 /* RegisterPlayerInput.swift */,
-				A2000000000000000000FF04 /* Game.swift */,
-				A5000000000000000000FF01 /* RegisteredPlayer.swift */,
-				A5000000000000000000FF02 /* PersistedSession.swift */,
-				A5000000000000000000FF03 /* PlayerRepository.swift */,
-				A5000000000000000000FF04 /* PlayerSessionRepository.swift */,
-				A3000000000000000000FF01 /* APIClient.swift */,
-				A5000000000000000000FF07 /* PlayerAPIDTO.swift */,
-				A5000000000000000000FF08 /* LivePlayerRepository.swift */,
-				A5000000000000000000FF09 /* MockPlayerRepository.swift */,
-				A5000000000000000000FF0A /* UserDefaultsPlayerSessionRepository.swift */,
-				A2000000000000000000FF05 /* SampleData.swift */,
-				A2000000000000000000FF07 /* MockGStoreService.swift */,
+				A60000000000000000FF16 /* Presentation/MyZooViewModel.swift */,
+				A60000000000000000FF15 /* Presentation/CaptureNameViewModel.swift */,
+				A60000000000000000FF14 /* Presentation/ExpeditionDetailView.swift */,
+				A60000000000000000FF13 /* Presentation/ExpeditionDetailViewModel.swift */,
+				A60000000000000000FF12 /* Presentation/ExpeditionsViewModel.swift */,
+				A60000000000000000FF11 /* Presentation/DispatchConfirmViewModel.swift */,
+				A60000000000000000FF10 /* Presentation/HunterPickerView.swift */,
+				A60000000000000000FF0F /* Presentation/HunterListViewModel.swift */,
+				A60000000000000000FF0E /* Presentation/MapDetailView.swift */,
+				A60000000000000000FF0D /* Presentation/MapDetailViewModel.swift */,
+				A60000000000000000FF0C /* Presentation/MapListView.swift */,
+				A60000000000000000FF0B /* Presentation/MapListViewModel.swift */,
+				A60000000000000000FF0A /* Presentation/HomeViewModel.swift */,
+				A60000000000000000FF09 /* App/GameDependencies.swift */,
+				A60000000000000000FF08 /* Data/MockGameRepositories.swift */,
+				A60000000000000000FF07 /* Data/LiveGameRepositories.swift */,
+				A60000000000000000FF06 /* Data/GameAPIDTO.swift */,
+				A60000000000000000FF05 /* Application/DecideCapturedAnimal.swift */,
+				A60000000000000000FF04 /* Application/ResolveExpedition.swift */,
+				A60000000000000000FF03 /* Application/StartExpedition.swift */,
+				A60000000000000000FF02 /* Domain/GameRepositories.swift */,
+				A60000000000000000FF01 /* Domain/GameWorld.swift */,
+				A100000000000000000000A1 /* App/WildLiveApp.swift */,
+				A2000000000000000000FF01 /* App/AppStore.swift */,
+				A2000000000000000000FF02 /* App/Route.swift */,
+				A2000000000000000000FF03 /* Presentation/RootView.swift */,
+				A100000000000000000000A2 /* Presentation/TitleView.swift */,
+				A2000000000000000000FF08 /* Presentation/Theme.swift */,
+				A2000000000000000000FF09 /* Presentation/HomeView.swift */,
+				A3000000000000000000FF04 /* Presentation/RegistrationView.swift */,
+				A5000000000000000000FF0B /* Presentation/RegistrationViewModel.swift */,
+				A2000000000000000000FF0A /* Presentation/MyZooView.swift */,
+				A2000000000000000000FF0B /* Presentation/OtherZoosView.swift */,
+				A2000000000000000000FF0C /* Presentation/VisitZooView.swift */,
+				A2000000000000000000FF0D /* Presentation/AnimalDetailView.swift */,
+				A2000000000000000000FF0E /* Presentation/GuildView.swift */,
+				A2000000000000000000FF10 /* Presentation/DispatchConfirmView.swift */,
+				A2000000000000000000FF11 /* Presentation/ExpeditionsView.swift */,
+				A2000000000000000000FF13 /* Presentation/CaptureNameView.swift */,
+				A2000000000000000000FF14 /* Presentation/GStoreView.swift */,
+				A5000000000000000000FF06 /* Application/RegisterPlayer.swift */,
+				A5000000000000000000FF05 /* Application/RegisterPlayerInput.swift */,
+				A2000000000000000000FF04 /* Domain/Game.swift */,
+				A5000000000000000000FF01 /* Domain/RegisteredPlayer.swift */,
+				A5000000000000000000FF02 /* Domain/PersistedSession.swift */,
+				A5000000000000000000FF03 /* Domain/PlayerRepository.swift */,
+				A5000000000000000000FF04 /* Domain/PlayerSessionRepository.swift */,
+				A3000000000000000000FF01 /* Data/APIClient.swift */,
+				A5000000000000000000FF07 /* Data/PlayerAPIDTO.swift */,
+				A5000000000000000000FF08 /* Data/LivePlayerRepository.swift */,
+				A5000000000000000000FF09 /* Data/MockPlayerRepository.swift */,
+				A5000000000000000000FF0A /* Data/UserDefaultsPlayerSessionRepository.swift */,
+				A2000000000000000000FF05 /* Data/SampleData.swift */,
+				A2000000000000000000FF07 /* Data/MockGStoreService.swift */,
 				A3000000000000000000FF05 /* Info.plist */,
-				A3000000000000000000FF08 /* Shared.xcconfig */,
-				A3000000000000000000FF06 /* Debug.xcconfig */,
-				A3000000000000000000FF07 /* Release.xcconfig */,
+				A3000000000000000000FF08 /* Config/Shared.xcconfig */,
+				A3000000000000000000FF06 /* Config/Debug.xcconfig */,
+				A3000000000000000000FF07 /* Config/Release.xcconfig */,
 				A100000000000000000000A3 /* Assets.xcassets */,
 			);
 			path = WildLive;
@@ -394,7 +394,6 @@
 			);
 			mainGroup = A10000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -422,60 +421,60 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A60000000000000000BB16 /* MyZooViewModel.swift in Sources */,
-				A60000000000000000BB15 /* CaptureNameViewModel.swift in Sources */,
-				A60000000000000000BB14 /* ExpeditionDetailView.swift in Sources */,
-				A60000000000000000BB13 /* ExpeditionDetailViewModel.swift in Sources */,
-				A60000000000000000BB12 /* ExpeditionsViewModel.swift in Sources */,
-				A60000000000000000BB11 /* DispatchConfirmViewModel.swift in Sources */,
-				A60000000000000000BB10 /* HunterPickerView.swift in Sources */,
-				A60000000000000000BB0F /* HunterListViewModel.swift in Sources */,
-				A60000000000000000BB0E /* MapDetailView.swift in Sources */,
-				A60000000000000000BB0D /* MapDetailViewModel.swift in Sources */,
-				A60000000000000000BB0C /* MapListView.swift in Sources */,
-				A60000000000000000BB0B /* MapListViewModel.swift in Sources */,
-				A60000000000000000BB0A /* HomeViewModel.swift in Sources */,
-				A60000000000000000BB09 /* GameDependencies.swift in Sources */,
-				A60000000000000000BB08 /* MockGameRepositories.swift in Sources */,
-				A60000000000000000BB07 /* LiveGameRepositories.swift in Sources */,
-				A60000000000000000BB06 /* GameAPIDTO.swift in Sources */,
-				A60000000000000000BB05 /* DecideCapturedAnimal.swift in Sources */,
-				A60000000000000000BB04 /* ResolveExpedition.swift in Sources */,
-				A60000000000000000BB03 /* StartExpedition.swift in Sources */,
-				A60000000000000000BB02 /* GameRepositories.swift in Sources */,
-				A60000000000000000BB01 /* GameWorld.swift in Sources */,
-				A100000000000000000000B1 /* WildLiveApp.swift in Sources */,
-				A100000000000000000000B2 /* TitleView.swift in Sources */,
-				A2000000000000000000BB03 /* RootView.swift in Sources */,
-				A2000000000000000000BB01 /* AppStore.swift in Sources */,
-				A2000000000000000000BB02 /* Route.swift in Sources */,
-				A2000000000000000000BB08 /* Theme.swift in Sources */,
-				A2000000000000000000BB04 /* Game.swift in Sources */,
-				A2000000000000000000BB05 /* SampleData.swift in Sources */,
-				A2000000000000000000BB07 /* MockGStoreService.swift in Sources */,
-				A2000000000000000000BB09 /* HomeView.swift in Sources */,
-				A2000000000000000000BB0A /* MyZooView.swift in Sources */,
-				A2000000000000000000BB0B /* OtherZoosView.swift in Sources */,
-				A2000000000000000000BB0C /* VisitZooView.swift in Sources */,
-				A2000000000000000000BB0D /* AnimalDetailView.swift in Sources */,
-				A2000000000000000000BB0E /* GuildView.swift in Sources */,
-				A2000000000000000000BB10 /* DispatchConfirmView.swift in Sources */,
-				A2000000000000000000BB11 /* ExpeditionsView.swift in Sources */,
-				A2000000000000000000BB13 /* CaptureNameView.swift in Sources */,
-				A2000000000000000000BB14 /* GStoreView.swift in Sources */,
-				A3000000000000000000BB01 /* APIClient.swift in Sources */,
-				A3000000000000000000BB04 /* RegistrationView.swift in Sources */,
-				A5000000000000000000BB01 /* RegisteredPlayer.swift in Sources */,
-				A5000000000000000000BB02 /* PersistedSession.swift in Sources */,
-				A5000000000000000000BB03 /* PlayerRepository.swift in Sources */,
-				A5000000000000000000BB04 /* PlayerSessionRepository.swift in Sources */,
-				A5000000000000000000BB05 /* RegisterPlayerInput.swift in Sources */,
-				A5000000000000000000BB06 /* RegisterPlayer.swift in Sources */,
-				A5000000000000000000BB07 /* PlayerAPIDTO.swift in Sources */,
-				A5000000000000000000BB08 /* LivePlayerRepository.swift in Sources */,
-				A5000000000000000000BB09 /* MockPlayerRepository.swift in Sources */,
-				A5000000000000000000BB0A /* UserDefaultsPlayerSessionRepository.swift in Sources */,
-				A5000000000000000000BB0B /* RegistrationViewModel.swift in Sources */,
+				A60000000000000000BB16 /* Presentation/MyZooViewModel.swift in Sources */,
+				A60000000000000000BB15 /* Presentation/CaptureNameViewModel.swift in Sources */,
+				A60000000000000000BB14 /* Presentation/ExpeditionDetailView.swift in Sources */,
+				A60000000000000000BB13 /* Presentation/ExpeditionDetailViewModel.swift in Sources */,
+				A60000000000000000BB12 /* Presentation/ExpeditionsViewModel.swift in Sources */,
+				A60000000000000000BB11 /* Presentation/DispatchConfirmViewModel.swift in Sources */,
+				A60000000000000000BB10 /* Presentation/HunterPickerView.swift in Sources */,
+				A60000000000000000BB0F /* Presentation/HunterListViewModel.swift in Sources */,
+				A60000000000000000BB0E /* Presentation/MapDetailView.swift in Sources */,
+				A60000000000000000BB0D /* Presentation/MapDetailViewModel.swift in Sources */,
+				A60000000000000000BB0C /* Presentation/MapListView.swift in Sources */,
+				A60000000000000000BB0B /* Presentation/MapListViewModel.swift in Sources */,
+				A60000000000000000BB0A /* Presentation/HomeViewModel.swift in Sources */,
+				A60000000000000000BB09 /* App/GameDependencies.swift in Sources */,
+				A60000000000000000BB08 /* Data/MockGameRepositories.swift in Sources */,
+				A60000000000000000BB07 /* Data/LiveGameRepositories.swift in Sources */,
+				A60000000000000000BB06 /* Data/GameAPIDTO.swift in Sources */,
+				A60000000000000000BB05 /* Application/DecideCapturedAnimal.swift in Sources */,
+				A60000000000000000BB04 /* Application/ResolveExpedition.swift in Sources */,
+				A60000000000000000BB03 /* Application/StartExpedition.swift in Sources */,
+				A60000000000000000BB02 /* Domain/GameRepositories.swift in Sources */,
+				A60000000000000000BB01 /* Domain/GameWorld.swift in Sources */,
+				A100000000000000000000B1 /* App/WildLiveApp.swift in Sources */,
+				A100000000000000000000B2 /* Presentation/TitleView.swift in Sources */,
+				A2000000000000000000BB03 /* Presentation/RootView.swift in Sources */,
+				A2000000000000000000BB01 /* App/AppStore.swift in Sources */,
+				A2000000000000000000BB02 /* App/Route.swift in Sources */,
+				A2000000000000000000BB08 /* Presentation/Theme.swift in Sources */,
+				A2000000000000000000BB04 /* Domain/Game.swift in Sources */,
+				A2000000000000000000BB05 /* Data/SampleData.swift in Sources */,
+				A2000000000000000000BB07 /* Data/MockGStoreService.swift in Sources */,
+				A2000000000000000000BB09 /* Presentation/HomeView.swift in Sources */,
+				A2000000000000000000BB0A /* Presentation/MyZooView.swift in Sources */,
+				A2000000000000000000BB0B /* Presentation/OtherZoosView.swift in Sources */,
+				A2000000000000000000BB0C /* Presentation/VisitZooView.swift in Sources */,
+				A2000000000000000000BB0D /* Presentation/AnimalDetailView.swift in Sources */,
+				A2000000000000000000BB0E /* Presentation/GuildView.swift in Sources */,
+				A2000000000000000000BB10 /* Presentation/DispatchConfirmView.swift in Sources */,
+				A2000000000000000000BB11 /* Presentation/ExpeditionsView.swift in Sources */,
+				A2000000000000000000BB13 /* Presentation/CaptureNameView.swift in Sources */,
+				A2000000000000000000BB14 /* Presentation/GStoreView.swift in Sources */,
+				A3000000000000000000BB01 /* Data/APIClient.swift in Sources */,
+				A3000000000000000000BB04 /* Presentation/RegistrationView.swift in Sources */,
+				A5000000000000000000BB01 /* Domain/RegisteredPlayer.swift in Sources */,
+				A5000000000000000000BB02 /* Domain/PersistedSession.swift in Sources */,
+				A5000000000000000000BB03 /* Domain/PlayerRepository.swift in Sources */,
+				A5000000000000000000BB04 /* Domain/PlayerSessionRepository.swift in Sources */,
+				A5000000000000000000BB05 /* Application/RegisterPlayerInput.swift in Sources */,
+				A5000000000000000000BB06 /* Application/RegisterPlayer.swift in Sources */,
+				A5000000000000000000BB07 /* Data/PlayerAPIDTO.swift in Sources */,
+				A5000000000000000000BB08 /* Data/LivePlayerRepository.swift in Sources */,
+				A5000000000000000000BB09 /* Data/MockPlayerRepository.swift in Sources */,
+				A5000000000000000000BB0A /* Data/UserDefaultsPlayerSessionRepository.swift in Sources */,
+				A5000000000000000000BB0B /* Presentation/RegistrationViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,7 +520,7 @@
 /* Begin XCBuildConfiguration section */
 		A10000000000000000000031 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A3000000000000000000FF06 /* Debug.xcconfig */;
+			baseConfigurationReference = A3000000000000000000FF06 /* Config/Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -554,6 +553,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = PP7EWEKNZZ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -584,7 +584,7 @@
 		};
 		A10000000000000000000032 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A3000000000000000000FF07 /* Release.xcconfig */;
+			baseConfigurationReference = A3000000000000000000FF07 /* Config/Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -617,6 +617,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = PP7EWEKNZZ;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -653,8 +654,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLive";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLive;
+				PRODUCT_NAME = WildLive;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -676,8 +677,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLive";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLive;
+				PRODUCT_NAME = WildLive;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -692,7 +693,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLiveUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -710,7 +711,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLiveUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -729,7 +730,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveTests";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLiveTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -748,7 +749,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.wildlive.WildLiveTests";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.wildlive.WildLiveTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = NO;
