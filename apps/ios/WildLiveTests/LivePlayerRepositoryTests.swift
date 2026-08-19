@@ -20,11 +20,18 @@ final class LivePlayerRepositoryTests: XCTestCase {
         super.tearDown()
     }
 
+    /// Fixed base URL so these tests do not depend on the build
+    /// configuration's WildLiveAPIBaseURL (which differs between Debug
+    /// and Release / TestFlight). The value is arbitrary — StubURLProtocol
+    /// intercepts every request before it touches the network — but the
+    /// url-shape assertions below key off it.
+    private static let testBaseURL = URL(string: "http://api.test.invalid/api")!
+
     private func makeRepo() -> LivePlayerRepository {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [StubURLProtocol.self]
         let session = URLSession(configuration: config)
-        let client = APIClient(session: session)
+        let client = APIClient(baseURL: Self.testBaseURL, session: session)
         return LivePlayerRepository(api: client)
     }
 
@@ -46,7 +53,13 @@ final class LivePlayerRepositoryTests: XCTestCase {
 
         let recorded = StubURLProtocol.recordedRequests.first
         XCTAssertEqual(recorded?.httpMethod, "POST")
-        XCTAssertEqual(recorded?.url?.absoluteString, "http://localhost:8000/api/players")
+        // Assert the path relative to whatever base APIClient was given,
+        // not a hardcoded absolute URL. The base URL is a per-build
+        // concern (Debug → localhost, Release → wlapi.misologic.com); the
+        // repository's contract is only that it POSTs to `players`
+        // beneath that base.
+        XCTAssertEqual(recorded?.url?.path, "/api/players")
+        XCTAssertEqual(recorded?.url?.host, Self.testBaseURL.host)
         XCTAssertEqual(recorded?.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(recorded?.value(forHTTPHeaderField: "Accept"), "application/json")
         if let body = StubURLProtocol.recordedBodies.first {

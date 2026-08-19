@@ -1,0 +1,20 @@
+// WildLive — Debug build settings.
+//
+// The one setting that matters here is WILDLIVE_API_BASE_URL: it is
+// substituted into Info.plist's WildLiveAPIBaseURL at build time.
+// Debug points at the local Laravel that runs under `docker compose up`.
+// Release points at production (see Release.xcconfig).
+//
+// The literal `/$()/` sequence is a workaround: xcconfig treats `//` as
+// the start of a comment, so we split it with an empty variable expansion.
+// After substitution the plist sees `http://localhost:8000/api`.
+//
+// To point a Debug build at production without editing this file, set the
+// scheme's environment variable WILDLIVE_API_BASE_URL_OVERRIDE (APIClient
+// reads it before falling back to the Info.plist value). Ship builds
+// (Release / TestFlight) must not honour the override; APIClient enforces
+// that.
+
+#include "Shared.xcconfig"
+
+WILDLIVE_API_BASE_URL = http:/$()/localhost:8000/api

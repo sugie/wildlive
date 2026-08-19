@@ -1,9 +1,20 @@
 // WildLive — Thin URLSession wrapper.
 //
 // Deliberately small: one `send` method with async/await + Codable.
-// The base URL is read from Info.plist key `WildLiveAPIBaseURL`
-// (default `http://localhost:8000/api`) so a tester on the Simulator
-// can point at a different host without a rebuild.
+//
+// Base URL resolution:
+//   1. Debug builds honour the process environment variable
+//      WILDLIVE_API_BASE_URL_OVERRIDE if set (used from the scheme to
+//      re-point a running simulator at production or a staging box
+//      without editing anything or rebuilding).
+//   2. Otherwise, read the Info.plist key WildLiveAPIBaseURL. That value
+//      is substituted from the active xcconfig (Config/Debug.xcconfig or
+//      Config/Release.xcconfig) at build time, so the same source
+//      produces a Debug build pointed at localhost and a Release build
+//      pointed at wlapi.misologic.com without any code change.
+//   3. In a Release build, if step 2 does not yield an https:// URL,
+//      the app aborts on launch. This is deliberate: a Release/TestFlight
+//      binary must never silently reach for localhost.
 
 import Foundation
 
@@ -34,11 +45,59 @@ struct APIClient {
     let session: URLSession
 
     init(session: URLSession = .shared) {
-        let configured = (Bundle.main.object(forInfoDictionaryKey: "WildLiveAPIBaseURL") as? String)?
-            .trimmingCharacters(in: .whitespaces)
-        let raw = (configured?.isEmpty == false) ? configured! : "http://localhost:8000/api"
-        self.baseURL = URL(string: raw) ?? URL(string: "http://localhost:8000/api")!
+        self.baseURL = APIClient.resolveBaseURL()
         self.session = session
+    }
+
+    /// Test seam: construct an APIClient against an explicit base URL,
+    /// bypassing Info.plist / environment resolution.
+    init(baseURL: URL, session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.session = session
+    }
+
+    /// Public so a diagnostics/live-integration test can verify what a
+    /// fresh APIClient resolves to under the current build configuration.
+    static func resolveBaseURL() -> URL {
+        #if DEBUG
+        if let override = ProcessInfo.processInfo.environment["WILDLIVE_API_BASE_URL_OVERRIDE"]?
+            .trimmingCharacters(in: .whitespaces),
+           override.isEmpty == false,
+           let url = URL(string: override) {
+            return url
+        }
+        #endif
+
+        let plistValue = (Bundle.main.object(forInfoDictionaryKey: "WildLiveAPIBaseURL") as? String)?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+
+        #if DEBUG
+        // Debug is permissive: an empty or malformed value falls back to
+        // the local docker-compose Laravel so a fresh checkout still
+        // boots without any per-machine setup.
+        if plistValue.isEmpty {
+            return URL(string: "http://localhost:8000/api")!
+        }
+        return URL(string: plistValue) ?? URL(string: "http://localhost:8000/api")!
+        #else
+        // Release must resolve to a real https:// URL. If the xcconfig
+        // substitution failed or someone shipped a build with the wrong
+        // value, refuse to launch instead of quietly hitting the wrong
+        // host. Bug reports are cheaper than exfiltrating data to
+        // localhost from a customer device.
+        guard let url = URL(string: plistValue),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "https",
+              url.host?.isEmpty == false
+        else {
+            fatalError(
+                "WildLiveAPIBaseURL is not a valid https URL in this Release build "
+                + "(got \"\(plistValue)\"). Check Config/Release.xcconfig and the "
+                + "Info.plist substitution."
+            )
+        }
+        return url
+        #endif
     }
 
     func post<Body: Encodable, Response: Decodable>(

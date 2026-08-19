@@ -1,0 +1,13 @@
+// WildLive — Release build settings.
+//
+// Release / TestFlight / App Store builds are pinned to production. If
+// this file is missing or the substitution fails, APIClient refuses to
+// run in Release, so a broken build cannot silently hit localhost.
+//
+// The literal `/$()/` sequence works around xcconfig treating `//` as
+// the start of a comment. After substitution the plist sees
+// `https://wlapi.misologic.com/api`.
+
+#include "Shared.xcconfig"
+
+WILDLIVE_API_BASE_URL = https:/$()/wlapi.misologic.com/api
