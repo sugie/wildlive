@@ -26,6 +26,10 @@ struct WildLiveApp: App {
     private let registerPlayer: RegisterPlayer
     private let sessionRepository: PlayerSessionRepository
     private let game: GameDependencies
+    /// Held because UNUserNotificationCenter keeps its delegate weakly.
+    /// nil under --ui-tests-mock-api: a UI test must not be interrupted by
+    /// a banner, and has nothing scheduled to deliver anyway.
+    private let notificationPresenter: ExpeditionNotificationPresenter?
 
     init() {
         // -- Parse UI-test launch arguments -----------------------------
@@ -58,6 +62,12 @@ struct WildLiveApp: App {
 
         // -- Application layer ------------------------------------------
         let useCase = RegisterPlayer(players: playerRepo, sessions: sessionRepo)
+
+        // -- Notification delivery ---------------------------------------
+        // Installed at launch, not at scheduling time: the delegate is
+        // consulted when a notification is delivered, so a late one loses
+        // the foreground banner.
+        self.notificationPresenter = useMock ? nil : ExpeditionNotificationPresenter.install()
 
         // -- Presentation state (seed AppStore from any persisted session)
         let restored = sessionRepo.load()

@@ -8,3 +8,14 @@
 // no team to resolve a provisioning profile against. Team IDs are not
 // secret — they are readable from every shipped app.
 DEVELOPMENT_TEAM = PP7EWEKNZZ
+
+// Build number. App Store Connect rejects a second upload that reuses one,
+// so it has to move on every archive. Date-based (YYMMDDHHmm, UTC) rather
+// than a counter: the value is identical whoever builds it, needs no query
+// to App Store Connect, is monotonic by construction, and reads back as
+// the moment the build was cut.
+//
+// Bumped by scripts/ios/bump-build-number.sh, which rewrites the line
+// below. Committed rather than generated at build time so the repository
+// records exactly which build number went out.
+CURRENT_PROJECT_VERSION = 2608190218
