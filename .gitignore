@@ -52,3 +52,6 @@ _ide_helper_models.php
 /apps/ios/**/*.xcodeproj/project.xcworkspace/xcuserdata/
 /apps/ios/**/*.xcworkspace/xcuserdata/
 /apps/ios/**/DerivedData/
+
+# Simulation output — regenerate with `php artisan wildlive:simulate`.
+/storage/sim/
